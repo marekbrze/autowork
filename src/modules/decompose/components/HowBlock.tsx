@@ -7,8 +7,10 @@ import { NextActionItem } from './NextActionItem';
 import type { NextAction } from '../types/next-action';
 import type { Task } from '../types/task';
 
-/** Przykłady modelujące aktywny, konkretny język (ADR 0006). */
-const ACTION_EXAMPLES = ['Zadzwoń do…', 'Wyślij…', 'Wpłać…', 'Umów…'];
+/** Przykłady modelujące aktywny, konkretny język (ADR 0006).
+ *  Wartość z końcową spacją ląduje w polu (gotowa do dokończenia);
+ *  wielokropek doklejamy tylko do etykiety chipa. */
+const ACTION_EXAMPLES = ['Zadzwoń do ', 'Wyślij ', 'Wpłać ', 'Umów '];
 
 interface HowBlockProps {
   stressorId: string;
@@ -91,7 +93,7 @@ export function HowBlock({
         <span className="text-xs text-muted-foreground">np.</span>
         {ACTION_EXAMPLES.map((ex) => (
           <button
-            key={ex}
+            key={ex.trim()}
             type="button"
             className="rounded-full border border-input bg-background px-2 py-0.5 text-xs outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
             onClick={() => {
@@ -99,7 +101,7 @@ export function HowBlock({
               inputRef.current?.focus();
             }}
           >
-            {ex}
+            {ex.trim()}…
           </button>
         ))}
       </div>

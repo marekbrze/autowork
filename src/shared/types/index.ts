@@ -16,7 +16,7 @@ export function generateId(): string {
 /**
  * Walencja motywacji (`Reason` w `decompose`).
  * - `positive` — approach (zysk): co user zyska, gdy skończy.
- * - `negative` — avoidance (uniknięcie bólu): czego uniknie, gdy nie odłoży.
+ * - `negative` — avoidance (uniknięcie bólu): co usera czeka, gdy tego nie zrobi.
  */
 export type Valence = 'positive' | 'negative';
 

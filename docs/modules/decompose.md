@@ -14,7 +14,7 @@ Obie połowy modułu używają **tego samego wzorca — prompt pokazany, user wy
 ### Per-stresor (powtarza się dla każdego, w kolejności rankingu)
 1. User wchodzi w `decompose` → widzi **jeden stresor** (najbardziej stresujący jako pierwszy) wyciągnięty na środek ekranu.
 2. **Blok WHY (motywacja)** pokazany od razu (nie schowany):
-   - user dopisuje **powody** (kilka), każdy z **walencją** — *pozytywną* (zysk: „co zyskam, jak to skończę") lub *negatywną* (uniknięcie bólu: „czego uniknę, jak tego nie odłożę");
+   - user dopisuje **powody** (kilka), każdy z **walencją** — *pozytywną* (zysk: „co zyskam, jak to skończę") lub *negatywną* (koszty braku działania: „co mnie czeka, jak tego nie zrobię");
    - opcjonalnie **pozytywna wizja efektu** — żywy, zmysłowy opis (tekst + emoji) zrobionego stanu (payoff);
    - może **skipnąć** cały blok i iść dalej.
 3. **Blok HOW (next-actiony)**: user wpisuje next-actiony (Enter dodaje kolejny, jak brain dump w `capture`).

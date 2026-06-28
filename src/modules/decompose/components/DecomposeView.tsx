@@ -98,6 +98,13 @@ export function DecomposeView() {
     deleteTasksByNextAction(id);
   };
 
+  // Zmiana stresora zawsze zaczyna od pod-kroku A (DLACZEGO) — inaczej `subStep`
+  // przeciekałby do następnego stresora i pomijał blok WHY.
+  const goToStressor = (nextIndex: number) => {
+    setIndex(nextIndex);
+    setSubStep('A');
+  };
+
   const proceed = () => {
     if (!canProceed) return;
     // safety-net: każdy „goły" next-action → 1 konkretny task (ADR 0006)
@@ -105,7 +112,7 @@ export function DecomposeView() {
     if (isLast) {
       navigate('/process');
     } else {
-      setIndex(safeIndex + 1);
+      goToStressor(safeIndex + 1);
     }
   };
 
@@ -126,7 +133,7 @@ export function DecomposeView() {
           variant="ghost"
           size="sm"
           disabled={safeIndex === 0}
-          onClick={() => setIndex(safeIndex - 1)}
+          onClick={() => goToStressor(safeIndex - 1)}
         >
           <ArrowLeft />
           Wstecz

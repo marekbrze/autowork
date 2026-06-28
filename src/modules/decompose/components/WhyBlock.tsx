@@ -18,7 +18,7 @@ interface WhyBlockProps {
 
 /**
  * KROK A — DLACZEGO to jest ważne (WHY). Dwie kolumny walencji
- * (co zyskam ‖ czego uniknę) + opcjonalna wizja efektu (tekst + emoji).
+ * (co zyskam ‖ co mnie czeka) + opcjonalna wizja efektu (tekst + emoji).
  * Blok opcjonalny/skippowalny (ADR 0005) — nigdy nie blokuje przejścia.
  */
 export function WhyBlock({
@@ -60,8 +60,8 @@ export function WhyBlock({
         />
         <ReasonColumn
           valence="negative"
-          title="Czego uniknę, jak odłożę"
-          hint="Uniknięcie bólu — odejście od czegoś złego."
+          title="Co mnie czeka, jak tego nie zrobię"
+          hint="Cena zwłoki — to, co się pogorszy, jak to odłożysz."
           reasons={negative}
           onAdd={(text) => onAddReason(stressorId, text, 'negative')}
           onDelete={onDeleteReason}

@@ -41,8 +41,8 @@ export function buildDecomposeSeedFull(stressorId: string): DecomposeSeed {
   const reasons: Reason[] = [
     { id: generateId(), stressorId, text: 'wrócę bezpiecznie do domu każdej nocy', valence: 'positive', createdAt: TS, updatedAt: TS },
     { id: generateId(), stressorId, text: 'spokój — nie będę nasłuchiwać każdego dźwięku spod maski', valence: 'positive', createdAt: TS, updatedAt: TS },
-    { id: generateId(), stressorId, text: 'uniknę zepsucia się w trasie', valence: 'negative', createdAt: TS, updatedAt: TS },
-    { id: generateId(), stressorId, text: 'uniknę droższej naprawy, gdy zignoruję objawy', valence: 'negative', createdAt: TS, updatedAt: TS },
+    { id: generateId(), stressorId, text: 'auto zepsuje się w trasie', valence: 'negative', createdAt: TS, updatedAt: TS },
+    { id: generateId(), stressorId, text: 'droższa naprawa, gdy zignoruję objawy', valence: 'negative', createdAt: TS, updatedAt: TS },
   ];
 
   const nextActions: NextAction[] = [
