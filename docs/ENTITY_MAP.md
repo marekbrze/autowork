@@ -9,7 +9,8 @@ Nazwy encji są po angielsku — to identyfikatory, które wejdą do kodu. Opisy
 erDiagram
     User ||--o{ Run : "owns"
     Run ||--o{ Stressor : "brain dump"
-    Stressor ||--o{ NextAction : "has"
+    Stressor ||--o{ Reason : "motivated by (WHY)"
+    Stressor ||--o{ NextAction : "has (HOW)"
     NextAction ||--o{ Task : "decomposes into (1..N)"
     Run ||--o{ FocusSession : "has"
     FocusSession }o--o{ Task : "filtered queue (M:N)"
@@ -26,6 +27,11 @@ erDiagram
     Stressor {
         int rank "position: most→least stressful"
         string text
+        DoneVision doneVision "optional; vivid done-state (text+emoji)"
+    }
+    Reason {
+        string text
+        Valence valence "positive (gain) | negative (avoid pain)"
     }
     Run {
         string name "optional; default = timestamp"
@@ -34,7 +40,7 @@ erDiagram
     }
 ```
 
-**Typy wartości (atrybuty, nie encje):** `Context` (enum), `Energy` (1–3), `EstimatedTime` (preset).
+**Typy wartości (atrybuty, nie encje):** `Context` (enum), `Energy` (1–3), `EstimatedTime` (preset), `Valence` (positive|negative), `DoneVision` (text+emoji).
 **Pomijalnie jako encje (przejściowe ekrany/kroki):** `BrainDump`, `StressRanking`, `Processing`, `SessionFilter`, `Dashboard`.
 
 ## Entities
@@ -62,9 +68,19 @@ erDiagram
 **Instances per Run**: Wiele (0..N; dodawane w kroku 1).
 **Ownership**: Run.
 **Lifecycle**: Tworzony w brain dumpie → ustawiany `rank` (ranking) → przy review-on-resume decydowane, czy nadal obowiązuje → ewentualnie usuwany.
-**States**: brak formalnych; niesie `rank` (pozycja od najbardziej do najmniej stresującego). Na resume: *relevant* / *stale (do usunięcia)*.
-**Contains**: NextActiony.
+**States**: brak formalnych; niesie `rank` (pozycja od najbardziej do najmniej stresującego) — ustalany ręcznie (układanie listy) lub przez `Pairing` (porównania parami). Na resume: *relevant* / *stale (do usunięcia)*.
+**Contains**: NextActiony; **Reasons** (materiał motywacyjny) + opcjonalny `doneVision`.
 **Belongs to**: Run.
+
+### Reason
+**Description**: Pojedynczy powód, dla którego stresor jest dla usera ważny — element materiału motywacyjnego (odpowiedź na „dlaczego"). Niesie walencję: pozytywną (zysk) lub negatywną (uniknięcie bólu). Tworzony w `decompose`; konsumowany później, np. w `focus`.
+**Instances per Stressor**: Wiele (0..N).
+**Ownership**: Stressor / Run.
+**Lifecycle**: Tworzony w `decompose` → edytowalny / usuwalny; konsumowany w `focus` (wyświetlany jako motywacja).
+**States**: brak formalnych; niesie `valence`.
+**Attributes**: `valence`: `Valence` — `positive` (zysk) | `negative` (uniknięcie bólu).
+**Contains**: —.
+**Belongs to**: Stressor.
 
 ### NextAction
 **Description**: Kierunek / pomysł, co pchnie stresor do przodu. Grubszy niż task — może być konkretny (→ 1 task) albo rozbity na kilka.

@@ -11,6 +11,8 @@ Aplikacja, która wyciąga użytkownika z paraliżu planowania, prowadząc go pr
 ## Target Users
 Na ten moment autor projektu — **osobiste narzędzie, single-user, lokalne**. Ktoś, kto przytłoczony zadaniami potrzebuje prowadzenia za rękę przez gotowy lejek, a nie kolejnego pustego edytora list do samodzielnego zarządzania.
 
+**Główna persona projektowa**: osoba z **ADHD** (oraz ogólnie **overwhelmed** — przytłoczona). Decyzje projektowe stroimy pod nią: duże zadanie paraliżuje → rozbijamy na małe; prowadzimy promptami (nudge), nie zmuszamy; motywację traktujemy jako paliwo, które wraca w trudnym momencie (ADR 0007).
+
 ## Deployment & Technical Constraints
 - **Hosting**: GitHub Pages — statyczny build Vite (SPA).
 - **Persystencja**: `localStorage` przeglądarki, **brak backendu**. Dane żyją lokalnie, per-przeglądarka; brak synchronizacji między urządzeniami. Stan między sesjami oparty o trwały, wznawialny `Run`.
@@ -52,3 +54,5 @@ Otwarte pytania z `proto-init` zostały rozstrzygnięte w `proto-deepen` i `prot
 - ✅ **Edycja w trakcie sesji**: focus = tryb wykonania (Done/Skip/Back); edycja w Processing i przy review-on-resume.
 - ✅ **Jednostka listy focus**: `Task` (NextAction rozkłada się na 1..N tasków).
 - ✅ **Single-user / lokalne**: potwierdzone.
+- ✅ **Primary persona**: ADHD / overwhelmed — kształtuje rozbijanie zadań, nudge-not-gate, motywację jako paliwo (ADR 0007).
+- ✅ **`decompose` = WHY + HOW**: WHY (materiał motywacyjny: powody + wizja efektu) i HOW (next-actiony → taski, aktywny/konkretny język); WHY konsumowane w `focus` (ADR 0005, 0006).

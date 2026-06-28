@@ -4,6 +4,9 @@ import { AppShell } from '@/shared/components/AppShell'
 import { DashboardHome } from '@/shared/components/DashboardHome'
 import { ModulePlaceholder } from '@/shared/components/ModulePlaceholder'
 import { DevToolbar } from '@/shared/components/DevToolbar'
+import { BrainDump } from '@/modules/capture/components/BrainDump'
+import { Ranking } from '@/modules/capture/components/Ranking'
+import { DecomposeView } from '@/modules/decompose/components/DecomposeView'
 
 function App() {
   return (
@@ -13,7 +16,12 @@ function App() {
           {/* Home / Dashboard */}
           <Route index element={<DashboardHome />} />
           <Route path="/dashboard" element={<DashboardHome />} />
-          {/* Module routes — proto-lofi replaces these placeholders */}
+          {/* capture — built by proto-lofi */}
+          <Route path="/capture" element={<BrainDump />} />
+          <Route path="/capture/ranking" element={<Ranking />} />
+          {/* decompose — built by proto-lofi */}
+          <Route path="/decompose" element={<DecomposeView />} />
+          {/* Other module routes — proto-lofi replaces these placeholders */}
           <Route path="/:moduleName" element={<ModulePlaceholder />} />
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

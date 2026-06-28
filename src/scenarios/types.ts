@@ -1,5 +1,6 @@
 export type ScenarioName = 'empty' | 'minimal' | 'full' | string;
 
 export interface AppData {
-  [moduleKey: string]: unknown[];
+  /** Wartości są shape-agnostic — loader tylko stringifies do localStorage. */
+  [moduleKey: string]: unknown;
 }

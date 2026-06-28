@@ -15,11 +15,11 @@ Aplikacja to jednokierunkowy lejek wyciągający usera z paraliżu planowania. R
 
 ### decompose
 **Type**: Core
-**Description**: Dla każdego stresora pojedynczo: wypisanie next-actions i rozbicie ich na konkretne, wykonalne taski (konkretny next-action = 1 task; gruby = kilka).
-**Entities**: `NextAction`, `Task` (tworzenie)
-**Key Actions**: Add NextAction, Decompose into Tasks, Edit, Delete
-**Connects to**: `capture` (pobiera stressory); `process` (przekazuje taski do opisania atrybutami)
-**Design priority**: Medium — kluczowy pomost od „stresora" do „wykonalnej jednostki".
+**Description**: Dla każdego stresora pojedynczo (od najbardziej stresującego): WHY — materiał motywacyjny (powody + wizja efektu, „ładujący baterię" dla `focus`) — i HOW — next-actiony zapisane aktywnym/konkretnym językiem, rozbijane na wykonalne taski (konkretny next-action = 1 task; gruby = kilka). Driver: duże zadanie paraliżuje, trzeba rozbijać (persona ADHD/overwhelmed — ADR 0007).
+**Entities**: `Reason`, `DoneVision`, `NextAction`, `Task` (tworzenie)
+**Key Actions**: Add Reason / DoneVision, Skip motivation, Add NextAction, Decompose into Tasks, Edit, Delete
+**Connects to**: `capture` (pobiera stressory); `process` (przekazuje taski do opisania atrybutami); `focus` (przekazuje materiał motywacyjny do pokazania przy trudnym tasku)
+**Design priority**: Medium — pomost od „stresora" do „wykonalnej jednostki" + magazyn paliwa motywacyjnego.
 
 ### process
 **Type**: Core
@@ -63,6 +63,7 @@ graph LR
     capture -->|stressor| decompose
     decompose -->|tasks| process
     process -->|attributed tasks| focus
+    decompose -.->|motivation| focus
     focus -->|updates progress| run
     run -.hosts.-> capture
     run -.hosts.-> decompose
@@ -72,7 +73,7 @@ graph LR
     run -->|history + progress| dashboard
 ```
 
-Linie ciągłe = przepływ danych lejka; kropkowane = relacja hosts (każdy krok Core żyje wewnątrz aktywnego Runa).
+Linie ciągłe = przepływ danych lejka; kropkowane = relacja hosts (każdy krok Core żyje wewnątrz aktywnego Runa) oraz dodatkowe przepływy (np. materiał motywacyjny `decompose` → `focus`).
 
 ## Prototyping Order
 

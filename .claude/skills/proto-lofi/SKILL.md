@@ -202,6 +202,6 @@ Tell the user:
 6. Any design decisions that were made and might need revisiting
 
 Suggest next steps:
-- "Odpal proto-edgecases żeby stresstestować te flows"
+- "Odpal proto-edgecases żeby znaleźć edge case'y, potem proto-harden żeby je zaimplementować"
 - "Przetestuj prototyp z userami i daj znać co trzeba zmienić"
 - "Możesz odpalić proto-lofi na kolejnym module"

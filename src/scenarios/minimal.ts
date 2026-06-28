@@ -1,5 +1,6 @@
+import { captureStressorsMinimal } from './data/capture';
 import type { AppData } from './types';
 
 export function minimalScenario(): AppData {
-  return {};
+  return { 'capture:stressors': captureStressorsMinimal };
 }

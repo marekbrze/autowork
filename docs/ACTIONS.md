@@ -23,17 +23,27 @@ Kompletna lista akcji, jakie user może wykonać — pogrupowana po encji. Forma
 | Action | Description | Role | Notes |
 |--------|-------------|------|-------|
 | Add Stressor | Brain dump — wpisz stresor, Enter dodaje kolejny. | User | Krok 1. |
-| Rank Stressor | Ułóż od najbardziej do najmniej stresującego. | User | Krok 2; ustawia `rank`. |
+| Pick prompt suggestion | Kliknij rotujący banner-prompt, żeby sobie pomóc (pre-fill pola). | User | `PromptBanner`; rotuje co kilka sekund. |
 | Edit Stressor | Zmień tekst. | User | |
-| Delete Stressor | Usuń (razem z dziećmi). | User | Przy review lub w dowolnym momencie. |
+| Delete Stressor | Usuń (razem z dziećmi). | User | Klawiatura: Backspace/Usuń; **undo domyślnie włączone** (Ctrl+Z). Przy review lub w dowolnym momencie. |
+| Rank Stressor | Ułóż od najbardziej do najmniej stresującego. | User | Krok 2; ustawia `rank`. Ręcznie (drag/↑↓) lub przez `Pairing`. |
+| Run Pairing | Uruchom i ukończ ciąg porównań parami; algorytm układa finalną kolejność. | User | Opcjonalna metoda ranking; zobowiązany ciąg (start → pełne przejście); wymaga ≥2 stresorów. |
 | Mark relevant / stale | Przy review: potwierdź, że nadal obowiązuje, albo oflaguj do usunięcia. | User | |
+
+### Motivation (WHY — materiał motywacyjny)
+
+| Action | Description | Role | Notes |
+|--------|-------------|------|-------|
+| Add Reason | Dopisz powód, dlaczego stresor jest ważny, z walencją: pozytywna (zysk) / negatywna (uniknięcie bólu). | User | Blok WHY w `decompose`; kilka na stresor. Encja `Reason`. |
+| Add DoneVision | Opisz pozytywną wizję efektu — zrobiony stan (żywy tekst + emoji). | User | Opcjonalne, 0..1 na stresor; atrybut `doneVision` na `Stressor`. |
+| Skip motivation | Pomiń blok WHY i idź do next-actionów. | User | WHY nigdy nie blokuje (nudge, nie bramka). |
 
 ### NextAction
 
 | Action | Description | Role | Notes |
 |--------|-------------|------|-------|
-| Add NextAction | Wypisz, co pchnie stresor do przodu (może być kilka). | User | Krok 3. |
-| Decompose into Tasks | Rozbij gruby NextAction na konkretne Taski. | User | 1..N; konkretny = 1. |
+| Add NextAction | Wypisz, co pchnie stresor do przodu (może być kilka). | User | Krok 3; **aktywny, konkretny język** (czasownik, wykonalne) — ADR 0006. |
+| Decompose into Tasks | Rozbij gruby NextAction na konkretne Taski. | User | Prompt „Jak to możesz rozbić?" pod next-actionem; skip = 1 Task (konkretny = 1). |
 | Edit NextAction | Zmień tekst. | User | |
 | Delete NextAction | Usuń. | User | |
 

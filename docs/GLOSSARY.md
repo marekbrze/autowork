@@ -6,8 +6,14 @@ Terms and concepts specific to this project. Used across all project skills to m
 |------|-----------|------------|--------------|
 | Stresor (stresująca rzecz) | `Stressor` | Pojedyncza rzecz wpisana w brain dumpie — coś, co teraz stresuje. Surowy materiał wejściowy lejka, zanim zostanie rozbity na akcje. | "zadanie" (zadanie = `Task`/`NextAction` po procesowaniu), "problem" |
 | Brain dump | `BrainDump` | Pierwszy krok: wyrzucenie z głowy wszystkich stresorów, jeden po drugim, bez oceny. | "lista", "wpisywanie" |
+| Rotujący banner-prompt | `PromptBanner` | Interaktywny banner w brain dumpie, zmieniający się co kilka sekund; podsuwa kategorie / przykłady stresorów („finanse", „A rata kredytu?"), żeby wyciągnąć to, co umyka. Klikalny — pomaga wypełnić pole. | "podpowiedzi", "tooltip" |
 | Ranking stresu | `StressRanking` | Krok 2: ułożenie stresorów od najbardziej do najmniej stresującego. Decyduje o kolejności przetwarzania. | "sortowanie", "priorytet" (priorytet wynika ze stresu) |
-| Next-action (krok do przodu) | `NextAction` | Konkretna akcja pod stresorem, która pchnie go do przodu. Jednego stresora może być kilka. Prawdopodobnie stają się jednostkami na liście focus. | "krok" (zbyt ogólne), "podzadanie" |
+| Parowanie (ranking parami) | `Pairing` | Opcjonalna metoda ranking: zobowiązany ciąg porównań parami („który bardziej stresuje: A czy B?"); po przejściu całości mądry algorytm (np. insertion/merge sort, ranking ELO) układa finalną kolejność. Obok ręcznego układania listy. | "głosowanie", "sortowanie" |
+| Motywacja (materiał motywacyjny) | `Motivation` | WHY w `decompose`: powody, dla których stresor jest ważny, + wizja efektu. „Ładuje baterię", którą `focus` zużywa później jako przypomnienie „po co to robisz". | "opis", "komentarz" |
+| Powód (motywacyjny) | `Reason` | Pojedynczy powód, dla którego stresor jest dla usera ważny. Niesie walencję: pozytywną (zysk) lub negatywną (uniknięcie bólu). Kilka na stresor. | "zaleta", "minus" |
+| Walencja motywacji | `Valence` | Rodzaj motywacji: `positive` (approach — zysk) lub `negative` (avoidance — uniknięcie bólu). | "dodatnia/ujemna" |
+| Wizja efektu | `DoneVision` | Pozytywna wizualizacja zrobionego stanu stresora — żywy, zmysłowy opis (tekst + emoji). Payoff. | "cel", "marzenie" |
+| Next-action (krok do przodu) | `NextAction` | Konkretna akcja pod stresorem, która pchnie go do przodu — **zapisana aktywnym, konkretnym językiem** (czasownik, wykonalne). Jednego stresora może być kilka. Prawdopodobnie stają się jednostkami na liście focus. | "krok" (zbyt ogólne), "podzadanie" |
 | Procesowanie (inbox / GTD) | `Processing` | Krok 4: nadanie każdemu zadaniu kontekstu, energii i czasu — styl inboxa GTD (jak w aplikacji *dopadone*). | "sortowanie", "tagowanie" |
 | Kontekst | `Context` | Miejsce / tryb, w którym zadanie można wykonać. Kategorie do wyboru (patrz niżej). Multi-select przy wyborze sesji. | "tag", "kategoria", "etykieta" |
 | — telefon | `Context.Phone` | Zadanie do zrobienia przez telefon. | |
@@ -39,7 +45,7 @@ Nazwy modułów = foldery / przestrzenie nazw w kodzie. Szczegóły: `docs/MODUL
 | Moduł | Co pokrywa |
 |------|-----------|
 | `capture` | Brain dump + ranking stresu (`Stressor`). |
-| `decompose` | Next-actions i rozbicie na taski (`NextAction`, `Task`). |
+| `decompose` | WHY (motywacja: powody + wizja efektu) i HOW (next-actiony → taski) — `Reason`, `DoneVision`, `NextAction`, `Task`. |
 | `process` | Procesowanie GTD — kontekst / energia / czas (`Task`). |
 | `focus` | Filtrowanie sesji + sesja focus + timer + podsumowanie (`FocusSession`, `Timer`, `SessionSummary`). |
 | `run` | Cykl życia Runa — tworzenie / resume / progres / review (`Run`). |

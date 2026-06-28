@@ -156,4 +156,4 @@ Tell the user where the files are and summarize:
 - ADR entries created (list them)
 - Main flows, rough screen count, edge cases flagged
 
-Next steps: "Możesz teraz odpalić proto-edgecases żeby stresstestować te flows, albo proto-lofi żeby zacząć budować prototyp."
+Next steps: "Możesz teraz odpalić proto-lofi żeby zbudować prototyp tego modułu. Gdy prototyp działa: proto-edgecases znajdzie edge case'y, a proto-harden je obsłuży."
