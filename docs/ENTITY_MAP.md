@@ -104,6 +104,7 @@ erDiagram
   - `energy`: `Energy` — 1..3 (bateryjki: 1 = Low, 3 = High)
   - `estimatedTime`: `EstimatedTime` — preset `5` | `15` | `30` | `45` | `60` min
   - `timerElapsed`: licznik upłyniętego czasu — persystowany, do wznowienia timera
+  - **Nullability**: `context`, `energy`, `estimatedTime` są **opcjonalne (nullable)** — nadawane w `process`, ale każdy można pominąć (nudge, ADR 0007/0013); task bez danego atrybutu nie kwalifikuje się do sesji tego wymagających.
 **Contains**: —.
 **Belongs to**: NextAction.
 

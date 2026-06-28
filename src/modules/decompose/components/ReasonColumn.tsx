@@ -3,7 +3,7 @@ import { Plus, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 
-import { ConfirmDialog } from './ConfirmDialog';
+import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import type { Reason } from '../types/reason';
 import type { Valence } from '@/shared/types';
 

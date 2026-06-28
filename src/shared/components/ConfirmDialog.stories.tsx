@@ -3,12 +3,12 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { ConfirmDialog } from './ConfirmDialog';
 
 const meta: Meta<typeof ConfirmDialog> = {
-  title: 'Decompose/ConfirmDialog',
+  title: 'Shared/ConfirmDialog',
   component: ConfirmDialog,
   args: {
     open: true,
-    title: 'Usunąć ten next-action?',
-    description: 'Usunę też jego taski. Tej operacji nie da się cofnąć.',
+    title: 'Usunąć ten element?',
+    description: 'Tej operacji nie da się cofnąć.',
     confirmLabel: 'Usuń',
     cancelLabel: 'Anuluj',
     onConfirm: () => console.log('confirm'),
@@ -21,13 +21,26 @@ export default meta;
 type Story = StoryObj<typeof ConfirmDialog>;
 
 /** Potwierdzenie usunięcia next-actionu (razem z jego taskami). Fokus na „Anuluj". */
-export const DeleteNextAction: Story = {};
+export const DeleteNextAction: Story = {
+  args: {
+    title: 'Usunąć ten next-action?',
+    description: 'Usunę też jego taski. Tej operacji nie da się cofnąć.',
+  },
+};
 
-/** Potwierdzenie usunięcia pojedynczego powodu. */
+/** Potwierdzenie usunięcia pojedynczego powodu (decompose). */
 export const DeleteReason: Story = {
   args: {
     title: 'Usunąć ten powód?',
     description: 'Ta operacja nie da się cofnąć.',
+  },
+};
+
+/** Potwierdzenie usunięcia taska mid-session (process). */
+export const DeleteTask: Story = {
+  args: {
+    title: 'Usunąć to zadanie?',
+    description: 'Zniknie z kolejki procesowania. Tej operacji nie da się cofnąć.',
   },
 };
 

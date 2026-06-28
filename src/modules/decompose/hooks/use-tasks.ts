@@ -26,18 +26,15 @@ export function useTasks() {
   const [tasks, setTasks, , storage] = useLocalStorage<Task[]>(STORAGE_KEY, []);
 
   const updateTask = useCallback(
-    (id: string, patch: Partial<Task>) => {
+    (id: string, patch: Partial<Task>): boolean =>
       setTasks((prev) =>
         prev.map((t) => (t.id === id ? { ...t, ...patch, updatedAt: new Date().toISOString() } : t)),
-      );
-    },
+      ),
     [setTasks],
   );
 
   const deleteTask = useCallback(
-    (id: string) => {
-      setTasks((prev) => prev.filter((t) => t.id !== id));
-    },
+    (id: string): boolean => setTasks((prev) => prev.filter((t) => t.id !== id)),
     [setTasks],
   );
 

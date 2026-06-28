@@ -52,7 +52,8 @@ Kompletna lista akcji, jakie user może wykonać — pogrupowana po encji. Forma
 | Action | Description | Role | Notes |
 |--------|-------------|------|-------|
 | Create Task | Z rozbicia NextAction lub bezpośrednio (konkretny → 1 Task). | User | |
-| Assign attributes (Processing) | Przypnij `Context` (jeden), `Energy` (1–3), `EstimatedTime` (preset). | User | Krok 4 (styl inbox GTD). |
+| Assign attributes (Processing) | Przypnij `Context` (jeden), `Energy` (1–3), `EstimatedTime` (preset). | User | Krok 4 (styl inbox GTD). Option-card + klawisz + Enter; jeden krok na brakujący atrybut (wzorzec `dopadone` `ProcessingView` — ADR 0012). |
+| Skip attribute | Pomiń dany atrybut w Processing — zostaw null (Esc). | User | Nudge, nie bramka (ADR 0007); task bez atrybutu nie wpada do sesji tego wymagających (ADR 0013). |
 | Edit Task | Zmień atrybuty / tekst. | User | W Processing i przy review-on-resume; **nie** w trakcie aktywnej sesji focus (tryb wykonania). |
 | Delete Task | Usuń. | User | |
 | Filter into session | Stań się kwalifikującym przez SessionFilter (Context(y) + poziomy energii). | User | Niejawne, przez wybór filtra. |

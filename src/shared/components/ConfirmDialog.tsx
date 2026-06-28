@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 
 import { Button } from '@/components/ui/button';
 
@@ -13,11 +13,11 @@ interface ConfirmDialogProps {
 }
 
 /**
- * AlertDialog-style potwierdzenie akcji niszczącej w `decompose` (usuwanie
- * next-actionu z taskami, usuwanie powodu). Hand-built, w stylu `DecomposeModal`:
- * Escape i klik w tło = anuluj; fokus trafia na „Anuluj" (najmniej destruktywna
- * akcja — Enter nie usuwa). Wybór designu: potwierdzenie, nie undo (odmiennie
- * niż capture/ADR 0004).
+ * AlertDialog-style potwierdzenie akcji niszczącej. Hand-built, w stylu modali
+ * w projekcie: Escape i klik w tło = anuluj; fokus trafia na pierwszy przycisk
+ * („Anuluj" — najmniej destruktywna akcja, Enter nie usuwa). Współdzielony przez
+ * moduły (decompose, process). Wybór designu: potwierdzenie, nie undo (odmiennie
+ * niż capture/ADR 0004). `useId` zapewnia unikalne aria-id w wielu instancjach.
  */
 export function ConfirmDialog({
   open,
@@ -29,6 +29,9 @@ export function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const reactId = useId();
+  const titleId = `${reactId}-title`;
+  const descId = `${reactId}-desc`;
 
   // Przenieś fokus do dialogu (na „Anuluj") przy otwarciu.
   useEffect(() => {
@@ -37,7 +40,7 @@ export function ConfirmDialog({
     return () => window.clearTimeout(id);
   }, [open]);
 
-  // Escape = anuluj (spójnie z `DecomposeModal`).
+  // Escape = anuluj (spójnie z resztą modali w projekcie).
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -53,20 +56,24 @@ export function ConfirmDialog({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       role="presentation"
+      onClick={(e) => {
+        // Klik w tło (nie w panel) = anuluj; klik w panelu się nie propaguje.
+        if (e.target === e.currentTarget) onCancel();
+      }}
     >
       <div
         ref={panelRef}
         role="alertdialog"
         aria-modal="true"
-        aria-labelledby="decompose-confirm-title"
-        aria-describedby="decompose-confirm-desc"
+        aria-labelledby={titleId}
+        aria-describedby={descId}
         className="w-full max-w-sm space-y-4 rounded-xl border bg-background p-6 shadow-xl"
       >
         <div className="space-y-1.5">
-          <h3 id="decompose-confirm-title" className="text-lg font-semibold leading-tight">
+          <h3 id={titleId} className="text-lg font-semibold leading-tight">
             {title}
           </h3>
-          <p id="decompose-confirm-desc" className="text-sm text-muted-foreground">
+          <p id={descId} className="text-sm text-muted-foreground">
             {description}
           </p>
         </div>

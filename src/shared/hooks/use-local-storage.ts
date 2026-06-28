@@ -51,17 +51,18 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
   );
 
   const setValue = useCallback(
-    (value: T | ((val: T) => T)) => {
+    (value: T | ((val: T) => T)): boolean => {
       const next = value instanceof Function ? value(storedValue) : value;
       if (persist(next)) {
         setStoredValue(next);
         pendingRef.current = null;
         setWriteError(false);
-      } else {
-        // nie aktualizujemy stanu — UI musi odzwierciedlać to, co faktycznie zapisane
-        pendingRef.current = next;
-        setWriteError(true);
+        return true;
       }
+      // nie aktualizujemy stanu — UI musi odzwierciedlać to, co faktycznie zapisane
+      pendingRef.current = next;
+      setWriteError(true);
+      return false;
     },
     [storedValue, persist],
   );

@@ -7,6 +7,7 @@ import { DevToolbar } from '@/shared/components/DevToolbar'
 import { BrainDump } from '@/modules/capture/components/BrainDump'
 import { Ranking } from '@/modules/capture/components/Ranking'
 import { DecomposeView } from '@/modules/decompose/components/DecomposeView'
+import { ProcessView } from '@/modules/process/components/ProcessView'
 
 function App() {
   return (
@@ -21,6 +22,8 @@ function App() {
           <Route path="/capture/ranking" element={<Ranking />} />
           {/* decompose — built by proto-lofi */}
           <Route path="/decompose" element={<DecomposeView />} />
+          {/* process — built by proto-lofi */}
+          <Route path="/process" element={<ProcessView />} />
           {/* Other module routes — proto-lofi replaces these placeholders */}
           <Route path="/:moduleName" element={<ModulePlaceholder />} />
           {/* Fallback */}

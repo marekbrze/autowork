@@ -4,7 +4,7 @@ import { Check, Scissors, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-import { ConfirmDialog } from './ConfirmDialog';
+import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { DecomposeModal } from './DecomposeModal';
 import type { NextAction } from '../types/next-action';
 import type { Task } from '../types/task';
