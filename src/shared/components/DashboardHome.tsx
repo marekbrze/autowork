@@ -16,12 +16,20 @@ export function DashboardHome() {
         <p className="text-muted-foreground">
           Tu pojawi się progres aktywnego Runa i historia przejazdów.
         </p>
-        <Link
-          to="/capture"
-          className={cn(buttonVariants({ variant: 'default', size: 'lg' }))}
-        >
-          Zacznij nowy Run
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            to="/capture"
+            className={cn(buttonVariants({ variant: 'default', size: 'lg' }))}
+          >
+            Zacznij nowy Run
+          </Link>
+          <Link
+            to="/run"
+            className={cn(buttonVariants({ variant: 'outline' }))}
+          >
+            Moje Runy
+          </Link>
+        </div>
       </section>
 
       {/* Placeholder grid — proto-lofi fills with real run data (scenarios). */}

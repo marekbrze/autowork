@@ -1,5 +1,6 @@
 import { captureStressorsFull } from './data/capture';
 import { buildDecomposeSeedFull } from './data/decompose';
+import { runsFull } from './data/run';
 import type { AppData } from './types';
 
 export function fullScenario(): AppData {
@@ -12,5 +13,6 @@ export function fullScenario(): AppData {
     'decompose:nextActions': decompose.nextActions,
     'decompose:tasks': decompose.tasks,
     'decompose:doneVisions': Object.fromEntries([decompose.doneVision]),
+    'run:runs': runsFull,
   };
 }

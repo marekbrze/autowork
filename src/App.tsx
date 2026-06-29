@@ -9,6 +9,10 @@ import { Ranking } from '@/modules/capture/components/Ranking'
 import { DecomposeView } from '@/modules/decompose/components/DecomposeView'
 import { ProcessView } from '@/modules/process/components/ProcessView'
 import { FocusView } from '@/modules/focus/components/FocusView'
+import { RunsList } from '@/modules/run/components/RunsList'
+import { RunDetails } from '@/modules/run/components/RunDetails'
+import { ArchivedRuns } from '@/modules/run/components/ArchivedRuns'
+import { ReviewRun } from '@/modules/run/components/ReviewRun'
 
 function App() {
   return (
@@ -18,6 +22,11 @@ function App() {
           {/* Home / Dashboard */}
           <Route index element={<DashboardHome />} />
           <Route path="/dashboard" element={<DashboardHome />} />
+          {/* run — built by proto-lofi (lifecycle + stats; dashboard module owns the launcher later) */}
+          <Route path="/run" element={<RunsList />} />
+          <Route path="/run/archived" element={<ArchivedRuns />} />
+          <Route path="/run/:runId/review" element={<ReviewRun />} />
+          <Route path="/run/:runId" element={<RunDetails />} />
           {/* capture — built by proto-lofi */}
           <Route path="/capture" element={<BrainDump />} />
           <Route path="/capture/ranking" element={<Ranking />} />
