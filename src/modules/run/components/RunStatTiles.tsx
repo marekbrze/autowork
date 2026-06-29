@@ -46,6 +46,11 @@ export function RunStatTiles({ run }: RunStatTilesProps) {
         <span className="font-medium text-foreground">{run.stats.dismissedCount}</span> nieaktualne ·{' '}
         <span className="font-medium text-foreground">{remaining}</span> zostały
       </p>
+
+      {/* CM-1: statystyki poglądowe — realna derywacja z przebiegu lejka odłożona (cross-module). */}
+      <p className="text-xs text-muted-foreground/80">
+        Statystyki poglądowe — pełne spięcie z przebiegiem lejka w budowie.
+      </p>
     </div>
   );
 }

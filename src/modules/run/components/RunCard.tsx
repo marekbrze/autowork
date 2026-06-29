@@ -23,7 +23,8 @@ export function RunCard({ run, actions }: RunCardProps) {
       <div className="space-y-1">
         <Link
           to={`/run/${run.id}`}
-          className="font-medium leading-tight hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 rounded"
+          title={run.name}
+          className="block truncate font-medium leading-tight hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 rounded"
         >
           {run.name}
         </Link>

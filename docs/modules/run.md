@@ -66,11 +66,15 @@ To odejście od wczesnej notki „MVP = jeden ukryty aktywny Run" (`MODULES.md`)
 ## Edge Cases
 - **Pusty Run** (brak stresorów): Kontynuuj → brain dump.
 - **Task bez atrybutów**: nadal „gotowy" do focusa (ADR 0013) — po prostu nie wpadnie do filtrów wymagających danego atrybutu.
-- **Run ukończony** (100% done/dismissed): stan ukończenia na Szczegółach; **bez auto-archive** (archiwizacja wyłącznie ręczna).
+- **Run ukończony** (100% done/dismissed): na Szczegółach sekcja „Przejazd ukończony" + CTA „Archiwizuj ten przejazd"; **bez auto-archive** (archiwizacja wyłącznie ręczna).
 - **Resume zapauzowanej sesji**: timer wznawia od zapisanej pozycji (`timerElapsed`), nie od 0.
 - **Wiele aktywnych runów naraz**: każdy ma własny `lastReachedStep` i statystyki; Kontynuuj kieruje per-Run.
+- **Błąd odczytu storage** (uszkodzony `run:runs`): stan błędu (`RunReadError`) zamiast mylnego empty-state; odśwież jako droga naprawy.
+- **Walidacja rename**: pusta nazwa (lub same spacje) blokuje „Zapisz" + inline komunikat (`aria-invalid`); `maxLength` 60.
+- **Bulk-usuwanie w Review**: „Usuń przeterminowane" wymaga potwierdzenia (`ConfirmDialog`).
+- **Statystyki poglądowe**: w prototypie statystyki / `lastReachedStep` / review-items są mockiem (dane lejka globalne) — oznaczone jako poglądowe. Realne spięcie per-Run odłożone do fazy integracji (cross-module).
 
-(Pełny audyt edge case'ów — np. uszkodzony localStorage, konflikt nazw, puste statystyki — w `proto-edgecases`.)
+Pełny audyt i status każdej luki: `docs/modules/run-edgecases.md` (po `proto-harden`: ✅ 6 wdrożonych, ❌ 10 odłożonych z racją).
 
 ## Integration Points
 - **capture**: tworzy Run implicite przy Create; brain dump to pierwszy krok lejka.

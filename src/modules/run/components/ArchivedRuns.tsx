@@ -9,6 +9,7 @@ import { StorageStatusToast } from '@/modules/capture/components/StorageStatusTo
 
 import { useRuns } from '../hooks/use-runs';
 import { RunCard } from './RunCard';
+import { RunReadError } from './RunStates';
 
 /** Ekran archiwum (historia) — zarchiwizowane Runy z rozarchiwizowaniem / usuwaniem. */
 export function ArchivedRuns() {
@@ -35,7 +36,9 @@ export function ArchivedRuns() {
         </p>
       </header>
 
-      {archived.length === 0 ? (
+      {storage.readError ? (
+        <RunReadError onReload={() => window.location.reload()} />
+      ) : archived.length === 0 ? (
         <div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
           Brak zarchiwizowanych runów.
         </div>
@@ -81,8 +84,9 @@ export function ArchivedRuns() {
         description="Run zniknie na stałe — również ze statystyk i historii. Tej operacji nie da się cofnąć."
         confirmLabel="Usuń na stałe"
         onConfirm={() => {
-          if (confirmId) deleteRun(confirmId);
-          setConfirmId(null);
+          // AO-3: honest persistence — zamykaj dialog tylko po udanym usunięciu.
+          // Przy awarii zapisu Run zostaje, toast retry zostaje widoczny.
+          if (confirmId && deleteRun(confirmId)) setConfirmId(null);
         }}
         onCancel={() => setConfirmId(null)}
       />

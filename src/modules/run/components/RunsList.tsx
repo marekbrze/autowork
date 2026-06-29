@@ -9,6 +9,7 @@ import { StorageStatusToast } from '@/modules/capture/components/StorageStatusTo
 import { useRuns } from '../hooks/use-runs';
 import { STEP_ROUTE } from '../types/run';
 import { RunCard } from './RunCard';
+import { RunReadError } from './RunStates';
 
 /**
  * Lista aktywnych Runów (entry `/run`). Każda karta = Kontynuuj + Szczegóły
@@ -51,7 +52,9 @@ export function RunsList() {
         <Button onClick={handleNew}>Nowy Run</Button>
       </header>
 
-      {active.length === 0 ? (
+      {storage.readError ? (
+        <RunReadError onReload={() => window.location.reload()} />
+      ) : active.length === 0 ? (
         <div className="rounded-lg border border-dashed p-10 text-center">
           <p className="text-sm text-muted-foreground">
             Nie masz jeszcze żadnego aktywnego Runa.

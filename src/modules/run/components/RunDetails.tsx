@@ -10,6 +10,7 @@ import { StorageStatusToast } from '@/modules/capture/components/StorageStatusTo
 import { useRuns } from '../hooks/use-runs';
 import { isRunCompleted, STEP_LABEL, STEP_ROUTE } from '../types/run';
 import { RunStatTiles } from './RunStatTiles';
+import { RunCompleted } from './RunStates';
 
 /**
  * Szczegóły Runa („widoczny obiekt ze statystykami"): kafelki statystyk +
@@ -54,6 +55,8 @@ export function RunDetails() {
   const completed = isRunCompleted(run);
   const archived = run.state === 'archived';
   const staleCount = run.reviewItems.filter((it) => it.stale).length;
+  // FI-1: walidacja rename — nazwa nie może być pusta (same spacje = nieważna).
+  const nameValid = draft.trim().length > 0;
 
   const saveRename = () => {
     if (renameRun(run.id, draft)) setEditing(false);
@@ -79,32 +82,42 @@ export function RunDetails() {
               e.preventDefault();
               saveRename();
             }}
-            className="flex flex-wrap items-center gap-2"
+            className="space-y-2"
           >
-            <label htmlFor="run-name" className="sr-only">
-              Nazwa Runa
-            </label>
-            <input
-              id="run-name"
-              ref={nameInputRef}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              className="min-w-0 flex-1 rounded-md border bg-background px-3 py-2 text-lg font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-            />
-            <Button type="submit" size="sm">
-              Zapisz
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setDraft(run.name);
-                setEditing(false);
-              }}
-            >
-              Anuluj
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <label htmlFor="run-name" className="sr-only">
+                Nazwa Runa
+              </label>
+              <input
+                id="run-name"
+                ref={nameInputRef}
+                value={draft}
+                maxLength={60}
+                aria-invalid={!nameValid}
+                aria-describedby={!nameValid ? 'run-name-help' : undefined}
+                onChange={(e) => setDraft(e.target.value)}
+                className="min-w-0 flex-1 rounded-md border bg-background px-3 py-2 text-lg font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+              />
+              <Button type="submit" size="sm" disabled={!nameValid}>
+                Zapisz
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setDraft(run.name);
+                  setEditing(false);
+                }}
+              >
+                Anuluj
+              </Button>
+            </div>
+            {!nameValid && (
+              <p id="run-name-help" className="text-xs text-destructive">
+                Nazwa nie może być pusta.
+              </p>
+            )}
           </form>
         ) : (
           <div className="flex flex-wrap items-center gap-3">
@@ -122,27 +135,31 @@ export function RunDetails() {
         <RunStatTiles run={run} />
       </section>
 
-      {/* Kontynuuj / resume */}
-      <section className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/30 p-4">
-        <div className="text-sm">
-          {archived ? (
-            <span className="text-muted-foreground">
-              Run zarchiwizowany — rozarchiwizuj, by go kontynuować.
-            </span>
-          ) : (
-            <>
-              <span className="text-muted-foreground">Wznowisz w: </span>
-              <span className="font-medium">{STEP_LABEL[run.lastReachedStep]}</span>
-            </>
-          )}
-        </div>
-        <Button
-          disabled={archived}
-          onClick={() => navigate(STEP_ROUTE[run.lastReachedStep])}
-        >
-          Kontynuuj
-        </Button>
-      </section>
+      {/* Kontynuuj / resume — lub stan ukończony (ST-1), lub zarchiwizowany */}
+      {completed && !archived ? (
+        <RunCompleted onArchive={() => archiveRun(run.id)} />
+      ) : (
+        <section className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/30 p-4">
+          <div className="text-sm">
+            {archived ? (
+              <span className="text-muted-foreground">
+                Run zarchiwizowany — rozarchiwizuj, by go kontynuować.
+              </span>
+            ) : (
+              <>
+                <span className="text-muted-foreground">Wznowisz w: </span>
+                <span className="font-medium">{STEP_LABEL[run.lastReachedStep]}</span>
+              </>
+            )}
+          </div>
+          <Button
+            disabled={archived}
+            onClick={() => navigate(STEP_ROUTE[run.lastReachedStep])}
+          >
+            Kontynuuj
+          </Button>
+        </section>
+      )}
 
       {/* Akcje zarządzania */}
       <section className="grid gap-2 sm:grid-cols-2">

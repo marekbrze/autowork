@@ -11,6 +11,7 @@
   - gating nawigacji przy awarii zapisu dla create/delete — `use-runs.ts:37`, `RunDetails.tsx:63`.
 - **Nowe luki znalezione**: 16.
 - **By severity**: 🔴 0 · 🟡 9 · 🟢 7.
+- **Po `proto-harden`**: ✅ 6 wdrożone · ❌ 10 odłożone (z racją). Szczegóły w sekcji *Resolution* na dole.
 
 > Brak 🔴 — lo-fi obsłużył podstawy (empty states, potwierdzenia, toast persystencji). Największa fragmentaryczność: **Run jest w prototypie odłączony od realnych danych lejka** (CM-1/2/3) oraz **brak walidacji/feedbacku formularza rename** i mylny empty-state przy błędzie odczytu storage.
 
@@ -63,3 +64,25 @@ Top-priority luki do wdrożenia w `proto-harden`:
 - **AO-2** — potwierdzenie/undo dla „Usuń przeterminowane".
 
 Każdy wiersz wskazuje `file:line` gdzie luka żyje — `proto-harden` (lub designer) może działać od razu. „Suggested behavior" to punkt startowy, nie decyzja ostateczna; `proto-harden` potwierdza lub nadpisuje każde z designerem.
+
+## Resolution (`proto-harden`)
+
+### ✅ Wdrożone (6)
+- **LE-1** — stan błędu odczytu storage zamiast mylnego empty-state. `RunStates.tsx:RunReadError`; wstawiony w `RunsList.tsx:55` i `ArchivedRuns.tsx:39` (gdy `storage.readError`). Story: `Run/RunStates → ReadError`, `Run/RunsList → ReadError`, `Run/ArchivedRuns → ReadError`.
+- **FI-1** — walidacja rename: „Zapisz" disabled przy pustej nazwie, `aria-invalid` + `aria-describedby` + inline komunikat. `RunDetails.tsx` (`nameValid`, form). `maxLength={60}` (DS-2).
+- **ST-1** — ukończony Run (`isRunCompleted && !archived`) → sekcja celebracji + CTA „Archiwizuj ten przejazd" zamiast „Kontynuuj". `RunStates.tsx:RunCompleted`; `RunDetails.tsx` (resume section). Story: `Run/RunDetails → Completed`.
+- **AO-2** — `ConfirmDialog` na „Usuń przeterminowane" w Review. `ReviewRun.tsx` (`confirmClear`).
+- **AO-3** — honest persistence: dialog usuwania w ArchivedRuns zamyka się tylko po udanym zapisie. `ArchivedRuns.tsx` (`onConfirm`).
+- **DS-2** — `maxLength` na rename + `truncate` tytułu karty z `title` (hover). `RunDetails.tsx`, `RunCard.tsx:24`.
+
+### ❌ Odłożone (10) — z racją
+- **CM-1 / CM-2 / CM-3** — **cross-module feature** (statystyki / `lastReachedStep` / review-items spięte z realnymi danymi lejka wymaga `runId` na stresorach/taskach + partycji danych we wszystkich krokach lejka + scenariuszach). Poza zakresem harden (decyzja designu: oznaczyć jako poglądowe + odłożyć). Affordance uczciwości: dyskretny caption „Statystyki poglądowe…" na `RunStatTiles.tsx`. Realne spięcie w fazie integracji Runa (moduł `dashboard`).
+- **FI-2** — guard niezapisanego rename przy nawigacji: rename jest niedestrukcyjny i natychmiast powtarzalny; pełny blocker nawigacji (react-router) jest nieadekwatny do ryzyka.
+- **AO-1** — feedback sukcesu archive/unarchive/rename: implicit zmiana stanu (flip przycisku / badge / zamknięcie edycji) jest wystarczająca dla odwracalnych/lokalnych akcji; toasty sukcesu = polish dla `proto-design`.
+- **DS-1** — długie listy runów (grupowanie/wyszukiwanie): polish, niska potrzeba (narzędzie osobiste, mało runów).
+- **DS-3** — świeży Run pokazuje „0 / 0", „0%": poprawne, wystarczające; polish.
+- **DS-4** — zduplikowane nazwy: nazwa ≠ identyfikator; nie jest realnym problemem.
+- **LE-2** — czas względny dat („dziś", „2 dni temu"): polish.
+- **NF-1** — link „nie znaleziono" w ReviewRun → `/run`: poprawne (run nie istnieje → lista jest właściwym celem).
+
+> CM-1/2/3 to jedyne luki strukturalne — reszta odłożonych to świadomie zaakceptowane kompromisy polish/zakres, nie znalezione później błędy.

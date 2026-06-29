@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { StorageStatusToast } from '@/modules/capture/components/StorageStatusToast';
 
 import { useRuns } from '../hooks/use-runs';
@@ -11,6 +13,7 @@ import { useRuns } from '../hooks/use-runs';
 export function ReviewRun() {
   const { runId } = useParams<{ runId: string }>();
   const { getRun, setReviewItemStale, clearStaleReviewItems, storage } = useRuns();
+  const [confirmClear, setConfirmClear] = useState(false);
 
   const run = runId ? getRun(runId) : undefined;
 
@@ -99,7 +102,7 @@ export function ReviewRun() {
             <Button
               variant="destructive"
               disabled={staleCount === 0}
-              onClick={() => clearStaleReviewItems(run.id)}
+              onClick={() => setConfirmClear(true)}
             >
               Usuń przeterminowane{staleCount > 0 ? ` (${staleCount})` : ''}
             </Button>
@@ -113,6 +116,18 @@ export function ReviewRun() {
         onRetry={storage.retry}
         onDismiss={storage.dismiss}
         entityLabel="runa"
+      />
+
+      <ConfirmDialog
+        open={confirmClear}
+        title="Usunąć przeterminowane pozycje?"
+        description={`${staleCount} oflagowanych pozycji zniknie z przeglądu. Tej operacji nie da się cofnąć.`}
+        confirmLabel="Usuń przeterminowane"
+        onConfirm={() => {
+          clearStaleReviewItems(run.id);
+          setConfirmClear(false);
+        }}
+        onCancel={() => setConfirmClear(false)}
       />
     </div>
   );
