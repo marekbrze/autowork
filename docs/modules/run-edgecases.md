@@ -1,0 +1,65 @@
+# Run — Edge Cases
+
+## Coverage
+- **Spec już捕获 (`run.md` → Edge Cases)**: pusty Run → brain dump · task bez atrybutów gotowy (ADR 0013) · Run ukończony 100% bez auto-archive · resume zapauzowanej sesji · wiele aktywnych runów.
+- **Już obsłużone w kodzie**:
+  - Empty states na 3 ekranach — `RunsList.tsx:54`, `ArchivedRuns.tsx:38`, `ReviewRun.tsx:45`.
+  - Potwierdzenie usunięcia (terminalnego) — `RunDetails.tsx:182`, `ArchivedRuns.tsx:78` (`ConfirmDialog`).
+  - Status persystencji (toast write/read error + retry) na 4 ekranach — np. `RunsList.tsx:97`; hook raportuje `use-runs.ts:142`.
+  - Stan „nie znaleziono Runa" — `RunDetails.tsx:43`, `ReviewRun.tsx:17`.
+  - Badge „Ukończony" (wyliczany z progresu, bez auto-archive) — `RunDetails.tsx:201` (`isRunCompleted`).
+  - gating nawigacji przy awarii zapisu dla create/delete — `use-runs.ts:37`, `RunDetails.tsx:63`.
+- **Nowe luki znalezione**: 16.
+- **By severity**: 🔴 0 · 🟡 9 · 🟢 7.
+
+> Brak 🔴 — lo-fi obsłużył podstawy (empty states, potwierdzenia, toast persystencji). Największa fragmentaryczność: **Run jest w prototypie odłączony od realnych danych lejka** (CM-1/2/3) oraz **brak walidacji/feedbacku formularza rename** i mylny empty-state przy błędzie odczytu storage.
+
+## Inventory
+
+| # | Sev | Category | Edge case | Behavior today | Suggested behavior | Where |
+|---|-----|----------|-----------|----------------|--------------------|-------|
+| CM-1 | 🟡 | Cross-module | Statystyki Runa nigdy nie odzwierciedlają realnego postępu | `stats` są mockiem zapisanym na obiekcie; ukończenie tasków / sesja focusa **nie aktualizują** czasu/wykonanych/progresu — „widoczny obiekt ze statystykami" kłamie | Prawdziwa derywacja z danych lejka (suma `timerElapsed`, `completed+dismissed`, total), ALBO jawne oznaczenie statystyk jako ilustracyjnych. Decyzja scope: architektoniczne (cross-module) | `use-runs.ts:31` (stats statyczne); brak integracji z `capture`/`focus` |
+| CM-2 | 🟡 | Cross-module | `lastReachedStep` nigdy się nie przesuwa | `createRun` ustawia `brain-dump`, scenariusze seedują wartość, ale nic jej nie bumpuje wg postępu → Kontynuuj route jest **stale** po realnym przejściu lejka | Hook `setLastReachedStep` wywoływany z kroków lejka (capture→…→focus) gdy user osiąga krok; bez tego resume zawsze trafiałoby w to samo miejsce | `use-runs.ts` (brak settera); użycie `RunsList.tsx:38`, `RunDetails.tsx:141` |
+| CM-3 | 🟡 | Cross-module | Review nie do napęłnienia z UI | `reviewItems` pochodzą tylko ze scneariusza (`addReviewItem` nieużywane w komponentach) → w `empty`/`minimal` Review zawsze puste; flow nie jest testowalny end-to-end | Źródło pozycji do przeglądu z danych lejka (np. taski/stresory zmodyfikowane dawno temu), albo Add-item w UI do ręcznego dopisywania | `use-runs.ts:116` (`addReviewItem` nieużywane); `ReviewRun.tsx` |
+| LE-1 | 🟡 | Prototype-specific | Uszkodzony `run:runs` (zły JSON) / błąd odczytu | Pokazuje mylny empty-state „Nie masz aktywnych Runów" + toast `readError`; brak stanu błędu (focus ma `ReadErrorState`) i brak realnej naprawy (`retry` nie czyta ponownie) | Osobny stan błędu odczytu (jak `ReadErrorState` w `focus`) zamiast empty-state; „załaduj ponownie" jako jedyna droga | `use-runs.ts:18` (initialValue `[]`); `RunsList.tsx:54` |
+| FI-1 | 🟡 | Forms | Rename do pustego/samych spacji | Milcząco zostawia starą nazwę (`trimmed \|\| r.name`), zamyka edycję, bez komunikatu — user myśli, że nic się nie stało | Inline walidacja: przycisk „Zapisz" disabled przy pustym draft + komunikat „nazwa nie może być pusta", albo placeholder/keep-open z toastem | `use-runs.ts:45-48`; `RunDetails.tsx:58-60` |
+| ST-1 | 🟡 | State transitions | Ukończony Run (100%) siedzi w aktywnych bez celebracji/nudge | Filtr listy traktuje ukończone jak aktywne; Details pokazuje tylko badge, bez momentu celebracji ani sugestii archiwizacji (spec mówi o celebracji) | Na Details ukończonego Runa: celebracyjny stan / CTA „Archiwizuj ten przejazd"; opcjonalnie sekcja „ukończone" na liście z nudge | `RunsList.tsx:25` (filtr); `RunDetails.tsx:201` (tylko badge) |
+| AO-2 | 🟡 | Action outcomes | „Usuń przeterminowane" — bulk bez potwierdzenia i undo | Jedno kliknięcie usuwa wszystkie oflagowane pozycje na stałe; brak `ConfirmDialog` i undo | Potwierdzenie (jak ClearCompleted w focus) albo undo-toast z przywróceniem | `ReviewRun.tsx:99-105` |
+| FI-2 | 🟡 | Forms | Niezapisany rename tracony przy nawigacji | Edycja nazwy + klik „← Moje Runy" / Kontynuuj / inny link odrzuca draft bez pytania | Prompt „odrzucić zmiany?" (lub blokada nawigacji) gdy draft ≠ nazwa i tryb edycji aktywny | `RunDetails.tsx` tryb `editing` (brak guardu) |
+| AO-1 | 🟡 | Action outcomes | Brak feedbacku sukcesu archive/unarchive/rename | Tylko implicit zmiana stanu (przycisk się flipuje); brak toastu „przeniesiono do archiwum" / drogi do archiwum po archiwizacji | Toast potwierdzający + (po archiwizacji) link „Zobacz w archiwum" | `RunDetails.tsx:155-163` |
+| AO-3 | 🟢 | Action outcomes | Niegated mutacje opierają się tylko na toast | archive/unarchive/setStale/clearStale nie sprawdzają wyniku; confirm w ArchivedRuns zamyka się nawet przy awarii zapisu | Spójne honest-persistence (gating jak w `FocusView`); confirm zamykać tylko po udanym zapisie | `ArchivedRuns.tsx:83-86`; `use-runs.ts:55-71` |
+| DS-1 | 🟢 | Data states | Bardzo długa lista runów | Wszystkie aktywne/archiwalne stackują się w `<ul>`; brak grupowania (data), wyszukiwania, paginacji | Grupowanie po dacie / filtrowanie nazwą; priorytet niski (narzędzie osobiste, mało runów) | `RunsList.tsx:64`, `ArchivedRuns.tsx:43` |
+| DS-2 | 🟢 | Data states | Bardzo długa nazwa Runa | Input rename bez `maxLength`; w karcie/detail nazwa się zawija (OK), ale brak obcięcia/truncate w wąskiej karcie | `maxLength` na input + `truncate` w `RunCard` tytule | `RunDetails.tsx:87`; `RunCard.tsx:28` |
+| DS-3 | 🟢 | Data states | Puste statystyki świeżego Runa (`0 / 0`, `0%`) | Kafelki pokazują „0 / 0" i „0%" — chłodne, nie podpowiada akcji | Dla `totalTasks === 0`: „—" / „zacznij pierwszy krok" zamiast „0 / 0" | `RunStatTiles.tsx:21-25` |
+| DS-4 | 🟢 | Data states | Zduplikowane nazwy dozwolone | Brak unikalności; domyślna nazwa = timestamp → kolizja przy tworzeniu w tej samej minucie; rename do istniejącej nazwy OK | Dopuszczalne (nazwa nie jest identyfikatorem), ew. dopisek „(2)" przy kolizji domyślnej | `use-runs.ts:14,28,48` |
+| LE-2 | 🟢 | Data states | Daty bez czasu względnego | `toLocaleDateString` → sama data; „ostatnia aktywność: dziś" nie różni się od wcześniejszych dni w czytelnym skanie | Czas względny („dziś", „2 dni temu") dla `lastActiveAt` | `RunDetails.tsx:169-172` |
+| NF-1 | 🟢 | Navigation | ReviewRun „nie znaleziono" linkuje do `/run` | Link wstecz prowadzi do listy, nie do Szczegółów tego Runa | „← Szczegóły Runa" gdy istnieje kontekst (tu i tak nie znaleziono — niski priorytet) | `ReviewRun.tsx:21` |
+
+### Kategorie sprawdzone bez luk
+- **State machine (przejścia)**: tylko `in_progress ↔ archived`, oba osiągalne; UI zapobiega redundancji (Details pokazuje Archive *albo* Un-archive). Brak niepoprawnych przejść.
+- **Loading & async (initial load)**: `useLocalStorage` czyta synchronicznie przy pierwszym renderze — brak async, brak blank-screen, skeleton niepotrzebny.
+- **Offline**: czysty client-side, brak zapytań sieciowych — działa offline.
+- **Roles / permissions**: single-user, n/a.
+- **`alert()` / `window.alert`**: brak w kodzie produkcyjnym (`window.confirm` tylko w dev `DevToolbar`).
+
+## Priority list
+1. **CM-1 — statystyki kłamią**: Run „widoczny obiekt ze statystykami" (ADR 0020) jest rdzeniem modułu, a w prototypie liczby nigdy nie ruszają. Największy efekt, ale **architektoniczne** — wymaga decyzji scope (derywacja vs. ilustracyjne).
+2. **CM-2 — `lastReachedStep` stale**: bez tego Kontynuuj (resume) prowadzi zawsze w to samo miejsce; podważa routing ADR 0022. Architektoniczne (wspólne z CM-1).
+3. **LE-1 — mylny empty-state przy błędzie odczytu**: lokalna poprawka, duży efekt czytelności (paradygmat z `focus`/`ReadErrorState`).
+4. **FI-1 — rename pusty = milczące no-op**: lokalna walidacja, łatwe.
+5. **ST-1 — ukończone Runy bez celebracji/nudge**: luka w obietnicy „moment celebracji" (spec).
+6. **CM-3 — Review nietestowalny end-to-end**: wspólna przyczyna z CM-1/2 (brak źródła danych).
+7. **AO-2 — bulk-usuwanie przeterminowanych bez potwierdzenia/undo**.
+8. **FI-2 — guard niezapisanego rename przy nawigacji**.
+9. **AO-1 — feedback sukcesu archive/unarchive/rename**.
+10. (🟢 polish: DS-1…DS-4, LE-2, NF-1, AO-3).
+
+## Hand-off to proto-harden
+Top-priority luki do wdrożenia w `proto-harden`:
+- **CM-1 / CM-2 / CM-3** — te trzy mają wspólną przyczynę (Run odłączony od danych lejka). Harden powinien zacząć od **decyzji scope z designerem**: (a) spiąć prawdziwą derywację statystyk + advance `lastReachedStep` + źródło review-items (duże, cross-module), czy (b) zostawić ilustracyjne + wyraźnie to oznaczyć (np. badge „dane poglądowe") i skupić harden na lokalnych lukach. Bez tej decyzji lokalne fixe ryzykują, że statystyki nadal wprowadzają w błąd.
+- **LE-1** — stan błędu odczytu storage (przenieść wzorzec `ReadErrorState` z `focus`).
+- **FI-1 / FI-2** — walidacja rename + guard niezapisanych zmian.
+- **ST-1** — celebracja / nudge archiwizacji dla ukończonych Runów.
+- **AO-2** — potwierdzenie/undo dla „Usuń przeterminowane".
+
+Każdy wiersz wskazuje `file:line` gdzie luka żyje — `proto-harden` (lub designer) może działać od razu. „Suggested behavior" to punkt startowy, nie decyzja ostateczna; `proto-harden` potwierdza lub nadpisuje każde z designerem.
