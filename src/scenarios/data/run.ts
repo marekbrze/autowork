@@ -35,8 +35,8 @@ export const runsFull: Run[] = [
       { id: 'ri-4', kind: 'stressor', text: 'rozmowa z szefem o podwyżce', stale: false },
     ],
     createdAt: '2026-06-26T09:00:00.000Z',
-    updatedAt: '2026-06-28T18:30:00.000Z',
-    lastActiveAt: '2026-06-28T18:30:00.000Z',
+    updatedAt: '2026-06-29T08:15:00.000Z',
+    lastActiveAt: '2026-06-29T08:15:00.000Z',
   },
   {
     id: 'run-przeprowadzka',

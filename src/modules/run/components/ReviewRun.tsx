@@ -21,8 +21,8 @@ export function ReviewRun() {
     return (
       <div className="mx-auto max-w-2xl space-y-4 rounded-lg border border-dashed p-10 text-center">
         <p className="text-sm text-muted-foreground">Nie znaleziono takiego Runa.</p>
-        <Link to="/run" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
-          ← Moje Runy
+        <Link to="/" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
+          ← Dashboard
         </Link>
       </div>
     );

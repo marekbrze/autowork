@@ -45,8 +45,8 @@ export function RunDetails() {
     return (
       <div className="mx-auto max-w-2xl space-y-4 rounded-lg border border-dashed p-10 text-center">
         <p className="text-sm text-muted-foreground">Nie znaleziono takiego Runa.</p>
-        <Link to="/run" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
-          ← Moje Runy
+        <Link to="/" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
+          ← Dashboard
         </Link>
       </div>
     );
@@ -63,14 +63,14 @@ export function RunDetails() {
   };
 
   const handleDelete = () => {
-    if (deleteRun(run.id)) navigate('/run');
+    if (deleteRun(run.id)) navigate('/');
   };
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <Link to="/run" className="text-xs text-muted-foreground underline-offset-4 hover:underline">
-          ← Moje Runy
+        <Link to="/" className="text-xs text-muted-foreground underline-offset-4 hover:underline">
+          ← Dashboard
         </Link>
       </div>
 

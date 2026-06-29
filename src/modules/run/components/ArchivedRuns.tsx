@@ -27,8 +27,8 @@ export function ArchivedRuns() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <header className="space-y-1">
-        <Link to="/run" className="text-xs text-muted-foreground underline-offset-4 hover:underline">
-          ← Moje Runy
+        <Link to="/" className="text-xs text-muted-foreground underline-offset-4 hover:underline">
+          ← Dashboard
         </Link>
         <h1 className="text-2xl font-semibold tracking-tight">Archiwum</h1>
         <p className="text-sm text-muted-foreground">
