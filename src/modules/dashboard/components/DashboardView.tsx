@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Plus } from 'lucide-react';
 
@@ -21,14 +21,18 @@ import { DominantRunCard } from './DominantRunCard';
  * Aktywne runy sortowane po `lastActiveAt` desc (ADR 0028).
  */
 export function DashboardView() {
-  const { runs, createRun, storage } = useRuns();
+  const { runs, createRun, archiveRun, storage } = useRuns();
   const navigate = useNavigate();
 
   const active = useMemo(
     () =>
       runs
         .filter((r) => r.state === 'in_progress')
-        .sort((a, b) => b.lastActiveAt.localeCompare(a.lastActiveAt)),
+        // harden #6: wtórny klucz (createdAt desc) — deterministyczny wybór dominantu przy remisie.
+        .sort(
+          (a, b) =>
+            b.lastActiveAt.localeCompare(a.lastActiveAt) || b.createdAt.localeCompare(a.createdAt),
+        ),
     [runs],
   );
   const archivedCount = useMemo(() => runs.filter((r) => r.state === 'archived').length, [runs]);
@@ -38,10 +42,15 @@ export function DashboardView() {
 
   // Start new → tworzy Run i prowadzi do brain dumpa (krok 1 lejka). Dane lejka są
   // globalne w prototypie, więc capture nie tworzy duplikatu (ADR 0020).
-  // Przy awarii zapisu Run nie powstaje; toast retry zostaje widoczny.
+  // harden #2: strażnik double-submit — createRun jest sync, ale dwa szybkie kliknięcia
+  // mogłyby stworzyć osierocony run. Ref jest synchroniczny, blokuje drugie wołanie.
+  const creatingRef = useRef(false);
   const handleStartNew = () => {
+    if (creatingRef.current) return;
+    creatingRef.current = true;
     const run = createRun();
     if (run) navigate('/capture');
+    else creatingRef.current = false; // awaria zapisu — pozwól retry (toast zostaje widoczny)
   };
 
   const continueRun = (step: keyof typeof STEP_ROUTE) => navigate(STEP_ROUTE[step]);
@@ -69,6 +78,7 @@ export function DashboardView() {
             run={dominant}
             onContinue={() => continueRun(dominant.lastReachedStep)}
             onStartNew={handleStartNew}
+            onArchive={() => archiveRun(dominant.id)}
           />
 
           {rest.length > 0 && (

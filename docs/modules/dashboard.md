@@ -62,7 +62,8 @@ To ekran wejściowy apki — ustawia ton tak samo jak `capture`, tylko od strony
 - **Zero runów (pierwsze otwarcie)**: wielki, zachęcający do pracy button → start fresh → `capture`.
 - **Jeden aktywny run**: on jest dominującą kartą, lista mniejszych pusta; wejście do archiwum nadal widoczne (puste, jeśli nic niezarchiwizowane).
 - **Wszystkie runy zarchiwizowane (brak aktywnych)**: pusta lista aktywnych + komunikat „brak aktywnych przejazdów" + wyeksponowane wejście do archiwum + „rozpocznij nowy".
-- **Run ukończony (100%), ale niezarchiwizowany**: widoczny na liście aktywnych ze stanem „ukończony" (pełny progres); Continue → Szczegóły w stanie „ukończony" (`run.md`). Brak auto-archive.
+- **Run ukończony (100%), ale niezarchiwizowany**: na dominującej karcie primary CTA zamienia się na „Archiwizuj ten przejazd" (harden #1); w mniejszych kartach Continue → krok lejka. Brak auto-archive.
+- **Run bez tasków (`totalTasks=0`) jako dominant**: zamiast rozbicia zer pokazuje „Jeszcze bez tasków — zacznij od brain dumpu" (harden #3).
 - **Błąd odczytu storage** (uszkodzony `run:runs`): stan błędu (`RunReadError`) zamiast mylnego empty-state; odśwież jako droga naprawy (jak `run.md`).
 - **Wiele aktywnych runów**: sortowanie po `lastActiveAt` desc; dominująca karta = max(`lastActiveAt`). W prototypie bez paginacji — długą listę trzeba będzie ogarnąć w lofi.
 - **Statystyki poglądowe**: w prototypie statystyki / `lastActiveAt` / ordering są mockiem (dane lejka globalne, jak `run.md`) — oznaczone jako poglądowe; realne spięcie per-Run odłożone do fazy integracji (cross-module).

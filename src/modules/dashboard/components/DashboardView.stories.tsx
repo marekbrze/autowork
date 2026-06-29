@@ -79,6 +79,20 @@ export const AllArchived: Story = {
   ],
 };
 
+/** Ukończony run jako dominant → primary CTA = Archiwizuj (harden #1). */
+const completedDominant: Run[] = runsFull
+  .filter((r) => r.state === 'in_progress')
+  .map((r) => (r.id === 'run-finanse' ? { ...r, stats: { ...r.stats, doneCount: r.stats.totalTasks } } : r));
+
+export const CompletedDominant: Story = {
+  decorators: [
+    (Story) => {
+      seed(completedDominant);
+      return <Story />;
+    },
+  ],
+};
+
 export const ReadError: Story = {
   decorators: [
     (Story) => {

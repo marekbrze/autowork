@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Archive, Plus } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { buttonVariants } from '@/components/ui/button';
@@ -17,6 +17,8 @@ interface DominantRunCardProps {
   run: Run;
   onContinue: () => void;
   onStartNew: () => void;
+  /** Archiwizacja ukończonego dominantu (harden #1). */
+  onArchive: () => void;
 }
 
 /**
@@ -25,7 +27,7 @@ interface DominantRunCardProps {
  * jako primary CTA, Szczegóły secondary, „+ nowy przejazd" obok jako akcja trzecia.
  * Kafelki statystyk celowo pominięte — to runway, nie strona statystyk (to Szczegóły).
  */
-export function DominantRunCard({ run, onContinue, onStartNew }: DominantRunCardProps) {
+export function DominantRunCard({ run, onContinue, onStartNew, onArchive }: DominantRunCardProps) {
   const progress = runProgress(run);
   const remaining = runRemaining(run);
   const completed = isRunCompleted(run);
@@ -76,19 +78,32 @@ export function DominantRunCard({ run, onContinue, onStartNew }: DominantRunCard
             style={{ width: `${progress}%` }}
           />
         </div>
-        <p className="text-sm text-muted-foreground tabular-nums">
-          <span className="font-medium text-foreground">{run.stats.doneCount}</span> z{' '}
-          {run.stats.totalTasks} zrobione · zostały{' '}
-          <span className="font-medium text-foreground">{remaining}</span> ·{' '}
-          {formatDuration(run.stats.timeSpentSec)} w focus
-        </p>
+        {run.stats.totalTasks === 0 ? (
+          // harden #3: świeży run bez tasków — zapraszająca linijka zamiast rozbicia zer.
+          <p className="text-sm text-muted-foreground">
+            Jeszcze bez tasków — <span className="font-medium text-foreground">zacznij od brain dumpu</span>.
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground tabular-nums">
+            <span className="font-medium text-foreground">{run.stats.doneCount}</span> z{' '}
+            {run.stats.totalTasks} zrobione · zostały{' '}
+            <span className="font-medium text-foreground">{remaining}</span> ·{' '}
+            {formatDuration(run.stats.timeSpentSec)} w focus
+          </p>
+        )}
       </div>
 
-      {/* Kontynuuj (primary) · Szczegóły · + nowy przejazd (obok, secondary). */}
+      {/* harden #1: ukończony dominant → Archiwizuj (primary); inaczej Kontynuuj (primary). */}
       <div className="flex flex-wrap items-center gap-2">
-        <Button size="lg" onClick={onContinue}>
-          Kontynuuj
-        </Button>
+        {completed ? (
+          <Button size="lg" onClick={onArchive}>
+            <Archive /> Archiwizuj ten przejazd
+          </Button>
+        ) : (
+          <Button size="lg" onClick={onContinue}>
+            Kontynuuj
+          </Button>
+        )}
         <Link to={`/run/${run.id}`} className={cn(buttonVariants({ variant: 'outline' }))}>
           Szczegóły
         </Link>

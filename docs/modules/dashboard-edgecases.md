@@ -21,7 +21,7 @@ aktywnych runów (sortowanie), statystyki poglądowe (mock).
 - **Awaria zapisu (quota/disabled)** — `useLocalStorage` NIE aktualizuje stanu przy nieudanym zapisie, raportuje `writeError`, pamięta wartość do `retry` — `use-local-storage.ts:53-76`; w dashboardzie sygnalizowane `StorageStatusToast` — `DashboardView.tsx:137-143` → `StorageStatusToast.tsx:21-63`.
 - `createRun` zwraca `null` przy awarii zapisu, a `handleStartNew` nawiguje tylko po sukcesie (`if (run)`) — `use-runs.ts:37-38`, `DashboardView.tsx:42-45`.
 
-**Nowe luki znalezione:** 6.
+**Nowe luki znalezione:** 6 (po `proto-harden`: ✅ 4 wdrożone, ❌ 2 odłożone).
 **Po severity:** 🔴 0 · 🟡 2 · 🟢 4.
 
 Moduł jest cienką warstwą widoku nad już-utwardzonym modułem `run` (storage, błędy,
@@ -66,3 +66,15 @@ confirmacje destruktywne = dziedziczone i solidne). Luki poniżej są specyficzn
 Top-priority luki do wdrożenia w pierwszej kolejności:
 - **#1 Ukończony dominujący** — podmień primary CTA na archiwizację / nudge, zepchnij Kontynuuj.
 - **#2 Podwójny klik „Start new"** — strażnik in-flight na przyciskach tworzących Run.
+
+## Status po proto-harden
+
+Wdrożone (✅):
+- **#1 Ukończony dominant** → primary CTA „Archiwizuj ten przejazd" (Kontynuuj usunięte) — `src/modules/dashboard/components/DominantRunCard.tsx` (akcje) + `DashboardView.tsx` (`onArchive` → `archiveRun`).
+- **#2 Podwójny klik „Start new"** → strażnik `creatingRef` blokuje drugie `createRun` — `src/modules/dashboard/components/DashboardView.tsx` (`handleStartNew`).
+- **#3 Run bez tasków (0/0)** → „Jeszcze bez tasków — zacznij od brain dumpu" zamiast rozbicia zer — `src/modules/dashboard/components/DominantRunCard.tsx`.
+- **#6 Remis `lastActiveAt`** → wtórny klucz `createdAt` desc — `src/modules/dashboard/components/DashboardView.tsx` (sort).
+
+Odłożone (❌, z racją):
+- **#4 Nieograniczona lista aktywnych runów** — akceptowalne dla lofi (jak „statystyki poglądowe" w `run.md`); ew. miękki cap / paginacja w fazie designu, nie harden.
+- **#5 Wejście do archiwum ukryte przy 0** — świadoma decyzja: ukrywanie pustego linku = czystszy UX (brak martwego linku do pustego archiwum); wrócić, jeśli discoverability nawigacji stanie się problemem.
