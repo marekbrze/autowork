@@ -36,11 +36,13 @@ erDiagram
     Run {
         string name "optional; default = timestamp"
         float progress "(completedTasks + dismissedTasks) / totalTasks"
-        RunState state "in_progress"
+        int timeSpent "cumulative focus time (sum of timerElapsed)"
+        FunnelStep lastReachedStep "for resume routing"
+        RunState state "in_progress | archived"
     }
 ```
 
-**Typy wartości (atrybuty, nie encje):** `Context` (enum), `Energy` (1–3), `EstimatedTime` (preset), `Valence` (positive|negative), `DoneVision` (text+emoji).
+**Typy wartości (atrybuty, nie encje):** `Context` (enum), `Energy` (1–3), `EstimatedTime` (preset), `Valence` (positive|negative), `DoneVision` (text+emoji), `RunState` (`in_progress` | `archived`), `FunnelStep` (krok lejka, steruje routingiem resume).
 **Pomijalnie jako encje (przejściowe ekrany/kroki):** `BrainDump`, `StressRanking`, `Processing`, `SessionFilter`, `Dashboard`.
 
 ## Entities
@@ -55,11 +57,16 @@ erDiagram
 **Belongs to**: —.
 
 ### Run
-**Description**: Jeden pełny przejazd lejka (brain dump → ranking → next-actions → procesowanie → wybór sesji → focus → celebracja). Pojemnik najwyższego poziomu. Trzyma historię, więc runy można porównywać i czerpać z nich motywację.
-**Instances per user**: Wiele (historia zostaje).
+**Description**: Jeden pełny przejazd lejka (brain dump → ranking → next-actions → procesowanie → wybór sesji → focus → celebracja). Pojemnik najwyższego poziomu, **widoczny obiekt ze statystykami** (ADR 0020). Trzyma historię, więc runy można porównywać i czerpać z nich motywację.
+**Instances per user**: Wiele — żyją równolegle, odpalane z dashboardu (historia zostaje).
 **Ownership**: User.
-**Lifecycle**: Tworzony przy „start new"; trwały między otwarciami apki; wznawialny; możliwy do usunięcia.
-**States**: `in_progress` (domyślny, wznawialny). Brak wymuszonego stanu terminalnego — run jest „gotowy", gdy user jest usatysfakcjonowany / wszystkie taski done; sygnałem na żywo jest `progress`.
+**Lifecycle**: Tworzony przy „start new" (`capture` implicite); trwały między otwarciami apki; wznawialny (Kontynuuj — ADR 0022); archiwizowany ręcznie (odwracalnie); możliwy do usunięcia trwale.
+**States**: `in_progress` (aktywny, widoczny na liście aktywnych, wznawialny) | `archived` (schowany z aktywnych, widoczny w archiwum/historii, odwracalny przez Un-archive — ADR 0021). Brak formalnego stanu terminalnego poza usunięciem; „ukończony" to stan wyliczany z `progress`, nie osobny stan.
+**Attributes**:
+  - `name`: string — opcjonalna; domyślnie data/godzina.
+  - `progress`: float — `(completedTasks + dismissedTasks) / totalTasks`.
+  - `timeSpent`: int — łączny czas z focusa (suma `timerElapsed` po taskach/sesjach).
+  - `lastReachedStep`: `FunnelStep` — najdalszy osiągnięty krok lejka; steruje routingiem Kontynuuj.
 **Contains**: Stressory, FocusSessiony.
 **Belongs to**: User.
 

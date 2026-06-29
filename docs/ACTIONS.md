@@ -11,12 +11,15 @@ Kompletna lista akcji, jakie user może wykonać — pogrupowana po encji. Forma
 
 | Action | Description | Role | Notes |
 |--------|-------------|------|-------|
-| Create Run | Rozpocznij nowy przejazd lejka („start fresh"). | User | Zaczyna od brain dump. |
-| Rename Run | Nadaj / edytuj opcjonalną nazwę. | User | Domyślnie = data/godzina. |
-| View Dashboard | Zobacz listę runów + progres każdego; porównaj dla motywacji. | User | Ekran główny. |
-| Resume Run | Wróć do runa tam, gdzie skończyłeś. | User | |
-| Review on resume | Przejdź przez rzeczy i zdecyduj: nadal obowiązuje vs do usunięcia. | User | Czyszczenie przeterminowanego. |
-| Delete Run | Usuń cały run na stałe. | User | Założenie: dozwolone. |
+| Create Run | Rozpocznij nowy przejazd lejka („start fresh") z dashboardu. | User | `capture` tworzy Run implicite (nazwa = data/godzina); zaczyna od brain dump. Run = widoczny obiekt ze statystykami (ADR 0020). |
+| View Dashboard | Zobacz listę runów (aktywne + archiwum) + progres każdego; porównaj dla motywacji. | User | Ekran główny / launcher. Właściciel: moduł `dashboard`. |
+| Continue (resume) | Wróć do Runa tam, gdzie skończyłeś — smart-routing do najdalszego kroku z pracą. | User | Z karty Runa na dashboardzie. Routing: zapauzowana sesja → wznów • ≥1 task → focus • brak → process/decompose/ranking/brain dump • wszystko done → szczegóły. Atrybuty nie bramkują (ADR 0013). ADR 0022. |
+| View Details / Stats | Otwórz ekran statystyk Runa: czas spędzony (suma focusa), wykonane (`completed + dismissed`), zostało, progress %. | User | Ekran zarządzania Runem („Szczegóły"). |
+| Rename Run | Nadaj / edytuj opcjonalną nazwę. | User | Domyślnie = data/godzina; ze Szczegółów. |
+| Review | Przejdź przez stresory / taski i zdecyduj: nadal obowiązuje (relevant) vs do usunięcia (stale). | User | **Tylko ręcznie** ze Szczegółów — nie uruchamiane automatycznie przy resume. ADR 0023. |
+| Archive Run | Schowaj Run z aktywnych do archiwum (historia). | User | Ręcznie ze Szczegółów; odwracalne (Un-archive). ADR 0021. |
+| Un-archive Run | Przywróć zarchiwizowany Run do aktywnych (można Kontynuować). | User | Ręcznie z archiwum. ADR 0021. |
+| Delete Run | Usuń cały run na stałe (z historii/archiwum też). | User | Jedyna operacja terminalna. |
 
 ### Stressor
 

@@ -39,11 +39,11 @@ Aplikacja to jednokierunkowy lejek wyciągający usera z paraliżu planowania. R
 
 ### run
 **Type**: Supporting
-**Description**: Cykl życia Runa — pojemnik najwyższego poziomu: tworzenie, wznawianie tam gdzie skończono, liczenie progresu (`completedTasks / totalTasks`), review-on-resume (decyzja co nadal obowiązuje), zmiana nazwy, usuwanie.
+**Description**: Cykl życia Runa jako **widocznego, statystycznego obiektu** — pojemnik najwyższego poziomu: tworzenie, Kontynuuj (smart-routing do najdalszego kroku z pracą), ekran statystyk (czas spędzony, wykonane `completed + dismissed`, zostało, progress), review (ręczne — co nadal obowiązuje), rename, archiwizacja (odwracalna) / rozarchiwizowanie, usuwanie. Wiele runów żyje równolegle, odpalanych z dashboardu. Szczegóły: `docs/modules/run.md`. (ADR 0020)
 **Entities**: `Run`
-**Key Actions**: Create Run, Resume Run, View progress, Review on resume, Rename Run, Delete Run
-**Connects to**: wszystkie moduły Core (każda akcja lejka dzieje się wewnątrz aktywnego Runa); `dashboard` (udostępnia historię i progres)
-**Design priority**: Medium — potrzebny, by cokolwiek trzymać, ale na MVP wystarczy minimalny (jeden aktywny Run); pełna persystencja/resume dokładana później.
+**Key Actions**: Create Run, Continue (resume), View Details/Stats, Rename Run, Review, Archive Run, Un-archive Run, Delete Run
+**Connects to**: wszystkie moduły Core (każda akcja lejka dzieje się wewnątrz aktywnego Runa); `dashboard` (launcher list + archiwum/historia; karta Runa = Kontynuuj + Szczegóły)
+**Design priority**: Medium — warstwa persystencji + świadome zarządzanie runami (ADR 0020 superseded wczesnej notki „MVP = jeden aktywny Run").
 
 ### dashboard
 **Type**: Supporting

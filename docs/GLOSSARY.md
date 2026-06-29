@@ -33,11 +33,16 @@ Terms and concepts specific to this project. Used across all project skills to m
 | "Usuń skończone" | `ClearCompleted` | Akcja na ekranie podsumowania: usunięcie zrobionych zadań. Moment celebracji. | "archiwizuj" (jeśli coś innego) |
 | Celebracja / podsumowanie | `SessionSummary` | Ekran na końcu sesji: lista zrobionych zadań + łączny czas spędzony na zadaniach + `ClearCompleted`. | "raport", "statystyki" |
 
-| Run (przebieg) | `Run` | Jeden pełny przejazd lejka (brain dump → celebracja). Pojemnik najwyższego poziomu: trwały, wznawialny, z progresem (`completedTasks / totalTasks`) i opcjonalną nazwą (domyślnie data/godzina). Historia runów służy porównywaniu i motywacji. | "sesja" (sesja = `FocusSession`), "przejście" |
+| Run (przebieg) | `Run` | Jeden pełny przejazd lejka (brain dump → celebracja). **Widoczny obiekt ze statystykami** (ADR 0020): trwały, wznawialny, z progresem (`(completed + dismissed) / total`), czasem spędzonym i opcjonalną nazwą (domyślnie data/godzina). Wiele runów żyje równolegle; stany `in_progress` \| `archived`. Historia runów służy porównywaniu i motywacji. | "sesja" (sesja = `FocusSession`), "przejście" |
 | Task (zadanie) | `Task` | Atomiczna, wykonywalna jednostka — element listy focus. Powstaje z `NextAction` (rozbicie 1..N; konkretny NextAction = 1 Task). Nosi `Context`, `Energy`, `EstimatedTime`. | "krok" (zbyt ogólne), "zadanie" ogólnie |
 | Stan taska | `TaskState` | Cykl: `pending` → `active` → `completed` \| `skipped` \| `dismissed`. `Skip` wraca do `pending` przy następnej sesji; `Back` reaktywuje poprzedni (`active`); `Dismiss` = terminalnie nieaktualny (nie wraca, undo, liczy do progresem — ADR 0017). | "status" |
 | Dashboard | `Dashboard` | Ekran główny: progres każdego Runa + historia runów do porównywania i łapania motywacji. | "panel", "strona główna" |
-| Review-on-resume | `ReviewOnResume` | Przegląd przy powrocie do Runa: idziesz przez stressory / taski i decydujesz, co nadal obowiązuje, a co usunąć (przeterminowane). | "czyszczenie", "archiwizacja" |
+| Review-on-resume | `Review` | Przegląd Runa: idziesz przez stresory / taski i decydujesz, co nadal obowiązuje (relevant), a co usunąć (stale / przeterminowane). **Tylko ręcznie** ze Szczegółów — nie uruchamiany automatycznie przy resume (ADR 0023). | "czyszczenie", "archiwizacja" |
+| Kontynuuj (wznów) | `Continue` | Smart-routing resume Runa z dashboardu do najdalszego kroku lejka z pracą (zapauzowana sesja → wznów • ≥1 task → focus • brak → process/decompose/ranking/brain dump • wszystko done → szczegóły). Atrybuty nie bramkują (ADR 0013). ADR 0022. | "start", "otwórz" |
+| Szczegóły Runa | `RunDetails` | Ekran statystyk i zarządzania pojedynczym Runem: czas spędzony (suma z focusa), wykonane (`completed + dismissed`), zostało, progress % + akcje (rename, review, archive/unarchive, delete). | "panel runa", "statystyki" |
+| Archiwizacja | `Archive` / `archived` | Stan Runa: schowany z aktywnych na dashboardzie, ale zostaje w archiwum/historii (statystyki + porównanie widoczne, możliwy do rozarchiwizowania). Ręczny, odwracalny. ADR 0021. | "zakończ", "ukryj" |
+| Rozarchiwizowanie | `Un-archive` | Przywrócenie zarchiwizowanego Runa do aktywnych (można znów Kontynuować). ADR 0021. | "przywróć" |
+| Krok lejka | `FunnelStep` | Poziom osiągnięty w lejku (brain dump → ranking → decompose → process → focus → celebracja); trzymany na Runie jako `lastReachedStep`, steruje routingiem Kontynuuj. | "etap", "faza" |
 
 ## Moduły projektowe (code namespaces)
 
