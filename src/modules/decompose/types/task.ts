@@ -15,8 +15,8 @@ export type Energy = 1 | 2 | 3;
 /** Szacowany czas (min) — preset; źródło wartości timera w `focus`. */
 export type EstimatedTime = 5 | 15 | 30 | 45 | 60;
 
-/** Cykl życia taska: pending → active → completed | skipped. */
-export type TaskState = 'pending' | 'active' | 'completed' | 'skipped';
+/** Cykl życia taska: pending → active → completed | skipped | dismissed. */
+export type TaskState = 'pending' | 'active' | 'completed' | 'skipped' | 'dismissed';
 
 /**
  * Atomiczna, wykonywalna jednostka — element listy focus. Powstaje z

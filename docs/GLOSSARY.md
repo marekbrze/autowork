@@ -26,15 +26,16 @@ Terms and concepts specific to this project. Used across all project skills to m
 | Czas (szacowany) | `EstimatedTime` | Szacowany czas potrzebny na zadanie. Źródło wartości timera w sesji focus. | "czas", "deadline" |
 | Wybór sesji / filtr | `SessionFilter` | Krok 5: wybór kontekstu(ów) i energii, który filtruje długą listę do zestawu na tę sesję. | "filtrowanie", "ustawienia" |
 | Sesja focus | `FocusSession` | Krok 6: przechodzenie przez wyfiltrowany zestaw, jedno zadanie na ekranie, pod timerem. | "tryb pracy", "pomidor" |
-| Timer | `Timer` | Odliczanie w dół na ekranie focus; startuje od `EstimatedTime`, po zerze leci dalej. | "stoper", "zegar" |
+| Timer | `Timer` | Licznik na ekranie focus — liczy **w górę od 0:00**; `EstimatedTime` to próg, po którego przekroczeniu renderuje się czerwono (model B, ADR 0016). | "stoper", "zegar" |
 | Skip | `Skip` | Odłożenie bieżącego zadania — zostaje na liście na później. | "pomiń na zawsze", "usuń" |
 | Done (ukończone) | `Complete` / `Completed` | Zadanie zrobione; kolejne startuje automatycznie. | "zamknij", "usuń" (usuwanie to `ClearCompleted`) |
+| Nieaktualne (odrzucone) | `Dismiss` / `dismissed` | Task, który stracił sens (zdezaktualizowany, ktoś inny załatwił, okoliczności się zmieniły) — oznaczony w `focus` jako nie do zrobienia. Osobny od `Skip` (odłożone na później) i `Done`. Nie wraca w kolejnych sesjach, ma undo, liczy do progresem, w `SessionSummary` osobną sekcją (ADR 0017). | "usunięte" (usuwanie = `ClearCompleted`), "anulowane" |
 | "Usuń skończone" | `ClearCompleted` | Akcja na ekranie podsumowania: usunięcie zrobionych zadań. Moment celebracji. | "archiwizuj" (jeśli coś innego) |
 | Celebracja / podsumowanie | `SessionSummary` | Ekran na końcu sesji: lista zrobionych zadań + łączny czas spędzony na zadaniach + `ClearCompleted`. | "raport", "statystyki" |
 
 | Run (przebieg) | `Run` | Jeden pełny przejazd lejka (brain dump → celebracja). Pojemnik najwyższego poziomu: trwały, wznawialny, z progresem (`completedTasks / totalTasks`) i opcjonalną nazwą (domyślnie data/godzina). Historia runów służy porównywaniu i motywacji. | "sesja" (sesja = `FocusSession`), "przejście" |
 | Task (zadanie) | `Task` | Atomiczna, wykonywalna jednostka — element listy focus. Powstaje z `NextAction` (rozbicie 1..N; konkretny NextAction = 1 Task). Nosi `Context`, `Energy`, `EstimatedTime`. | "krok" (zbyt ogólne), "zadanie" ogólnie |
-| Stan taska | `TaskState` | Cykl: `pending` → `active` → `completed` \| `skipped`. `Skip` wraca do `pending` przy następnej sesji; `Back` reaktywuje poprzedni (`active`). | "status" |
+| Stan taska | `TaskState` | Cykl: `pending` → `active` → `completed` \| `skipped` \| `dismissed`. `Skip` wraca do `pending` przy następnej sesji; `Back` reaktywuje poprzedni (`active`); `Dismiss` = terminalnie nieaktualny (nie wraca, undo, liczy do progresem — ADR 0017). | "status" |
 | Dashboard | `Dashboard` | Ekran główny: progres każdego Runa + historia runów do porównywania i łapania motywacji. | "panel", "strona główna" |
 | Review-on-resume | `ReviewOnResume` | Przegląd przy powrocie do Runa: idziesz przez stressory / taski i decydujesz, co nadal obowiązuje, a co usunąć (przeterminowane). | "czyszczenie", "archiwizacja" |
 

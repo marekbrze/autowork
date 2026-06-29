@@ -18,7 +18,7 @@ Aplikacja to jednokierunkowy lejek wyciągający usera z paraliżu planowania. R
 **Description**: Dla każdego stresora pojedynczo (od najbardziej stresującego): WHY — materiał motywacyjny (powody + wizja efektu, „ładujący baterię" dla `focus`) — i HOW — next-actiony zapisane aktywnym/konkretnym językiem, rozbijane na wykonalne taski (konkretny next-action = 1 task; gruby = kilka). Driver: duże zadanie paraliżuje, trzeba rozbijać (persona ADHD/overwhelmed — ADR 0007).
 **Entities**: `Reason`, `DoneVision`, `NextAction`, `Task` (tworzenie)
 **Key Actions**: Add Reason / DoneVision, Skip motivation, Add NextAction, Decompose into Tasks, Edit, Delete
-**Connects to**: `capture` (pobiera stressory); `process` (przekazuje taski do opisania atrybutami); `focus` (przekazuje materiał motywacyjny do pokazania przy trudnym tasku)
+**Connects to**: `capture` (pobiera stressory); `process` (przekazuje taski do opisania atrybutami); `focus` (przekazuje materiał motywacyjny, **zawsze widoczny** na ekranie zadania)
 **Design priority**: Medium — pomost od „stresora" do „wykonalnej jednostki" + magazyn paliwa motywacyjnego.
 
 ### process
@@ -33,7 +33,7 @@ Aplikacja to jednokierunkowy lejek wyciągający usera z paraliżu planowania. R
 **Type**: Core
 **Description**: Serce apki: wybór sesji (konteksty + poziomy energii → filtr), sesja focus (jedno zadanie na ekranie pod timerem, done/skip/back), a na końcu podsumowanie z „Usuń skończone". Tu spoczywa obietnica: jedno zadanie goni drugie, zdejmujemy ciężar decydowania.
 **Entities**: `FocusSession`, `Timer`, `SessionSummary`, `Task` (stany)
-**Key Actions**: Filter session, Start, Done / Skip / Back, Timer pause/resume, View Summary, ClearCompleted
+**Key Actions**: Filter session, Start, Done / Skip / Dismiss (nieaktualne) / Back, Timer pause/resume, View Summary, ClearCompleted
 **Connects to**: `process` (pobiera opisane taski); `run` (wynik sesji aktualizuje progres Runa)
 **Design priority**: High — największa złożoność i ryzyko (maszyneria stanów, wznawianie timera) oraz największy wpływ na usera.
 

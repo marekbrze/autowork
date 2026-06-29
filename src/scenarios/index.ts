@@ -2,6 +2,7 @@ import type { ScenarioName, AppData } from './types';
 import { emptyScenario } from './empty';
 import { minimalScenario } from './minimal';
 import { fullScenario } from './full';
+import { focusScenario } from './focus';
 
 const scenarios: Record<ScenarioName, () => AppData> = {};
 
@@ -22,3 +23,4 @@ export function getScenarioNames(): ScenarioName[] {
 registerScenario('empty', emptyScenario);
 registerScenario('minimal', minimalScenario);
 registerScenario('full', fullScenario);
+registerScenario('focus', focusScenario);

@@ -8,6 +8,7 @@ import { BrainDump } from '@/modules/capture/components/BrainDump'
 import { Ranking } from '@/modules/capture/components/Ranking'
 import { DecomposeView } from '@/modules/decompose/components/DecomposeView'
 import { ProcessView } from '@/modules/process/components/ProcessView'
+import { FocusView } from '@/modules/focus/components/FocusView'
 
 function App() {
   return (
@@ -24,6 +25,8 @@ function App() {
           <Route path="/decompose" element={<DecomposeView />} />
           {/* process — built by proto-lofi */}
           <Route path="/process" element={<ProcessView />} />
+          {/* focus — built by proto-lofi */}
+          <Route path="/focus" element={<FocusView />} />
           {/* Other module routes — proto-lofi replaces these placeholders */}
           <Route path="/:moduleName" element={<ModulePlaceholder />} />
           {/* Fallback */}

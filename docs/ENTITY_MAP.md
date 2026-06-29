@@ -21,7 +21,7 @@ erDiagram
         Context context "single: Phone|Message|Creative|Errands|Home|City"
         Energy energy "1..3 (batteries)"
         EstimatedTime estimatedTime "preset: 5|15|30|45|60"
-        TaskState state "pending|active|completed|skipped"
+        TaskState state "pending|active|completed|skipped|dismissed"
         int timerElapsed "persisted, for resume"
     }
     Stressor {
@@ -35,7 +35,7 @@ erDiagram
     }
     Run {
         string name "optional; default = timestamp"
-        float progress "completedTasks / totalTasks"
+        float progress "(completedTasks + dismissedTasks) / totalTasks"
         RunState state "in_progress"
     }
 ```
@@ -96,9 +96,10 @@ erDiagram
 **Instances per NextAction**: 1..N.
 **Ownership**: NextAction / Run.
 **Lifecycle**: Tworzony (rozbicie lub bezpośrednio) → atrybuty przypięte w Processing → cyklony przez sesje focus → completed / skipped → możliwy do wyczyszczenia (ClearCompleted).
-**States**: `pending` → `active` → `completed` | `skipped`.
+**States**: `pending` → `active` → `completed` | `skipped` | `dismissed`.
   - `Skip` → `skipped` → (przy **następnej** sesji) → `pending`.
   - `Back` → reaktywacja poprzedniego (znów `active`); bieżący wraca jako `pending`.
+  - `Dismiss` → `dismissed` (terminalny; **nie** wraca w kolejnych sesjach; widoczny w `SessionSummary`, liczy do progresem, undo — ADR 0017).
 **Attributes**:
   - `context`: `Context` (dokładnie jeden) — `Phone` | `Message` | `Creative` | `Errands` | `Home` | `City`
   - `energy`: `Energy` — 1..3 (bateryjki: 1 = Low, 3 = High)
@@ -118,11 +119,11 @@ erDiagram
 **Belongs to**: Run.
 
 ### Timer
-**Description**: Odliczanie dla aktywnego taska; startuje od jego `EstimatedTime`, po dojściu do zera leci dalej w górę. **Pamięta pozycję** — po pauzie/wznawianiu kontynuuje tam, gdzie stanął (stan licznika trzymany per Task: `timerElapsed`).
+**Description**: Licznik dla aktywnego taska — **liczy w górę od 0:00** (model B, ADR 0016); `EstimatedTime` to próg, po którego przekroczeniu licznik renderuje się na czerwono. **Pamięta pozycję** — po pauzie/wznawianiu kontynuuje tam, gdzie stanął (stan licznika trzymany per Task: `timerElapsed`).
 **Instances per FocusSession**: Jeden (UI); stan per Task.
 **Ownership**: FocusSession.
 **Lifecycle**: Tworzony z sesją; wartość persystowana; wznawiany.
-**States**: `running` | `paused` | `overtime` (>0 po przekroczeniu zera).
+**States**: `running` | `paused` | `overtime` (`timerElapsed` > `EstimatedTime` — po progu, render czerwony).
 **Contains**: —.
 **Belongs to**: FocusSession.
 

@@ -36,11 +36,11 @@ W kolejności priorytetu — same kroki lejka to są główne akcje:
 3. Aplikacja pokazuje stresory **po kolei, pojedynczo**; do każdego dopisujesz next-action(y) — co można zrobić, żeby popchnąć to do przodu (może być dużo).
 4. **Procesowanie** (styl inboxa GTD, jak w aplikacji *dopadone*): dla każdej rzeczy określasz **kontekst** (telefon, wiadomość, kreatywne, chore, dom, miasto), **energię** potrzebną i **czas** potrzebny na zadanie.
 5. **Wybór sesji**: najpierw wybierasz **kontekst(y)** (można kilka), potem **energię** → filtruje to długą listę do zestawu zadań, które realnie możesz teraz zrobić.
-6. Klikasz **Start** → pojawia się ekran focus pierwszego zadania i odpala **timer** odliczający w dół (przyjmujemy: = oszacowany czas z kroku 4). Po dojściu do zera **timer leci dalej**.
+6. Klikasz **Start** → pojawia się ekran focus pierwszego zadania (kolejność: najbardziej stresujący stresor → pierwsze) i odpala **timer liczący w górę od 0**; oszacowany czas (krok 4) to próg, po którego przekroczeniu timer robi się czerwony. Motywacja (WHY z kroku 3) jest **zawsze widoczna** na ekranie.
    - **Done** → kolejne zadanie startuje automatycznie.
    - **Skip** → zadanie zostaje na liście na później; wracasz do niego później.
    - Możesz **wrócić do poprzedniego** zadania.
-7. Po wyczerpaniu zestawu → **podsumowanie sesji**: które zadania zostały zrobione + **łączny czas** spędzony na zadaniach + przycisk **"Usuń skończone"** (moment celebracji).
+7. Po wyczerpaniu zestawu → **podsumowanie sesji**: które zadania zostały zrobione + **łączny czas** spędzony na zadaniach + taski **nieaktualne** (osobną sekcją) + przycisk **"Usuń skończone"** (czyści Done + Nieaktualne; moment celebracji).
 
 ## Decisions (resolved)
 Otwarte pytania z `proto-init` zostały rozstrzygnięte w `proto-deepen` i `proto-strategize`. Szczegóły w `docs/ENTITY_MAP.md`, `docs/ACTIONS.md`, `docs/GLOSSARY.md`.
@@ -56,3 +56,5 @@ Otwarte pytania z `proto-init` zostały rozstrzygnięte w `proto-deepen` i `prot
 - ✅ **Single-user / lokalne**: potwierdzone.
 - ✅ **Primary persona**: ADHD / overwhelmed — kształtuje rozbijanie zadań, nudge-not-gate, motywację jako paliwo (ADR 0007).
 - ✅ **`decompose` = WHY + HOW**: WHY (materiał motywacyjny: powody + wizja efektu) i HOW (next-actiony → taski, aktywny/konkretny język); WHY konsumowane w `focus` (ADR 0005, 0006).
+- ✅ **Model timera**: liczy **w górę od 0**; oszacowanie = próg czerwono (model B, ADR 0016; zmiana z odliczania w dół).
+- ✅ **Nieaktualne taski**: nowy status `dismissed` + akcja `Dismiss` — undo, liczą do progresem, osobna sekcja w summary, nie wracają (ADR 0017).

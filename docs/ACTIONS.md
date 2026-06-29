@@ -61,22 +61,23 @@ Kompletna lista akcji, jakie user może wykonać — pogrupowana po encji. Forma
 | Done → `completed` | Oznacz jako zrobione; kolejny startuje automatycznie. | User | |
 | Skip → `skipped` | Odłóż; wraca jako `pending` przy następnej sesji. | User | Nie doklejane do bieżącej kolejki. |
 | Back (reopen previous) | Poprzedni task znów `active`; bieżący → `pending`. | User | Cofnięcie Done / dokończenie. |
-| ClearCompleted | Usuń completed taski (moment celebracji). | User | Z SessionSummary. |
+| Dismiss → `dismissed` | Oznacz jako nieaktualne (zdezaktualizowane/straciło sens); nie wraca w kolejnych sesjach. | User | Osobny od Skip (temporary) i Done. Widoczny w `SessionSummary` (osobna sekcja); liczy do progresem; **undo** (jak ADR 0004). ADR 0017. |
+| ClearCompleted | Usuń completed **i dismissed** taski (moment celebracji). | User | Z SessionSummary. |
 
 ### FocusSession
 
 | Action | Description | Role | Notes |
 |--------|-------------|------|-------|
-| Start Session | Rozpocznij focus po wybraniu SessionFilter. | User | Krok 5→6. |
+| Start Session | Rozpocznij focus po wybraniu SessionFilter. | User | Krok 5→6. Kolejka uszeregowana po randku stresora (najbardziej stresujący → pierwsze). |
 | Pause / Resume | Wstrzymaj przebieg sesji; wznów tam, gdzie przerwano. | User | Poprzez Timer. |
 
 ### Timer
 
 | Action | Description | Role | Notes |
 |--------|-------------|------|-------|
-| Start | Rozpocznij odliczanie od `EstimatedTime` aktywnego taska. | User | |
+| Start | Rozpocznij liczenie w górę od 0 dla aktywnego taska. | User | Model B (ADR 0016). |
 | Pause / Resume | Pamiętaj pozycję; wznow z zapisanej wartości. | User | Stan per Task (`timerElapsed`). |
-| (counts past zero) | Po dojściu do 0 liczy dalej w górę. | System | |
+| (counts past estimate) | Po przekroczeniu `EstimatedTime` leci dalej w górę; render czerwony (`overtime`). | System | Model B (ADR 0016). |
 
 ### SessionSummary
 
