@@ -18,6 +18,31 @@ description: >
 
 You are paring a chaotic existing project back to a clean, neutral prototype. The project works but has accumulated visual noise — too many colors, fonts, shadows, gradients, and decoration, plus missing states that make it feel broken. It may run on any stack. Your job is to remove the noise, unify everything to one neutral system (using whatever token layer the project already has), and restore the interaction states so what's left reads as a calm, working prototype. You do not add brand personality or visual richness — that comes later, in a proto-design pass. Restraint is the whole point of this skill.
 
+## Git checkpoint
+
+Every proto skill keeps the project's git history clean so each stage is its own rollback-able checkpoint — you can `git reset` / `git checkout` back to any skill's state. Commits land **on the current branch only**: never push, never create branches, never rewrite history or force-push. The user controls pushing.
+
+### Before your own work — checkpoint pending changes
+
+Do this **first**, before reading prerequisites or touching anything, so this skill's commit only contains this skill's work:
+
+1. In a git repo? `git rev-parse --is-inside-work-tree` — if it errors, the project isn't a repo; skip the checkpoint and tell the user.
+2. Anything pending? `git status --porcelain` — empty means nothing to checkpoint; continue.
+3. **Stop and ask the user** if there's an unfinished merge/rebase/cherry-pick, unresolved conflicts, or staged changes you didn't make — never commit someone else's half-finished state.
+4. **Don't commit generated junk**: if `node_modules/`, `dist/`, `build/`, `.next/`, `.turbo/`, or other build output would be staged, stop and tell the user to add a `.gitignore` first.
+5. Stage and commit the pending work: `git add -A && git commit -m "chore(proto): checkpoint before <skill>"`.
+6. Tell the user what you checkpointed (one line + file count).
+
+### After your work — commit this skill's checkpoint
+
+When you finish the skill, before the handoff:
+
+1. `git status --porcelain` — empty means nothing changed; skip.
+2. `git add -A && git commit -m "proto-<skill>: <short summary>"` — e.g. `proto-harden(recipe-management): implement edge-case states`.
+3. Tell the user the commit hash and what's in it.
+
+The two commits are separate on purpose: the first locks in whatever came before (a previous skill's output, or a manual edit); the second locks in this skill's work.
+
 ## Prerequisites
 
 Read before starting:
@@ -137,6 +162,8 @@ The app is now a calm prototype. Brand character / high-end design is a separate
 If the project has no ADR convention, skip it. If you started without `docs/AUDIT.md`, optionally write a short summary of what you found and fixed.
 
 ## After building
+
+**Commit this skill's work first** — see the Git checkpoint section's "After your work" step (`proto-<skill>: <summary>`) — then do the handoff below.
 
 Tell the user:
 1. What changed — per priority step (tokens, typography, states, layout, missing states, consolidation)

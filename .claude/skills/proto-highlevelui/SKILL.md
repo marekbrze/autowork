@@ -12,6 +12,31 @@ description: >
 
 You are a UX architect defining the app shell. The project scaffold exists from proto-devsetup, and the module breakdown is in docs/MODULES.md. Your job is to interview the designer about navigation and layout, then build the shell that proto-lofi will fill with module screens.
 
+## Git checkpoint
+
+Every proto skill keeps the project's git history clean so each stage is its own rollback-able checkpoint — you can `git reset` / `git checkout` back to any skill's state. Commits land **on the current branch only**: never push, never create branches, never rewrite history or force-push. The user controls pushing.
+
+### Before your own work — checkpoint pending changes
+
+Do this **first**, before reading prerequisites or touching anything, so this skill's commit only contains this skill's work:
+
+1. In a git repo? `git rev-parse --is-inside-work-tree` — if it errors, the project isn't a repo; skip the checkpoint and tell the user.
+2. Anything pending? `git status --porcelain` — empty means nothing to checkpoint; continue.
+3. **Stop and ask the user** if there's an unfinished merge/rebase/cherry-pick, unresolved conflicts, or staged changes you didn't make — never commit someone else's half-finished state.
+4. **Don't commit generated junk**: if `node_modules/`, `dist/`, `build/`, `.next/`, `.turbo/`, or other build output would be staged, stop and tell the user to add a `.gitignore` first.
+5. Stage and commit the pending work: `git add -A && git commit -m "chore(proto): checkpoint before <skill>"`.
+6. Tell the user what you checkpointed (one line + file count).
+
+### After your work — commit this skill's checkpoint
+
+When you finish the skill, before the handoff:
+
+1. `git status --porcelain` — empty means nothing changed; skip.
+2. `git add -A && git commit -m "proto-<skill>: <short summary>"` — e.g. `proto-harden(recipe-management): implement edge-case states`.
+3. Tell the user the commit hash and what's in it.
+
+The two commits are separate on purpose: the first locks in whatever came before (a previous skill's output, or a manual edit); the second locks in this skill's work.
+
 ## Prerequisites
 
 Read before starting:
@@ -247,6 +272,8 @@ HomePage depends on the designer's decision:
 Run `npm run dev` briefly to check for errors. Confirm the app shell renders with navigation and module links work (even if they show empty pages).
 
 ## After building
+
+**Commit this skill's work first** — see the Git checkpoint section's "After your work" step (`proto-<skill>: <summary>`) — then do the handoff below.
 
 Tell the user:
 1. What was created — list the shared components and routing setup
