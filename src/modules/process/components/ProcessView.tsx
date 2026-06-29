@@ -43,24 +43,24 @@ interface ProcStep {
 
 const STEP_ORDER: StepKind[] = ['context', 'energy', 'estimatedTime'];
 const STEP_LABELS: Record<StepKind, string> = {
-  context: 'Kontekst',
-  energy: 'Energia',
-  estimatedTime: 'Czas',
+  context: 'Context',
+  energy: 'Energy',
+  estimatedTime: 'Time',
 };
 
 const CONTEXT_OPTIONS: { value: Context; label: string; key: string; Icon: ComponentType<LucideProps> }[] = [
-  { value: 'Phone', label: 'Telefon', key: '1', Icon: Phone },
-  { value: 'Message', label: 'Wiadomość', key: '2', Icon: MessageSquare },
-  { value: 'Creative', label: 'Kreatywne', key: '3', Icon: Lightbulb },
-  { value: 'Errands', label: 'Sprawunki', key: '4', Icon: ShoppingCart },
-  { value: 'Home', label: 'Dom', key: '5', Icon: Home },
-  { value: 'City', label: 'Miasto', key: '6', Icon: MapPin },
+  { value: 'Phone', label: 'Phone', key: '1', Icon: Phone },
+  { value: 'Message', label: 'Message', key: '2', Icon: MessageSquare },
+  { value: 'Creative', label: 'Creative', key: '3', Icon: Lightbulb },
+  { value: 'Errands', label: 'Errands', key: '4', Icon: ShoppingCart },
+  { value: 'Home', label: 'Home', key: '5', Icon: Home },
+  { value: 'City', label: 'City', key: '6', Icon: MapPin },
 ];
 
 const ENERGY_OPTIONS: { value: Energy; label: string; key: string }[] = [
-  { value: 1, label: 'Niska', key: '1' },
-  { value: 2, label: 'Średnia', key: '2' },
-  { value: 3, label: 'Wysoka', key: '3' },
+  { value: 1, label: 'Low', key: '1' },
+  { value: 2, label: 'Medium', key: '2' },
+  { value: 3, label: 'High', key: '3' },
 ];
 
 const TIME_OPTIONS: { value: EstimatedTime; label: string; key: string; Icon: ComponentType<LucideProps> }[] = [
@@ -411,29 +411,29 @@ export function ProcessView() {
           {nothingToDo ? (
             <div className="rounded-lg border border-dashed p-10 text-center">
               <p className="text-sm text-muted-foreground">
-                Wszystko gotowe, brak zadań do przetworzenia.
+                All set — no tasks left to process.
               </p>
               <Button type="button" className="mt-4" onClick={() => navigate('/focus')}>
-                Dalej do focus
+                Continue to focus
                 <ArrowRight />
               </Button>
             </div>
           ) : (
             <>
               <div className="space-y-1">
-                <h2 className="text-xl font-semibold tracking-tight">Do przetworzenia</h2>
+                <h2 className="text-xl font-semibold tracking-tight">To process</h2>
                 <p className="text-sm text-muted-foreground">
-                  Przypnij każdemu zadaniu kontekst, energię i czas — to włączy filtr sesji w{' '}
+                  Tag each task with context, energy, and time — this powers the session filter in{' '}
                   <code className="rounded bg-muted px-1 py-0.5 text-xs">focus</code>.
                 </p>
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <StatCard n={counts.context} label="Bez kontekstu" />
-                <StatCard n={counts.energy} label="Bez energii" />
-                <StatCard n={counts.time} label="Bez czasu" />
+                <StatCard n={counts.context} label="Without context" />
+                <StatCard n={counts.energy} label="Without energy" />
+                <StatCard n={counts.time} label="Without time" />
               </div>
               <Button type="button" size="lg" onClick={startSession}>
-                Rozpocznij <kbd className="ml-1 rounded bg-primary-foreground/20 px-1.5 py-0.5 text-xs">↵</kbd>
+                Start <kbd className="ml-1 rounded bg-primary-foreground/20 px-1.5 py-0.5 text-xs">↵</kbd>
               </Button>
             </>
           )}
@@ -455,7 +455,7 @@ export function ProcessView() {
           <div className="space-y-4">
             {/* Breadcrumb kroków + akcje taska */}
             <div className="flex items-start justify-between gap-3">
-              <nav aria-label="Kroki zadania" className="flex flex-wrap items-center gap-1.5">
+              <nav aria-label="Task steps" className="flex flex-wrap items-center gap-1.5">
                 {currentTaskSteps.map((s, i) => {
                   const isActive = s.kind === currentStep.kind;
                   const isDone = completed.has(stepId(s.taskId, s.kind));
@@ -483,7 +483,7 @@ export function ProcessView() {
                   type="button"
                   size="icon-sm"
                   variant="ghost"
-                  aria-label="Edytuj nazwę zadania"
+                  aria-label="Edit task name"
                   onClick={() => setEditingTaskId(currentTask.id)}
                 >
                   <Pencil />
@@ -492,7 +492,7 @@ export function ProcessView() {
                   type="button"
                   size="icon-sm"
                   variant="ghost"
-                  aria-label="Usuń zadanie"
+                  aria-label="Delete task"
                   onClick={() => setConfirmDeleteId(currentTask.id)}
                 >
                   <Trash2 className="text-destructive" />
@@ -531,7 +531,7 @@ export function ProcessView() {
               options={optionsFor(currentStep.kind)}
               pendingKey={pendingKey}
               gridClassName={gridFor(currentStep.kind)}
-              hint="Wybierz klawiszem lub klikiem, potwierdź ↵ · pomiń Esc"
+              hint="Pick with a key or click, confirm ↵ · skip Esc"
               onHover={setPendingKey}
               onConfirm={(opt) => {
                 if (currentStep.kind === 'context') commit('context', CONTEXT_OPTIONS.find((o) => o.key === opt.key)!.value);
@@ -546,7 +546,7 @@ export function ProcessView() {
             <div>
               <Button type="button" variant="ghost" size="sm" onClick={goBack}>
                 <ArrowLeft />
-                Wstecz
+                Back
               </Button>
             </div>
           </div>
@@ -560,18 +560,18 @@ export function ProcessView() {
             <Check />
           </div>
           <h2 className="text-xl font-semibold tracking-tight">
-            Przetworzono {sessionTaskIds.length} {pluralTasks(sessionTaskIds.length)}
+            Processed {sessionTaskIds.length} {pluralTasks(sessionTaskIds.length)}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Taski opisane atrybutami — gotowe do filtrowania sesji.
+            Tasks are tagged with attributes — ready for session filtering.
           </p>
           <div className="mt-4 flex justify-center gap-2">
             <Button type="button" onClick={() => navigate('/focus')}>
-              Dalej do focus
+              Continue to focus
               <ArrowRight />
             </Button>
             <Button type="button" variant="ghost" onClick={() => setScreen('summary')}>
-              Wróć do podsumowania
+              Back to summary
             </Button>
           </div>
         </div>
@@ -588,14 +588,14 @@ export function ProcessView() {
         readError={storageView.readError}
         onRetry={storageView.retry}
         onDismiss={storageView.dismiss}
-        entityLabel={storage.readError ? 'zadań' : 'danych'}
+        entityLabel={storage.readError ? 'tasks' : 'data'}
       />
 
       <ConfirmDialog
         open={confirmDeleteId !== null}
-        title="Usunąć to zadanie?"
-        description="Zniknie z kolejki procesowania. Tej operacji nie da się cofnąć."
-        confirmLabel="Usuń zadanie"
+        title="Delete this task?"
+        description="It'll be removed from the processing queue. This action can't be undone."
+        confirmLabel="Delete task"
         onConfirm={() => {
           if (confirmDeleteId) handleDelete(confirmDeleteId);
           setConfirmDeleteId(null);
@@ -606,13 +606,9 @@ export function ProcessView() {
   );
 }
 
-/** Polska odmiana „zadanie" — 1 zadanie, 2–4 (oprócz 12–14) zadania, reszta zadań. */
+/** English plural for "task": 1 task, otherwise tasks. */
 function pluralTasks(n: number): string {
-  if (n === 1) return 'zadanie';
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'zadania';
-  return 'zadań';
+  return n === 1 ? 'task' : 'tasks';
 }
 
 function StatCard({ n, label }: { n: number; label: string }) {

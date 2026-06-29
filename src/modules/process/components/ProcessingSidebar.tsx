@@ -56,10 +56,10 @@ export function ProcessingSidebar({
   }, [currentTaskId]);
 
   return (
-    <aside className="rounded-lg border bg-card p-3" aria-label="Zadania w sesji">
+    <aside className="rounded-lg border bg-card p-3" aria-label="Tasks in session">
       <div className="mb-2 flex items-baseline justify-between">
         <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Zadania w sesji
+          Tasks in session
         </span>
         <span className="text-xs tabular-nums text-muted-foreground">
           <strong className="text-foreground">{doneCount}</strong> / {totalTasks}
@@ -73,7 +73,7 @@ export function ProcessingSidebar({
         {groups.map((group, gi) => (
           <div key={group.stressor?.id ?? `__g${gi}`} className="space-y-1">
             <div className="truncate px-1 text-xs font-medium text-muted-foreground" title={group.stressor?.text}>
-              {group.stressor ? group.stressor.text : 'Bez stresora'}
+              {group.stressor ? group.stressor.text : 'No stressor'}
             </div>
             <ul className="space-y-1">
               {group.tasks.map((task) => {

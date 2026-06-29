@@ -23,8 +23,8 @@ export function FocusTimer({ elapsedSeconds, thresholdMinutes, paused }: FocusTi
       <div
         role="timer"
         aria-live="off"
-        aria-label={`Upłynęło ${formatClock(elapsedSeconds)}${thresholdMinutes ? ` z ${thresholdMinutes} minut` : ''}${
-          overThreshold ? ', przekroczono oszacowanie' : ''
+        aria-label={`Elapsed ${formatClock(elapsedSeconds)}${thresholdMinutes ? ` of ${thresholdMinutes} min` : ''}${
+          overThreshold ? ', over estimate' : ''
         }`}
         className={cn(
           'font-semibold tabular-nums tracking-tight text-6xl',
@@ -36,13 +36,13 @@ export function FocusTimer({ elapsedSeconds, thresholdMinutes, paused }: FocusTi
       <div className="mt-1 text-sm tabular-nums text-muted-foreground">
         {thresholdMinutes != null ? (
           <>
-            próg: {thresholdMinutes} min
-            {overThreshold && <span className="text-destructive"> · przekroczono</span>}
+            target: {thresholdMinutes} min
+            {overThreshold && <span className="text-destructive"> · over</span>}
           </>
         ) : (
-          <span className="text-muted-foreground/70">bez oszacowania czasu</span>
+          <span className="text-muted-foreground/70">no time estimate</span>
         )}
-        {paused && <span className="ml-1">· pauza</span>}
+        {paused && <span className="ml-1">· paused</span>}
       </div>
     </div>
   );

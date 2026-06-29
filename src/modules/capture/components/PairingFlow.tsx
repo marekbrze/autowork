@@ -157,17 +157,17 @@ export function PairingFlow({ stressors, onApply, onClose, initialState, initial
         <div className="flex items-start justify-between gap-4">
           <div>
             <h3 id="pairing-title" className="text-lg font-semibold">
-              Parowanie
+              Pairing
             </h3>
             <p className="text-sm text-muted-foreground">
-              Wybierz, co bardziej stresuje — ułożę z tego kolejność.
+              Pick what stresses you more — I'll build an order from it.
             </p>
           </div>
           <Button
             type="button"
             size="icon-sm"
             variant="ghost"
-            aria-label="Anuluj parowanie"
+            aria-label="Cancel pairing"
             onClick={requestClose}
           >
             <X />
@@ -177,13 +177,12 @@ export function PairingFlow({ stressors, onApply, onClose, initialState, initial
         {confirmAbandon ? (
           <div className="space-y-4">
             <p className="text-sm">
-              Przerwać parowanie? Postęp ({state.phase === 'compare' ? state.count : 0}{' '}
+              Cancel pairing? Your progress ({state.phase === 'compare' ? state.count : 0}{' '}
               {pluralize(state.phase === 'compare' ? state.count : 0, [
-                'pytanie',
-                'pytania',
-                'pytań',
+                'question',
+                'questions',
               ])}){' '}
-              nie zostanie zapisany.
+              won't be saved.
             </p>
             <div className="flex gap-2">
               <Button
@@ -193,32 +192,32 @@ export function PairingFlow({ stressors, onApply, onClose, initialState, initial
                 className="flex-1"
                 onClick={onClose}
               >
-                Przerwij
+                Discard
               </Button>
               <Button type="button" variant="ghost" onClick={() => setConfirmAbandon(false)}>
-                Wracaj do parowania
+                Back to pairing
               </Button>
             </div>
           </div>
         ) : state.phase === 'intro' ? (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Przejdziemy przez pary stresorów. Musisz dojść do końca, żeby dostać ułożenie. Esc =
-              anuluj bez zmian.
+              We'll go through pairs of stressors. You need to finish to get an order. Esc = cancel
+              with no changes.
             </p>
             <Button id={PRIMARY_ID} type="button" className="w-full" onClick={start}>
-              Zacznij ({total} {pluralize(total, ['stresor', 'stresory', 'stresorów'])})
+              Start ({total} {pluralize(total, ['stressor', 'stressors'])})
             </Button>
           </div>
         ) : state.phase === 'compare' ? (
           <div className="space-y-4">
             <p className="text-center text-xs uppercase tracking-wide text-muted-foreground">
-              Pytanie {state.count + 1}
+              Question {state.count + 1}
             </p>
             <p className="text-center text-[0.7rem] text-muted-foreground/70">
-              Stresor {state.sorted.length + 1} z {total}
+              Stressor {state.sorted.length + 1} of {total}
             </p>
-            <p className="text-center text-sm font-medium">Co bardziej cię stresuje?</p>
+            <p className="text-center text-sm font-medium">What stresses you more?</p>
             <div className="grid gap-2">
               <Button
                 id={PRIMARY_ID}
@@ -244,8 +243,8 @@ export function PairingFlow({ stressors, onApply, onClose, initialState, initial
         ) : (
           <div className="space-y-4">
             <p className="text-sm">
-              Gotowe — ułożyłem kolejność po {state.count}{' '}
-              {pluralize(state.count, ['pytaniu', 'pytaniach', 'pytaniach'])}:
+              Done — ordered after {state.count}{' '}
+              {pluralize(state.count, ['question', 'questions'])}:
             </p>
             <ol className="space-y-1 text-sm">
               {state.order.map((s, i) => (
@@ -262,10 +261,10 @@ export function PairingFlow({ stressors, onApply, onClose, initialState, initial
                 className="flex-1"
                 onClick={() => onApply(state.order.map((s) => s.id))}
               >
-                Zastosuj
+                Apply
               </Button>
               <Button type="button" variant="ghost" onClick={onClose}>
-                Anuluj
+                Cancel
               </Button>
             </div>
           </div>

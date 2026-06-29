@@ -75,9 +75,9 @@ export function SessionFilter({
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold tracking-tight">Sesja focus</h2>
+        <h2 className="text-xl font-semibold tracking-tight">Focus session</h2>
         <p className="text-sm text-muted-foreground">
-          Wybierz, jakimi zadaniami chcesz się teraz zająć — kontekst(y) i energię. Filtr wskaże, co realnie możesz zrobić.
+          Pick what to work on right now — context(s) and energy. The filter shows what you can actually do.
         </p>
       </div>
 
@@ -88,30 +88,30 @@ export function SessionFilter({
           <div className="rounded-lg border border-dashed p-10 text-center">
             <PartyPopper className="mx-auto size-6 text-muted-foreground" aria-hidden />
             <p className="mt-2 text-sm">
-              <strong>Wszystkie zadania zrobione — brawo.</strong>
+              <strong>All tasks done — well done.</strong>
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Nie ma nic do zrobienia w tym filtrze. Dodaj lub opisz kolejne zadania w procesowaniu.
+              Nothing left to do in this filter. Add or tag more tasks in processing.
             </p>
             <Link to="/process" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'mt-4')}>
-              Przejdź do procesowania
+              Go to processing
             </Link>
           </div>
         ) : (
           <div className="rounded-lg border border-dashed p-10 text-center">
             <p className="text-sm text-muted-foreground">
-              Brak zadań opisanych atrybutami. Najpierw przypisz kontekst, energię i czas w{' '}
-              <code className="rounded bg-muted px-1 py-0.5 text-xs">procesowaniu</code>.
+              No tasks tagged with attributes yet. Assign context, energy, and time in{' '}
+              <code className="rounded bg-muted px-1 py-0.5 text-xs">processing</code> first.
             </p>
           </div>
         )
       ) : (
         <>
           <fieldset className="space-y-2">
-            <legend className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Kontekst</legend>
+            <legend className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Context</legend>
             <div className="flex flex-wrap items-center gap-2">
               <Chip selected={isAllContexts} onClick={toggleAllContexts}>
-                Wszystkie
+                All
               </Chip>
               <span aria-hidden className="h-4 w-px bg-border" />
               {CONTEXT_ORDER.map((c) => (
@@ -123,10 +123,10 @@ export function SessionFilter({
           </fieldset>
 
           <fieldset className="space-y-2">
-            <legend className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Energia</legend>
+            <legend className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Energy</legend>
             <div className="flex flex-wrap items-center gap-2">
               <Chip selected={isAllEnergies} onClick={toggleAllEnergies}>
-                Wszystkie
+                All
               </Chip>
               <span aria-hidden className="h-4 w-px bg-border" />
               {ENERGY_ORDER.map((e) => (
@@ -140,18 +140,18 @@ export function SessionFilter({
 
           <div className="rounded-lg border bg-muted/30 p-4 text-sm">
             {nothingSelected ? (
-              <span className="text-muted-foreground">Wybierz co najmniej jeden kontekst i jeden poziom energii.</span>
+              <span className="text-muted-foreground">Pick at least one context and one energy level.</span>
             ) : matchCount === 0 ? (
-              <span className="text-muted-foreground">Brak zadań pasujących do filtra — zmień wybór.</span>
+              <span className="text-muted-foreground">No tasks match the filter — change your selection.</span>
             ) : (
               <span>
-                <span className="font-semibold tabular-nums">{matchCount}</span> {pluralZadanie(matchCount)} pasuje do filtra.
+                <span className="font-semibold tabular-nums">{matchCount}</span> {pluralTask(matchCount)} match the filter.
               </span>
             )}
           </div>
 
           <Button type="button" size="lg" disabled={!canStart} onClick={onStart}>
-            Zacznij
+            Start
           </Button>
         </>
       )}
@@ -176,11 +176,7 @@ function Chip({ selected, onClick, children }: { selected: boolean; onClick: () 
   );
 }
 
-/** Polska odmiana „zadanie". */
-function pluralZadanie(n: number): string {
-  if (n === 1) return 'zadanie';
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'zadania';
-  return 'zadań';
+/** English plural for "task": 1 task, otherwise tasks. */
+function pluralTask(n: number): string {
+  return n === 1 ? 'task' : 'tasks';
 }

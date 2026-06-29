@@ -24,13 +24,13 @@ export function RunReadError({ onReload }: RunReadErrorProps) {
       className="rounded-lg border border-destructive/40 bg-destructive/10 p-8 text-center"
     >
       <AlertTriangle className="mx-auto size-6 text-destructive" aria-hidden />
-      <h2 className="mt-2 text-lg font-semibold">Nie udało się wczytać runów</h2>
+      <h2 className="mt-2 text-lg font-semibold">Couldn't load your runs</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Zapisane dane mogły ulec uszkodzeniu. Odśwież stronę — jeśli problem wróci,
-        przełącz scenariusz w pasku deweloperskim.
+        Saved data may be corrupted. Refresh the page — if it keeps happening,
+        switch scenarios in the dev toolbar.
       </p>
       <Button type="button" variant="outline" className="mt-4" onClick={onReload}>
-        <RotateCw /> Odśwież
+        <RotateCw /> Refresh
       </Button>
     </div>
   );
@@ -49,16 +49,16 @@ export function RunCompleted({ onArchive }: RunCompletedProps) {
   return (
     <section
       className="space-y-3 rounded-lg border bg-muted/30 p-4"
-      aria-label="Przejazd ukończony"
+      aria-label="Run complete"
     >
       <div>
-        <h3 className="font-semibold">Przejazd ukończony</h3>
+        <h3 className="font-semibold">Run complete</h3>
         <p className="text-sm text-muted-foreground">
-          Wszystkie taski w tym Runie są zrobione. Archiwizuj przejazd, by zachować go w historii.
+          All tasks in this run are done. Archive it to keep it in your history.
         </p>
       </div>
       <Button type="button" onClick={onArchive}>
-        <Archive /> Archiwizuj ten przejazd
+        <Archive /> Archive this run
       </Button>
     </section>
   );

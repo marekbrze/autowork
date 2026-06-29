@@ -10,7 +10,7 @@ import type { Task } from '../types/task';
 /** Przykłady modelujące aktywny, konkretny język (ADR 0006).
  *  Wartość z końcową spacją ląduje w polu (gotowa do dokończenia);
  *  wielokropek doklejamy tylko do etykiety chipa. */
-const ACTION_EXAMPLES = ['Zadzwoń do ', 'Wyślij ', 'Wpłać ', 'Umów '];
+const ACTION_EXAMPLES = ['Call ', 'Send ', 'Pay ', 'Book '];
 
 interface HowBlockProps {
   stressorId: string;
@@ -60,9 +60,9 @@ export function HowBlock({
   return (
     <div className="space-y-3">
       <div className="space-y-0.5">
-        <h3 className="text-base font-semibold">Jak to mądrze popchnąć?</h3>
+        <h3 className="text-base font-semibold">How to move it forward smartly?</h3>
         <p className="text-sm text-muted-foreground">
-          Wypisz konkretne akcje — czasownik na początku, fizycznie wykonalne. Enter dodaje kolejną.
+          List concrete actions — start with a verb, physically doable. Enter adds another.
         </p>
       </div>
 
@@ -76,8 +76,8 @@ export function HowBlock({
         <input
           ref={inputRef}
           className="h-9 flex-1 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-          placeholder="np. Zadzwoń do doradcy o warunki restrukturyzacji…"
-          aria-label="Nowy next-action"
+          placeholder="e.g. Call the advisor about restructuring terms…"
+          aria-label="New next action"
           autoComplete="off"
           maxLength={300}
           value={draft}
@@ -85,12 +85,12 @@ export function HowBlock({
         />
         <Button type="submit" size="lg" disabled={!draft.trim()}>
           <Plus />
-          Dodaj
+          Add
         </Button>
       </form>
 
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="text-xs text-muted-foreground">np.</span>
+        <span className="text-xs text-muted-foreground">e.g.</span>
         {ACTION_EXAMPLES.map((ex) => (
           <button
             key={ex.trim()}
@@ -108,7 +108,7 @@ export function HowBlock({
 
       {nextActions.length === 0 ? (
         <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-          Jeszcze żadnej akcji. Wymyśl pierwszy konkretny krok — cokolwiek, co pchnie to do przodu.
+          No actions yet. Come up with a first concrete step — anything that moves it forward.
         </p>
       ) : (
         <ul className="space-y-2">

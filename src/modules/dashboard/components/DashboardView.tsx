@@ -68,7 +68,7 @@ export function DashboardView() {
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground">
-          Wznawiaj tam, gdzie skończyłeś — albo zacznij nowy przejazd.
+          Pick up where you left off — or start a new run.
         </p>
       </header>
 
@@ -82,8 +82,8 @@ export function DashboardView() {
           />
 
           {rest.length > 0 && (
-            <section className="space-y-3" aria-label="Pozostałe aktywne Runy">
-              <h2 className="text-sm font-medium text-muted-foreground">Pozostałe aktywne</h2>
+            <section className="space-y-3" aria-label="Other active runs">
+              <h2 className="text-sm font-medium text-muted-foreground">Other active</h2>
               <ul className="space-y-3">
                 {rest.map((run) => (
                   <li key={run.id}>
@@ -92,13 +92,13 @@ export function DashboardView() {
                       actions={
                         <>
                           <Button size="sm" onClick={() => continueRun(run.lastReachedStep)}>
-                            Kontynuuj
+                            Continue
                           </Button>
                           <Link
                             to={`/run/${run.id}`}
                             className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
                           >
-                            Szczegóły
+                            Details
                           </Link>
                         </>
                       }
@@ -112,23 +112,23 @@ export function DashboardView() {
       ) : archivedCount > 0 ? (
         // Brak aktywnych, ale jest archiwum — zaproś do nowego + wejście do historii poniżej.
         <section className="space-y-4 rounded-lg border border-dashed p-10 text-center">
-          <p className="text-sm text-muted-foreground">Nie masz teraz aktywnego przejazdu.</p>
+          <p className="text-sm text-muted-foreground">You don't have an active run right now.</p>
           <Button size="lg" onClick={handleStartNew}>
-            <Plus /> Zacznij nowy Run
+            <Plus /> Start a new run
           </Button>
         </section>
       ) : (
         // Pierwsze otwarcie — zero runów. Wielki, zachęcający do pracy button (ADR 0026).
         <section className="space-y-5 rounded-xl border bg-card p-10 text-center">
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold tracking-tight">Od czego zacząć?</h2>
+            <h2 className="text-xl font-semibold tracking-tight">Where to start?</h2>
             <p className="mx-auto max-w-md text-sm text-muted-foreground">
-              Wyrzuć z głowy wszystko, co cię teraz stresuje. Apka poprowadzi cię dalej — krok po
-              kroku, bez decydowania, od czego zacząć.
+              Brain-dump everything that's stressing you right now. The app will guide you forward —
+              step by step, no deciding where to start.
             </p>
           </div>
           <Button size="lg" className="w-full sm:w-auto" onClick={handleStartNew}>
-            <Plus /> Zacznij swój pierwszy Run
+            <Plus /> Start your first run
           </Button>
         </section>
       )}
@@ -139,7 +139,7 @@ export function DashboardView() {
           to="/run/archived"
           className="flex items-center justify-between rounded-lg border border-dashed px-4 py-3 text-sm text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         >
-          <span>Archiwum · {archivedCount} zakończonych przejazdów</span>
+          <span>Archive · {archivedCount} finished runs</span>
           <ArrowRight className="size-4" />
         </Link>
       )}
@@ -149,7 +149,7 @@ export function DashboardView() {
         readError={storage.readError}
         onRetry={storage.retry}
         onDismiss={storage.dismiss}
-        entityLabel="runów"
+        entityLabel="runs"
       />
     </div>
   );

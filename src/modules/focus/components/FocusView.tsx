@@ -397,10 +397,10 @@ export function FocusView() {
       {/* Safeguard: wejście w sesję, ale task zniknął (np. usunięty z innej karty). */}
       {screen === 'session' && !currentTask && (
         <div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
-          Brak bieżącego zadania w sesji.
+          No current task in the session.
           <div className="mt-3">
             <Button type="button" variant="ghost" size="sm" onClick={() => setScreen('filter')}>
-              ← Wróć do wyboru sesji
+              ← Back to session picker
             </Button>
           </div>
         </div>
@@ -434,7 +434,7 @@ export function FocusView() {
         readError={storageView.readError}
         onRetry={storageView.retry}
         onDismiss={storageView.dismissErr}
-        entityLabel={taskStorage.readError ? 'zadań' : 'danych'}
+        entityLabel={taskStorage.readError ? 'tasks' : 'data'}
       />
 
       {/* #3: undo Dismiss na poziomie FocusView — przeżywa skok do podsumowania. */}
@@ -442,9 +442,9 @@ export function FocusView() {
 
       <ConfirmDialog
         open={confirmClear}
-        title="Usunąć skońcone zadania?"
-        description="Znikną zadania zrobione i oznaczone jako nieaktualne. Tej operacji nie da się cofnąć."
-        confirmLabel="Usuń skończone"
+        title="Delete finished tasks?"
+        description="Completed and no-longer-relevant tasks will be removed. This action can't be undone."
+        confirmLabel="Delete finished"
         onConfirm={clearCompleted}
         onCancel={() => setConfirmClear(false)}
       />

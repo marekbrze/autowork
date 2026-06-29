@@ -30,11 +30,11 @@ export function RunCard({ run, actions }: RunCardProps) {
         </Link>
         {isActive && (
           <p className="text-xs text-muted-foreground">
-            Wznowisz w: <span className="text-foreground">{STEP_LABEL[run.lastReachedStep]}</span>
+            Resumes at: <span className="text-foreground">{STEP_LABEL[run.lastReachedStep]}</span>
           </p>
         )}
         {run.state === 'archived' && (
-          <p className="text-xs text-muted-foreground">Zarchiwizowany</p>
+          <p className="text-xs text-muted-foreground">Archived</p>
         )}
       </div>
 
@@ -42,7 +42,7 @@ export function RunCard({ run, actions }: RunCardProps) {
         <div
           className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
           role="img"
-          aria-label={`${run.stats.doneCount} z ${run.stats.totalTasks} wykonanych`}
+          aria-label={`${run.stats.doneCount} of ${run.stats.totalTasks} done`}
         >
           <div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
         </div>

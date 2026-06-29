@@ -52,16 +52,16 @@ export function WhyBlock({
       <div className="grid gap-3 sm:grid-cols-2">
         <ReasonColumn
           valence="positive"
-          title="Co zyskam, jak to skończę"
-          hint="Zysk — podejście do czegoś dobrego."
+          title="What I gain when this is done"
+          hint="Gain — moving toward something good."
           reasons={positive}
           onAdd={(text) => onAddReason(stressorId, text, 'positive')}
           onDelete={onDeleteReason}
         />
         <ReasonColumn
           valence="negative"
-          title="Co mnie czeka, jak tego nie zrobię"
-          hint="Cena zwłoki — to, co się pogorszy, jak to odłożysz."
+          title="What's coming if I don't"
+          hint="The cost of delay — what gets worse if you put it off."
           reasons={negative}
           onAdd={(text) => onAddReason(stressorId, text, 'negative')}
           onDelete={onDeleteReason}
@@ -70,17 +70,17 @@ export function WhyBlock({
 
       <div className="space-y-2 rounded-lg border p-3">
         <div className="space-y-0.5">
-          <h4 className="text-sm font-semibold">Wizja efektu</h4>
+          <h4 className="text-sm font-semibold">Vision of the outcome</h4>
           <p className="text-xs text-muted-foreground">
-            Opcjonalnie. Jak wygląda zrobiony stan? Żywo, zmysłowo — to „ładuje baterię”, którą
-            zużyjesz później w focus.
+            Optional. What does done look like? Vivid, sensory — this "charges the battery" you'll
+            spend later in focus.
           </p>
         </div>
 
         <textarea
           className="min-h-16 w-full resize-y rounded-md border border-input bg-background px-2.5 py-1.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-          placeholder="np. siedzę na kanapie, rata spłacona, telefon milczy…"
-          aria-label="Wizja efektu"
+          placeholder="e.g. sitting on the couch, the loan paid off, the phone silent…"
+          aria-label="Vision of the outcome"
           rows={2}
           maxLength={600}
           value={visionText}
@@ -95,7 +95,7 @@ export function WhyBlock({
               <button
                 key={emoji}
                 type="button"
-                aria-label={`Wybierz emoji ${emoji}`}
+                aria-label={`Select emoji ${emoji}`}
                 aria-pressed={selected}
                 onClick={() => {
                   setVisionEmoji(emoji);
@@ -114,7 +114,7 @@ export function WhyBlock({
 
         {doneVision && (
           <p className="text-xs text-muted-foreground">
-            Zapisana wizja: <span className="font-medium text-foreground">{doneVision.emoji} {doneVision.text}</span>
+            Saved vision: <span className="font-medium text-foreground">{doneVision.emoji} {doneVision.text}</span>
           </p>
         )}
       </div>

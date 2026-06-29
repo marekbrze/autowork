@@ -57,7 +57,7 @@ export function StressorItem({
         <input
           ref={inputRef}
           className="h-7 flex-1 bg-transparent text-sm outline-none"
-          aria-label={`Edytuj stresor: ${stressor.text}`}
+          aria-label={`Edit stressor: ${stressor.text}`}
           value={draft}
           maxLength={300}
           onChange={(e) => setDraft(e.target.value)}
@@ -73,7 +73,7 @@ export function StressorItem({
           }}
           onBlur={commit}
         />
-        <Button type="button" size="icon-sm" variant="ghost" aria-label="Zapisz zmiany" onClick={commit}>
+        <Button type="button" size="icon-sm" variant="ghost" aria-label="Save changes" onClick={commit}>
           <Check />
         </Button>
       </div>
@@ -93,7 +93,7 @@ export function StressorItem({
         ref={(el) => registerRef(index, el)}
         onFocus={() => onFocus(stressor.id)}
         onClick={startEdit}
-        title="Kliknij, aby edytować (strzałki ↑↓ nawigują, Backspace usuwa)"
+        title="Click to edit (↑↓ arrows to navigate, Backspace to delete)"
         className="min-w-0 flex-1 truncate rounded-md text-left text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
@@ -117,7 +117,7 @@ export function StressorItem({
         type="button"
         size="icon-sm"
         variant="ghost"
-        aria-label={`Usuń stresor: ${stressor.text}`}
+        aria-label={`Delete stressor: ${stressor.text}`}
         onClick={onDelete}
         className="opacity-60 hover:opacity-100"
       >

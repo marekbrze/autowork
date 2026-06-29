@@ -110,10 +110,10 @@ export function BrainDump() {
 
       <div className="space-y-2">
         <label htmlFor="brain-dump-input" className="block text-xl font-semibold tracking-tight">
-          Co cię teraz stresuje?
+          What's stressing you right now?
         </label>
         <p className="text-sm text-muted-foreground">
-          Wyrzuć z głowy wszystko, hasłowo, jedno pod drugim. Enter dodaje.
+          Brain-dump everything, keyword by keyword, one after another. Press Enter to add.
         </p>
       </div>
 
@@ -128,7 +128,7 @@ export function BrainDump() {
           id="brain-dump-input"
           ref={inputRef}
           className="h-9 flex-1 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-          placeholder="np. samochód, wypowiedzenie umowy…"
+          placeholder="e.g. the car, canceling a contract…"
           autoComplete="off"
           maxLength={300}
           value={draft}
@@ -142,7 +142,7 @@ export function BrainDump() {
         />
         <Button type="submit" size="lg" disabled={!draft.trim()}>
           <Plus />
-          Dodaj
+          Add
         </Button>
       </form>
 
@@ -156,8 +156,8 @@ export function BrainDump() {
       {stressors.length === 0 ? (
         <div className="rounded-lg border border-dashed p-10 text-center">
           <p className="text-sm text-muted-foreground">
-            Lista pusta. Wyrzuć pierwszy stresor wyżej — cokolwiek, co ci teraz ciąży. Podpowiedzi
-            z banera mogą pomóc zacząć.
+            List is empty. Dump your first stressor above — anything weighing on you right now. The
+            prompt banner can help you start.
           </p>
         </div>
       ) : (
@@ -185,8 +185,8 @@ export function BrainDump() {
         </Button>
         <span className="text-xs text-muted-foreground">
           {stressors.length === 0
-            ? 'Dodaj co najmniej jeden stresor, żeby iść dalej'
-            : `${stressors.length} ${pluralize(stressors.length, ['stresor', 'stresory', 'stresorów'])}`}
+            ? 'Add at least one stressor to continue'
+            : `${stressors.length} ${pluralize(stressors.length, ['stressor', 'stressors'])}`}
         </span>
         <Button
           type="button"
@@ -194,7 +194,7 @@ export function BrainDump() {
           disabled={stressors.length === 0}
           onClick={() => navigate('/capture/ranking')}
         >
-          Dalej →
+          Next →
         </Button>
       </div>
 
@@ -211,7 +211,7 @@ export function BrainDump() {
         readError={storage.readError}
         onRetry={storage.retry}
         onDismiss={storage.dismiss}
-        entityLabel="stresorów"
+        entityLabel="stressors"
       />
     </div>
   );

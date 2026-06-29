@@ -27,20 +27,20 @@ export const EMPTY_FILTER: FilterSelection = { contexts: [], energies: [] };
 
 /** Etykiety kontekstów GTD — lokalna kopia (współdzielone znaczenie z `process`). */
 export const CONTEXT_LABELS: Record<Context, string> = {
-  Phone: 'Telefon',
-  Message: 'Wiadomość',
-  Creative: 'Kreatywne',
-  Errands: 'Sprawunki',
-  Home: 'Dom',
-  City: 'Miasto',
+  Phone: 'Phone',
+  Message: 'Message',
+  Creative: 'Creative',
+  Errands: 'Errands',
+  Home: 'Home',
+  City: 'City',
 };
 
 export const CONTEXT_ORDER: Context[] = ['Phone', 'Message', 'Creative', 'Errands', 'Home', 'City'];
 
 export const ENERGY_LABELS: Record<Energy, string> = {
-  1: 'Niska',
-  2: 'Średnia',
-  3: 'Wysoka',
+  1: 'Low',
+  2: 'Medium',
+  3: 'High',
 };
 
 export const ENERGY_ORDER: Energy[] = [1, 2, 3];

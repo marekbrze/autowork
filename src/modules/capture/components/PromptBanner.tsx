@@ -9,13 +9,13 @@ export interface PromptSuggestion {
 }
 
 const DEFAULT_PROMPTS: PromptSuggestion[] = [
-  { category: 'finanse', example: 'A rata kredytu?' },
-  { category: 'zdrowie', example: 'A zaplanowana wizyta u lekarza?' },
-  { category: 'praca', example: 'A zbliżający się deadline?' },
-  { category: 'relacje', example: 'A trudna rozmowa z kimś bliskim?' },
-  { category: 'dom', example: 'A zaległe sprawy domowe?' },
-  { category: 'dokumenty', example: 'A niezałatwione papiery?' },
-  { category: 'auto', example: 'A przegląd samochodu?' },
+  { category: 'money', example: 'The loan payment?' },
+  { category: 'health', example: "That doctor's appointment?" },
+  { category: 'work', example: 'The upcoming deadline?' },
+  { category: 'relationships', example: 'A tough conversation with someone close?' },
+  { category: 'home', example: 'The chores piling up at home?' },
+  { category: 'paperwork', example: 'The paperwork you keep putting off?' },
+  { category: 'car', example: 'The car service?' },
 ];
 
 interface PromptBannerProps {
@@ -49,7 +49,7 @@ export function PromptBanner({ prompts = DEFAULT_PROMPTS, onPick, intervalMs = 4
         type="button"
         variant="ghost"
         size="icon-sm"
-        aria-label="Poprzednia podpowiedź"
+        aria-label="Previous prompt"
         disabled={count <= 1}
         onClick={() => go(-1)}
       >
@@ -59,8 +59,8 @@ export function PromptBanner({ prompts = DEFAULT_PROMPTS, onPick, intervalMs = 4
       <button
         type="button"
         onClick={() => onPick?.(current.example)}
-        title="Kliknij, aby wstawić do pola"
-        aria-label={`Podpowiedź z kategorii ${current.category}: ${current.example}. Kliknij, aby wstawić do pola.`}
+        title="Click to insert into the field"
+        aria-label={`Prompt from the ${current.category} category: ${current.example}. Click to insert into the field.`}
         className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-1 text-left text-sm text-muted-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         <Lightbulb className="size-4 shrink-0" aria-hidden />
@@ -76,7 +76,7 @@ export function PromptBanner({ prompts = DEFAULT_PROMPTS, onPick, intervalMs = 4
         type="button"
         variant="ghost"
         size="icon-sm"
-        aria-label="Następna podpowiedź"
+        aria-label="Next prompt"
         disabled={count <= 1}
         onClick={() => go(1)}
       >

@@ -73,10 +73,10 @@ export function DecomposeView() {
         <FunnelStepper current="decompose" />
         <div className="rounded-lg border border-dashed p-10 text-center">
           <p className="text-sm text-muted-foreground">
-            Brak stresorów do rozbicia. `decompose` bierze uporządkowane stresory z `capture`.
+            No stressors to break down. `decompose` takes the ordered stressors from `capture`.
           </p>
           <Button type="button" className="mt-4" onClick={() => navigate('/capture')}>
-            Idź do brain dump
+            Go to brain dump
           </Button>
         </div>
       </div>
@@ -124,7 +124,7 @@ export function DecomposeView() {
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Stresor {safeIndex + 1} z {stressors.length}
+            Stressor {safeIndex + 1} of {stressors.length}
           </p>
           <h2 className="max-w-prose text-2xl font-semibold tracking-tight">{stressor.text}</h2>
         </div>
@@ -136,15 +136,15 @@ export function DecomposeView() {
           onClick={() => goToStressor(safeIndex - 1)}
         >
           <ArrowLeft />
-          Wstecz
+          Back
         </Button>
       </div>
 
       {/* Przełącznik pod-kroków A / B */}
-      <div role="group" aria-label="Krok dekompozycji" className="inline-flex rounded-lg border p-0.5">
+      <div role="group" aria-label="Decomposition step" className="inline-flex rounded-lg border p-0.5">
         {(['A', 'B'] as const).map((step) => {
           const active = subStep === step;
-          const label = step === 'A' ? 'A · DLACZEGO' : 'B · JAK';
+          const label = step === 'A' ? 'A · WHY' : 'B · HOW';
           return (
             <button
               key={step}
@@ -191,10 +191,10 @@ export function DecomposeView() {
         {subStep === 'A' ? (
           <>
             <Button type="button" variant="ghost" size="sm" onClick={() => setSubStep('B')}>
-              Pomiń blok
+              Skip block
             </Button>
             <Button type="button" size="lg" onClick={() => setSubStep('B')}>
-              Do HOW
+              To HOW
               <ArrowRight />
             </Button>
           </>
@@ -202,16 +202,16 @@ export function DecomposeView() {
           <>
             <Button type="button" variant="ghost" size="sm" onClick={() => setSubStep('A')}>
               <ArrowLeft />
-              DLACZEGO
+              WHY
             </Button>
             <div className="flex items-center gap-3">
               {!canProceed && (
                 <span className="hidden text-xs text-muted-foreground sm:inline">
-                  Dodaj ≥1 next-action, żeby iść dalej
+                  Add ≥1 next action to continue
                 </span>
               )}
               <Button type="button" size="lg" disabled={!canProceed} onClick={proceed}>
-                {isLast ? 'Do procesowania' : 'Dalej'}
+                {isLast ? 'To processing' : 'Next'}
                 <ArrowRight />
               </Button>
             </div>
@@ -230,7 +230,7 @@ export function DecomposeView() {
         readError={storageReadError}
         onRetry={retryStorage}
         onDismiss={dismissStorage}
-        entityLabel="danych"
+        entityLabel="data"
       />
     </div>
   );

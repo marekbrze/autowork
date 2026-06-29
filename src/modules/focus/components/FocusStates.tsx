@@ -23,9 +23,9 @@ export function DismissUndoToast({ text, onUndo }: DismissUndoToastProps) {
       aria-live="polite"
       className="fixed bottom-4 left-1/2 z-50 flex w-[min(92vw,30rem)] -translate-x-1/2 items-center gap-2 rounded-lg border bg-background px-4 py-2 shadow-lg"
     >
-      <span className="min-w-0 flex-1 truncate text-sm">Oznaczono „{text}" jako nieaktualne.</span>
+      <span className="min-w-0 flex-1 truncate text-sm">Marked "{text}" as not relevant.</span>
       <Button type="button" variant="link" size="sm" onClick={onUndo}>
-        Cofnij
+        Undo
       </Button>
     </div>
   );
@@ -49,14 +49,14 @@ export function SessionResumeBanner({ position, total, onResume, onAbandon }: Se
     <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-muted/30 px-4 py-3">
       <Play className="size-4 shrink-0 text-muted-foreground" aria-hidden />
       <p className="min-w-0 flex-1 text-sm">
-        Masz przerwaną sesję <span className="font-semibold tabular-nums">{position}/{total}</span> — wznowić od tego
-        samego zadania?
+        You have a paused session <span className="font-semibold tabular-nums">{position}/{total}</span> — resume from the
+        same task?
       </p>
       <Button type="button" size="sm" onClick={onResume}>
-        Wznów sesję
+        Resume session
       </Button>
       <Button type="button" size="sm" variant="ghost" onClick={onAbandon}>
-        Porzuć
+        Discard
       </Button>
     </div>
   );
@@ -75,12 +75,12 @@ export function ReadErrorState({ onReload }: ReadErrorStateProps) {
   return (
     <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-8 text-center">
       <AlertTriangle className="mx-auto size-6 text-destructive" aria-hidden />
-      <h2 className="mt-2 text-lg font-semibold">Nie udało się wczytać zadań</h2>
+      <h2 className="mt-2 text-lg font-semibold">Couldn't load your tasks</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Zapisane dane mogły ulec uszkodzeniu. Odśwież stronę — jeśli problem wróci, wyczyść pamięć przeglądarki.
+        Saved data may be corrupted. Refresh the page — if it keeps happening, clear your browser storage.
       </p>
       <Button type="button" variant="outline" className="mt-4" onClick={onReload}>
-        <RotateCw /> Odśwież
+        <RotateCw /> Refresh
       </Button>
     </div>
   );

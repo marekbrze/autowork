@@ -7,11 +7,15 @@ import type { ReviewItem, Run } from '../types/run';
 
 const STORAGE_KEY = 'run:runs';
 
-/** Domyślna nazwa Runa = data/godzina (zgodnie z ENTITY_MAP). */
+/** Default run name = date/time (per ENTITY_MAP). */
 function defaultRunName(): string {
-  const d = new Date();
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `Run · ${pad(d.getDate())}.${pad(d.getMonth() + 1)}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const stamp = new Date().toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+  return `Run · ${stamp}`;
 }
 
 export function useRuns() {

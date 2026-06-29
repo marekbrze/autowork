@@ -16,15 +16,15 @@ export function MotivationPanel({ doneVision, reasons }: MotivationPanelProps) {
   if (!doneVision && reasons.length === 0) {
     return (
       <div className="space-y-2">
-        <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Po co to robisz?</h3>
-        <p className="text-sm text-muted-foreground/70">Brak materiału motywacyjnego dla tego stresora.</p>
+        <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Why are you doing this?</h3>
+        <p className="text-sm text-muted-foreground/70">No motivation material for this stressor.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-2">
-      <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Po co to robisz?</h3>
+      <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Why are you doing this?</h3>
       {doneVision && (
         <p className="text-sm font-medium">
           <span aria-hidden className="mr-1.5">
@@ -42,7 +42,7 @@ export function MotivationPanel({ doneVision, reasons }: MotivationPanelProps) {
                 <span
                   aria-hidden
                   className={cn('shrink-0', positive ? 'text-foreground' : 'text-destructive')}
-                  title={positive ? 'zysk' : 'uniknięcie bólu'}
+                  title={positive ? 'gain' : 'avoiding pain'}
                 >
                   {positive ? '✓' : '⚠'}
                 </span>

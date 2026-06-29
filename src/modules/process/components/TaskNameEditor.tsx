@@ -41,7 +41,7 @@ export function TaskNameEditor({ initial, onSave, onCancel }: TaskNameEditorProp
     <input
       ref={inputRef}
       value={text}
-      aria-label="Edycja nazwy zadania"
+      aria-label="Edit task name"
       onChange={(e) => setText(e.target.value)}
       // stopPropagation: globalny handler ProcessView ma nie łapać Enter/Esc z inputu
       onKeyDown={(e) => {

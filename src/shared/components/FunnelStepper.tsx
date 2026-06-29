@@ -6,10 +6,10 @@ import { cn } from '@/lib/utils';
  * modułów Core; renderowany w AppShell. leading, nie menu (brak linków).
  */
 const STAGES = [
-  { key: 'capture', label: '1. Stresory' },
+  { key: 'capture', label: '1. Stressors' },
   { key: 'ranking', label: '2. Ranking' },
-  { key: 'decompose', label: '3. Akcje' },
-  { key: 'process', label: '4. Procesowanie' },
+  { key: 'decompose', label: '3. Actions' },
+  { key: 'process', label: '4. Process' },
   { key: 'focus', label: '5. Focus' },
 ] as const;
 
@@ -19,7 +19,7 @@ export function FunnelStepper({ current }: { current: FunnelStage }) {
   const activeIndex = STAGES.findIndex((s) => s.key === current);
 
   return (
-    <nav aria-label="Postęp lejka" className="flex flex-wrap items-center gap-1.5">
+    <nav aria-label="Funnel progress" className="flex flex-wrap items-center gap-1.5">
       {STAGES.map((s, i) => {
         const isActive = i === activeIndex;
         const isDone = i < activeIndex;

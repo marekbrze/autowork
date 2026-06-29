@@ -30,9 +30,9 @@ export function ArchivedRuns() {
         <Link to="/" className="text-xs text-muted-foreground underline-offset-4 hover:underline">
           ← Dashboard
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight">Archiwum</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Archive</h1>
         <p className="text-sm text-muted-foreground">
-          Zakończone przejazdy — statystyki i porównanie do motywacji. Możesz je rozarchiwizować.
+          Finished runs — stats and comparison for motivation. You can unarchive them.
         </p>
       </header>
 
@@ -40,7 +40,7 @@ export function ArchivedRuns() {
         <RunReadError onReload={() => window.location.reload()} />
       ) : archived.length === 0 ? (
         <div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
-          Brak zarchiwizowanych runów.
+          No archived runs.
         </div>
       ) : (
         <ul className="space-y-3">
@@ -51,16 +51,16 @@ export function ArchivedRuns() {
                 actions={
                   <>
                     <Button size="sm" variant="outline" onClick={() => unarchiveRun(run.id)}>
-                      Rozarchiwizuj
+                      Unarchive
                     </Button>
                     <Link
                       to={`/run/${run.id}`}
                       className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
                     >
-                      Szczegóły
+                      Details
                     </Link>
                     <Button size="sm" variant="destructive" onClick={() => setConfirmId(run.id)}>
-                      Usuń
+                      Delete
                     </Button>
                   </>
                 }
@@ -75,14 +75,14 @@ export function ArchivedRuns() {
         readError={storage.readError}
         onRetry={storage.retry}
         onDismiss={storage.dismiss}
-        entityLabel="runów"
+        entityLabel="runs"
       />
 
       <ConfirmDialog
         open={confirmId !== null}
-        title="Usunąć ten Run?"
-        description="Run zniknie na stałe — również ze statystyk i historii. Tej operacji nie da się cofnąć."
-        confirmLabel="Usuń na stałe"
+        title="Delete this run?"
+        description="The run will be permanently deleted — including from stats and history. This action can't be undone."
+        confirmLabel="Delete permanently"
         onConfirm={() => {
           // AO-3: honest persistence — zamykaj dialog tylko po udanym usunięciu.
           // Przy awarii zapisu Run zostaje, toast retry zostaje widoczny.

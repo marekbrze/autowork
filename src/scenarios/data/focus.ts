@@ -71,9 +71,9 @@ export interface FocusStressorRefs {
 
 export function buildFocusSeed(refs?: FocusStressorRefs): FocusSeed {
   const r: FocusStressorRefs = refs ?? {
-    podatki: mkStressor('zaległe podatki'),
-    auto: mkStressor('samochód do naprawy'),
-    podwyzka: mkStressor('rozmowa z szefem o podwyżce'),
+    podatki: mkStressor('overdue taxes'),
+    auto: mkStressor('car needs fixing'),
+    podwyzka: mkStressor('talk to the boss about a raise'),
   };
   const stressors: Stressor[] = [r.podatki, r.auto, r.podwyzka];
   const [sPodatki, sAuto, sPodwyzka] = stressors;
@@ -85,39 +85,39 @@ export function buildFocusSeed(refs?: FocusStressorRefs): FocusSeed {
 
   // --- stresor 1: podatki (rank 0) — pełne WHY ---
   reasons.push(
-    mkReason(sPodatki.id, 'spokój — urząd przestaje wisieć mi nad głową', 'positive'),
-    mkReason(sPodatki.id, 'kary i odsetki rosną z każdym dniem zwłoki', 'negative'),
+    mkReason(sPodatki.id, 'peace — the tax office stops hanging over me', 'positive'),
+    mkReason(sPodatki.id, 'penalties and interest grow every day I delay', 'negative'),
   );
-  const naPit = mkNextAction(sPodatki.id, 'Złóż zeznanie PIT online');
+  const naPit = mkNextAction(sPodatki.id, 'File the tax return online');
   nextActions.push(naPit);
   tasks.push(
-    attributedTask(naPit.id, sPodatki.id, 'Zbierz dokumenty dochodowe (PIT-11, faktury)', { context: 'Home', energy: 2, estimatedTime: 30 }),
-    attributedTask(naPit.id, sPodatki.id, 'Wypełnij formularz PIT w e-Urzędzie', { context: 'Creative', energy: 3, estimatedTime: 45 }),
-    attributedTask(naPit.id, sPodatki.id, 'Złóż zeznanie i zapisz potwierdzenie (PDF)', { context: 'Creative', energy: 2, estimatedTime: 15 }),
+    attributedTask(naPit.id, sPodatki.id, 'Gather income documents (PIT-11, invoices)', { context: 'Home', energy: 2, estimatedTime: 30 }),
+    attributedTask(naPit.id, sPodatki.id, 'Fill in the tax form in the e-Office', { context: 'Creative', energy: 3, estimatedTime: 45 }),
+    attributedTask(naPit.id, sPodatki.id, 'Submit the return and save the confirmation (PDF)', { context: 'Creative', energy: 2, estimatedTime: 15 }),
   );
-  doneVisions.push([sPodatki.id, { text: 'podatki złożone, głowa wolna od terminów i urzędu', emoji: '😌' }]);
+  doneVisions.push([sPodatki.id, { text: 'taxes filed, head clear of deadlines and the office', emoji: '😌' }]);
 
   // --- stresor 2: auto (rank 1) — pełne WHY ---
   reasons.push(
-    mkReason(sAuto.id, 'wrócę bezpiecznie do domu każdej nocy', 'positive'),
-    mkReason(sAuto.id, 'auto zepsuje się w trasie i zablokuje plany', 'negative'),
+    mkReason(sAuto.id, 'I get home safe every night', 'positive'),
+    mkReason(sAuto.id, 'the car breaks down on the road and derails my plans', 'negative'),
   );
-  const naUmow = mkNextAction(sAuto.id, 'Umów naprawę w warsztacie');
-  const naKoszt = mkNextAction(sAuto.id, 'Sprawdź orientacyjny koszt naprawy');
+  const naUmow = mkNextAction(sAuto.id, 'Book the repair at the shop');
+  const naKoszt = mkNextAction(sAuto.id, 'Check the rough repair cost');
   nextActions.push(naUmow, naKoszt);
   tasks.push(
-    attributedTask(naUmow.id, sAuto.id, 'Znajdź numer telefonu do warsztatu', { context: 'Phone', energy: 1, estimatedTime: 5 }),
-    attributedTask(naUmow.id, sAuto.id, 'Zadzwoń i umów wizytę na ten tydzień', { context: 'Phone', energy: 2, estimatedTime: 15 }),
-    attributedTask(naKoszt.id, sAuto.id, 'Wyślij zapytanie o koszt części mailowo', { context: 'Message', energy: 1, estimatedTime: 5 }),
+    attributedTask(naUmow.id, sAuto.id, 'Find the shop\'s phone number', { context: 'Phone', energy: 1, estimatedTime: 5 }),
+    attributedTask(naUmow.id, sAuto.id, 'Call and book a visit this week', { context: 'Phone', energy: 2, estimatedTime: 15 }),
+    attributedTask(naKoszt.id, sAuto.id, 'Email a quote request for parts', { context: 'Message', energy: 1, estimatedTime: 5 }),
   );
-  doneVisions.push([sAuto.id, { text: 'samochód jedzie gładko i milczy, jazda bez napięcia', emoji: '😌' }]);
+  doneVisions.push([sAuto.id, { text: 'the car runs smooth and quiet, driving without stress', emoji: '😌' }]);
 
   // --- stresor 3: podwyżka (rank 2) — celowo BEZ WHY (edge: brak motywacji) ---
-  const naPrzygotuj = mkNextAction(sPodwyzka.id, 'Przygotuj się do rozmowy o podwyżce');
+  const naPrzygotuj = mkNextAction(sPodwyzka.id, 'Prepare for the raise conversation');
   nextActions.push(naPrzygotuj);
   tasks.push(
-    attributedTask(naPrzygotuj.id, sPodwyzka.id, 'Wypisz swoje osiągnięcia z ostatniego roku', { context: 'Creative', energy: 3, estimatedTime: 30 }),
-    attributedTask(naPrzygotuj.id, sPodwyzka.id, 'Sprawdź stawki rynkowe dla swojego stanowiska', { context: 'Creative', energy: 2, estimatedTime: 15 }),
+    attributedTask(naPrzygotuj.id, sPodwyzka.id, 'List your wins from the past year', { context: 'Creative', energy: 3, estimatedTime: 30 }),
+    attributedTask(naPrzygotuj.id, sPodwyzka.id, 'Check market rates for your role', { context: 'Creative', energy: 2, estimatedTime: 15 }),
   );
 
   return { stressors, reasons, nextActions, tasks, doneVisions };

@@ -88,7 +88,7 @@ export function OptionStepPanel({
         onClick={onSkip}
         className="text-xs text-muted-foreground underline-offset-4 outline-none hover:underline focus-visible:underline"
       >
-        Pomiń <kbd className="ml-0.5 rounded border bg-muted px-1 py-0.5 text-[0.65rem]">Esc</kbd>
+        Skip <kbd className="ml-0.5 rounded border bg-muted px-1 py-0.5 text-[0.65rem]">Esc</kbd>
       </button>
     </div>
   );

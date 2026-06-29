@@ -34,34 +34,34 @@ export function Ranking() {
 
       <div className="space-y-1">
         <h2 className="text-xl font-semibold tracking-tight">
-          Ułóż od najbardziej do najmniej stresującego
+          Order from most to least stressful
         </h2>
         <p className="text-sm text-muted-foreground">
-          Przeciągnij uchwytem (☰) albo użyj strzałek ↑↓ na zaznaczonym wpisie
+          Drag by the handle (☰) or use the ↑↓ arrows on the selected item
           {stressors.length >= 2 ? (
             <>
-              {'. Możesz też '}
+              {". You can also "}
               <button
                 type="button"
                 className="font-medium underline"
                 onClick={() => setPairing(true)}
               >
-                uruchomić parowanie
+                start pairing
               </button>
               .
             </>
           ) : (
-            '.'
+            "."
           )}
         </p>
       </div>
 
       {stressors.length === 0 ? (
         <p className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
-          Brak stresorów do ułożenia. Wróć i wyrzuć coś z głowy.
+          No stressors to order. Go back and brain-dump something.
         </p>
       ) : (
-        <div role="list" aria-label="Stresory do ułożenia" className="space-y-2">
+        <div role="list" aria-label="Stressors to order" className="space-y-2">
           {stressors.map((s, i) => (
             // Wiersz jest listitem (nie interaktywny), żeby uniknąć zagnieżdżonych
             // kontrolek. Drag (mysz) na całym wierszu; reorder z klawiatury/touch
@@ -70,7 +70,7 @@ export function Ranking() {
             <div
               key={s.id}
               role="listitem"
-              aria-label={`Stresor ${i + 1} z ${stressors.length}: ${s.text}`}
+              aria-label={`Stressor ${i + 1} of ${stressors.length}: ${s.text}`}
               draggable
               onDragStart={() => setDragIndex(i)}
               onDragOver={(e) => {
@@ -106,7 +106,7 @@ export function Ranking() {
                   type="button"
                   size="icon-xs"
                   variant="ghost"
-                  aria-label={`Przesuń „${s.text}" wyżej`}
+                  aria-label={`Move "${s.text}" up`}
                   disabled={i === 0}
                   onClick={() => moveStressor(s.id, -1)}
                   onKeyDown={(e) => onArrowKey(e, s.id)}
@@ -117,7 +117,7 @@ export function Ranking() {
                   type="button"
                   size="icon-xs"
                   variant="ghost"
-                  aria-label={`Przesuń „${s.text}" niżej`}
+                  aria-label={`Move "${s.text}" down`}
                   disabled={i === stressors.length - 1}
                   onClick={() => moveStressor(s.id, 1)}
                   onKeyDown={(e) => onArrowKey(e, s.id)}
@@ -143,7 +143,7 @@ export function Ranking() {
 
       <div className="flex items-center justify-between gap-2 pt-2">
         <Button type="button" variant="ghost" size="sm" onClick={() => navigate('/capture')}>
-          ← Wstecz
+          ← Back
         </Button>
         <Button
           type="button"
@@ -151,7 +151,7 @@ export function Ranking() {
           disabled={stressors.length === 0}
           onClick={() => navigate('/decompose')}
         >
-          Dalej →
+          Next →
         </Button>
       </div>
     </div>

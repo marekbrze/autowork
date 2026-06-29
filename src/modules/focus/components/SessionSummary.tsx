@@ -38,19 +38,19 @@ export function SessionSummary({ completed, dismissed, totalSeconds, onClearComp
           </div>
         )}
         <h2 className="text-xl font-semibold tracking-tight">
-          {completed.length > 0 ? 'Sesja zakończona' : 'Koniec sesji'}
+          {completed.length > 0 ? 'Session complete' : 'End of session'}
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
           {completed.length > 0 ? (
             <>
-              Zrobiłeś <strong className="text-foreground tabular-nums">{completed.length}</strong>{' '}
-              {pluralZadanie(completed.length)} · czas{' '}
+              You did <strong className="text-foreground tabular-nums">{completed.length}</strong>{' '}
+              {pluralTask(completed.length)} · time{' '}
               <strong className="text-foreground tabular-nums">{formatClock(totalSeconds)}</strong>
             </>
           ) : dismissed.length > 0 ? (
-            'Nic nie zostało zrobione teraz — tylko nieaktualne odłożone.'
+            'Nothing got done this time — only no-longer-relevant items set aside.'
           ) : (
-            'Nic nie zostało zrobione teraz — wszystko odłożone.'
+            'Nothing got done this time — everything was set aside.'
           )}
         </p>
       </div>
@@ -58,7 +58,7 @@ export function SessionSummary({ completed, dismissed, totalSeconds, onClearComp
       {completed.length > 0 && (
         <section className="space-y-2">
           <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Zrobione ({completed.length})
+            Done ({completed.length})
           </h3>
           <ul className="divide-y rounded-lg border">
             {completed.map((t) => (
@@ -76,7 +76,7 @@ export function SessionSummary({ completed, dismissed, totalSeconds, onClearComp
       {dismissed.length > 0 && (
         <section className="space-y-2">
           <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Nieaktualne ({dismissed.length})
+            Not relevant ({dismissed.length})
           </h3>
           <ul className="divide-y rounded-lg border">
             {dismissed.map((t) => (
@@ -90,24 +90,20 @@ export function SessionSummary({ completed, dismissed, totalSeconds, onClearComp
 
       {hasResolved && (
         <Button type="button" variant="destructive" onClick={onClearCompleted}>
-          <Trash2 /> Usuń skończone
+          <Trash2 /> Delete finished
         </Button>
       )}
 
       <div>
         <Button type="button" variant="ghost" onClick={onNewSession}>
-          Nowa sesja
+          New session
         </Button>
       </div>
     </div>
   );
 }
 
-/** Polska odmiana „zadanie". */
-function pluralZadanie(n: number): string {
-  if (n === 1) return 'zadanie';
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'zadania';
-  return 'zadań';
+/** English plural for "task": 1 task, otherwise tasks. */
+function pluralTask(n: number): string {
+  return n === 1 ? 'task' : 'tasks';
 }

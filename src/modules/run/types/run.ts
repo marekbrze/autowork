@@ -55,11 +55,11 @@ export interface Run extends BaseEntity {
 /** Etykiety kroków lejka do wyświetlania (np. „wznowisz w: Sesja focus"). */
 export const STEP_LABEL: Record<FunnelStep, string> = {
   'brain-dump': 'Brain dump',
-  ranking: 'Ranking stresu',
-  decompose: 'Rozbicie (WHY + HOW)',
-  process: 'Procesowanie',
-  focus: 'Sesja focus',
-  celebration: 'Celebracja',
+  ranking: 'Stress ranking',
+  decompose: 'Breakdown (WHY + HOW)',
+  process: 'Processing',
+  focus: 'Focus session',
+  celebration: 'Celebration',
 };
 
 /** Mapa kroku → trasa lejka, po której „Kontynuuj" nawiguje (ADR 0022). */

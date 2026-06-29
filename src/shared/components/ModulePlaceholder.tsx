@@ -5,9 +5,9 @@ import { buttonVariants } from '@/components/ui/button'
 
 /** Display labels (Polish) for module code names (English, from MODULES.md). */
 const MODULE_LABELS: Record<string, string> = {
-  capture: 'Stresory',
+  capture: 'Stressors',
   decompose: 'Next actions',
-  process: 'Procesowanie',
+  process: 'Processing',
   focus: 'Focus',
   run: 'Run',
   dashboard: 'Dashboard',
@@ -25,12 +25,12 @@ export function ModulePlaceholder() {
     <div className="space-y-3">
       <h1 className="text-2xl font-semibold tracking-tight">{label}</h1>
       <p className="text-muted-foreground">
-        Moduł{' '}
-        <code className="rounded bg-muted px-1 py-0.5 text-sm">{moduleName}</code> — ekrany do
-        zbudowania w <code>proto-lofi</code>.
+        Module{' '}
+        <code className="rounded bg-muted px-1 py-0.5 text-sm">{moduleName}</code> — screens to be
+        built in <code>proto-lofi</code>.
       </p>
       <Link to="/" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}>
-        ← Wróć do Dashboardu
+        ← Back to Dashboard
       </Link>
     </div>
   )

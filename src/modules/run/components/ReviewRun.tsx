@@ -20,7 +20,7 @@ export function ReviewRun() {
   if (!run) {
     return (
       <div className="mx-auto max-w-2xl space-y-4 rounded-lg border border-dashed p-10 text-center">
-        <p className="text-sm text-muted-foreground">Nie znaleziono takiego Runa.</p>
+        <p className="text-sm text-muted-foreground">Run not found.</p>
         <Link to="/" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
           ← Dashboard
         </Link>
@@ -39,15 +39,15 @@ export function ReviewRun() {
         >
           ← {run.name}
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight">Przegląd</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Review</h1>
         <p className="text-sm text-muted-foreground">
-          Przejrzyj, co nadal obowiązuje. Oflaguj przeterminowane, potem je usuń.
+          Review what still applies. Flag the stale ones, then remove them.
         </p>
       </header>
 
       {run.reviewItems.length === 0 ? (
         <div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
-          Nic do przeglądu — wszystko aktualne.
+          Nothing to review — everything is current.
         </div>
       ) : (
         <>
@@ -62,7 +62,7 @@ export function ReviewRun() {
               >
                 <div className="min-w-0 space-y-0.5">
                   <span className="mr-2 rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                    {item.kind === 'stressor' ? 'Stresor' : 'Task'}
+                    {item.kind === 'stressor' ? 'Stressor' : 'Task'}
                   </span>
                   <span className={cn('text-sm', item.stale && 'text-muted-foreground line-through')}>
                     {item.text}
@@ -80,7 +80,7 @@ export function ReviewRun() {
                       !item.stale ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
                     )}
                   >
-                    Aktualne
+                    Current
                   </button>
                   <button
                     type="button"
@@ -91,7 +91,7 @@ export function ReviewRun() {
                       item.stale ? 'bg-destructive text-destructive-foreground' : 'hover:bg-muted',
                     )}
                   >
-                    Do usunięcia
+                    To remove
                   </button>
                 </div>
               </li>
@@ -104,7 +104,7 @@ export function ReviewRun() {
               disabled={staleCount === 0}
               onClick={() => setConfirmClear(true)}
             >
-              Usuń przeterminowane{staleCount > 0 ? ` (${staleCount})` : ''}
+              Remove stale{staleCount > 0 ? ` (${staleCount})` : ''}
             </Button>
           </div>
         </>
@@ -115,14 +115,14 @@ export function ReviewRun() {
         readError={storage.readError}
         onRetry={storage.retry}
         onDismiss={storage.dismiss}
-        entityLabel="runa"
+        entityLabel="runs"
       />
 
       <ConfirmDialog
         open={confirmClear}
-        title="Usunąć przeterminowane pozycje?"
-        description={`${staleCount} oflagowanych pozycji zniknie z przeglądu. Tej operacji nie da się cofnąć.`}
-        confirmLabel="Usuń przeterminowane"
+        title="Remove stale items?"
+        description={`${staleCount} flagged ${staleCount === 1 ? 'item' : 'items'} will be removed from the review. This action can't be undone.`}
+        confirmLabel="Remove stale"
         onConfirm={() => {
           clearStaleReviewItems(run.id);
           setConfirmClear(false);

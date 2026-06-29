@@ -20,13 +20,13 @@ export function UndoToast({ text, remaining, onUndo }: UndoToastProps) {
       className="fixed bottom-4 left-1/2 z-50 flex w-[min(92vw,30rem)] -translate-x-1/2 items-center gap-2 rounded-lg border bg-background px-4 py-2 shadow-lg"
     >
       <span className="min-w-0 flex-1 truncate text-sm">
-        Usunięto „{text}".
+        Deleted "{text}".
         {remaining > 1 && (
-          <span className="text-muted-foreground"> (jeszcze {remaining - 1} do cofnięcia)</span>
+          <span className="text-muted-foreground"> ({remaining - 1} more to undo)</span>
         )}
       </span>
       <Button type="button" variant="link" size="sm" onClick={onUndo}>
-        Cofnij
+        Undo
       </Button>
     </div>
   );

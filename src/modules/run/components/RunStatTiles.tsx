@@ -17,12 +17,12 @@ export function RunStatTiles({ run }: RunStatTilesProps) {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-3 gap-3">
-        <Tile value={formatDuration(run.stats.timeSpentSec)} label="w focus" />
+        <Tile value={formatDuration(run.stats.timeSpentSec)} label="in focus" />
         <Tile
           value={`${run.stats.doneCount} / ${run.stats.totalTasks}`}
-          label="wykonane"
+          label="done"
         />
-        <Tile value={`${progress}%`} label="progres" />
+        <Tile value={`${progress}%`} label="progress" />
       </div>
 
       {/* Pasek progresem */}
@@ -32,7 +32,7 @@ export function RunStatTiles({ run }: RunStatTilesProps) {
         aria-valuenow={progress}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label={`Progres: ${progress}%`}
+        aria-label={`Progress: ${progress}%`}
       >
         <div
           className={`h-full rounded-full transition-all ${completed ? 'bg-emerald-500' : 'bg-primary'}`}
@@ -42,14 +42,14 @@ export function RunStatTiles({ run }: RunStatTilesProps) {
 
       {/* Rozbicie */}
       <p className="text-sm text-muted-foreground">
-        <span className="font-medium text-foreground">{run.stats.doneCount}</span> wykonane ·{' '}
-        <span className="font-medium text-foreground">{run.stats.dismissedCount}</span> nieaktualne ·{' '}
-        <span className="font-medium text-foreground">{remaining}</span> zostały
+        <span className="font-medium text-foreground">{run.stats.doneCount}</span> done ·{' '}
+        <span className="font-medium text-foreground">{run.stats.dismissedCount}</span> not relevant ·{' '}
+        <span className="font-medium text-foreground">{remaining}</span> left
       </p>
 
       {/* CM-1: statystyki poglądowe — realna derywacja z przebiegu lejka odłożona (cross-module). */}
       <p className="text-xs text-muted-foreground/80">
-        Statystyki poglądowe — pełne spięcie z przebiegiem lejka w budowie.
+        Overview stats — full funnel integration is in progress.
       </p>
     </div>
   );

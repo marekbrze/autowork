@@ -23,7 +23,7 @@ export function StorageStatusToast({
   readError,
   onRetry,
   onDismiss,
-  entityLabel = 'danych',
+  entityLabel = 'data',
 }: StorageStatusToastProps) {
   if (!writeError && !readError) return null;
 
@@ -36,16 +36,16 @@ export function StorageStatusToast({
       <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-destructive">
-          {writeError ? 'Nie udało się zapisać zmian' : `Nie udało się wczytać ${entityLabel}`}
+          {writeError ? 'Failed to save changes' : `Failed to load ${entityLabel}`}
         </p>
         <p className="mt-0.5 text-xs text-muted-foreground">
           {writeError
-            ? 'Pamięć przeglądarki może być pełna lub niedostępna. Spróbuj ponownie.'
-            : 'Zapisane dane były uszkodzone — startuję od pustej listy.'}
+            ? 'Browser storage may be full or unavailable. Try again.'
+            : 'Saved data was corrupted — starting from an empty list.'}
         </p>
         {writeError && (
           <Button type="button" size="xs" variant="outline" className="mt-2" onClick={onRetry}>
-            <RefreshCw /> Spróbuj ponownie
+            <RefreshCw /> Try again
           </Button>
         )}
       </div>
@@ -53,7 +53,7 @@ export function StorageStatusToast({
         type="button"
         size="icon-xs"
         variant="ghost"
-        aria-label="Zamknij komunikat"
+        aria-label="Dismiss message"
         onClick={onDismiss}
       >
         <X />

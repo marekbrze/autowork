@@ -44,7 +44,7 @@ export function RunDetails() {
   if (!run) {
     return (
       <div className="mx-auto max-w-2xl space-y-4 rounded-lg border border-dashed p-10 text-center">
-        <p className="text-sm text-muted-foreground">Nie znaleziono takiego Runa.</p>
+        <p className="text-sm text-muted-foreground">Run not found.</p>
         <Link to="/" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
           ← Dashboard
         </Link>
@@ -86,7 +86,7 @@ export function RunDetails() {
           >
             <div className="flex flex-wrap items-center gap-2">
               <label htmlFor="run-name" className="sr-only">
-                Nazwa Runa
+                Run name
               </label>
               <input
                 id="run-name"
@@ -99,7 +99,7 @@ export function RunDetails() {
                 className="min-w-0 flex-1 rounded-md border bg-background px-3 py-2 text-lg font-semibold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
               />
               <Button type="submit" size="sm" disabled={!nameValid}>
-                Zapisz
+                Save
               </Button>
               <Button
                 type="button"
@@ -110,12 +110,12 @@ export function RunDetails() {
                   setEditing(false);
                 }}
               >
-                Anuluj
+                Cancel
               </Button>
             </div>
             {!nameValid && (
               <p id="run-name-help" className="text-xs text-destructive">
-                Nazwa nie może być pusta.
+                Name can't be empty.
               </p>
             )}
           </form>
@@ -124,14 +124,14 @@ export function RunDetails() {
             <h1 className="text-2xl font-semibold tracking-tight">{run.name}</h1>
             <StateBadge archived={archived} completed={completed} />
             <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
-              Zmień nazwę
+              Rename
             </Button>
           </div>
         )}
       </header>
 
       {/* Statystyki */}
-      <section aria-label="Statystyki Runa">
+      <section aria-label="Run stats">
         <RunStatTiles run={run} />
       </section>
 
@@ -143,11 +143,11 @@ export function RunDetails() {
           <div className="text-sm">
             {archived ? (
               <span className="text-muted-foreground">
-                Run zarchiwizowany — rozarchiwizuj, by go kontynuować.
+                This run is archived — unarchive it to continue.
               </span>
             ) : (
               <>
-                <span className="text-muted-foreground">Wznowisz w: </span>
+                <span className="text-muted-foreground">Resumes at: </span>
                 <span className="font-medium">{STEP_LABEL[run.lastReachedStep]}</span>
               </>
             )}
@@ -156,7 +156,7 @@ export function RunDetails() {
             disabled={archived}
             onClick={() => navigate(STEP_ROUTE[run.lastReachedStep])}
           >
-            Kontynuuj
+            Continue
           </Button>
         </section>
       )}
@@ -167,25 +167,25 @@ export function RunDetails() {
           to={`/run/${run.id}/review`}
           className={cn(buttonVariants({ variant: 'outline' }))}
         >
-          Review{staleCount > 0 ? ` · ${staleCount} do usunięcia` : ''}
+          Review{staleCount > 0 ? ` · ${staleCount} to remove` : ''}
         </Link>
         {archived ? (
           <Button variant="outline" onClick={() => unarchiveRun(run.id)}>
-            Rozarchiwizuj
+            Unarchive
           </Button>
         ) : (
           <Button variant="outline" onClick={() => archiveRun(run.id)}>
-            Archiwizuj
+            Archive
           </Button>
         )}
         <Button variant="destructive" className="sm:col-span-2" onClick={() => setConfirmDelete(true)}>
-          Usuń Run
+          Delete run
         </Button>
       </section>
 
       <p className="text-xs text-muted-foreground">
-        Utworzono {new Date(run.createdAt).toLocaleDateString('pl-PL')} · Ostatnia aktywność{' '}
-        {new Date(run.lastActiveAt).toLocaleDateString('pl-PL')}
+        Created {new Date(run.createdAt).toLocaleDateString('en-US')} · Last active{' '}
+        {new Date(run.lastActiveAt).toLocaleDateString('en-US')}
       </p>
 
       <StorageStatusToast
@@ -193,14 +193,14 @@ export function RunDetails() {
         readError={storage.readError}
         onRetry={storage.retry}
         onDismiss={storage.dismiss}
-        entityLabel="runa"
+        entityLabel="runs"
       />
 
       <ConfirmDialog
         open={confirmDelete}
-        title="Usunąć ten Run?"
-        description="Run zniknie na stałe — również z archiwum i statystyk. Tej operacji nie da się cofnąć."
-        confirmLabel="Usuń na stałe"
+        title="Delete this run?"
+        description="The run will be permanently deleted — including from the archive and stats. This action can't be undone."
+        confirmLabel="Delete permanently"
         onConfirm={handleDelete}
         onCancel={() => setConfirmDelete(false)}
       />
@@ -212,18 +212,18 @@ function StateBadge({ archived, completed }: { archived: boolean; completed: boo
   if (archived)
     return (
       <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-        Zarchiwizowany
+        Archived
       </span>
     );
   if (completed)
     return (
       <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
-        Ukończony
+        Completed
       </span>
     );
   return (
     <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-      Aktywny
+      Active
     </span>
   );
 }

@@ -24,7 +24,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             Autowork
           </Link>
-          <nav aria-label="Główna nawigacja" className="flex items-center gap-1">
+          <nav aria-label="Main navigation" className="flex items-center gap-1">
             <NavLink
               to="/"
               end

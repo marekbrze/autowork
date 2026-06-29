@@ -55,7 +55,7 @@ export function NextActionItem({ nextAction, tasks, onUpdate, onDelete, onReplac
           <input
             ref={inputRef}
             className="h-7 flex-1 bg-transparent text-sm outline-none"
-            aria-label={`Edytuj next-action: ${nextAction.text}`}
+            aria-label={`Edit next action: ${nextAction.text}`}
             maxLength={300}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -71,7 +71,7 @@ export function NextActionItem({ nextAction, tasks, onUpdate, onDelete, onReplac
             }}
             onBlur={commit}
           />
-          <Button type="button" size="icon-sm" variant="ghost" aria-label="Zapisz zmiany" onClick={commit}>
+          <Button type="button" size="icon-sm" variant="ghost" aria-label="Save changes" onClick={commit}>
             <Check />
           </Button>
         </div>
@@ -80,7 +80,7 @@ export function NextActionItem({ nextAction, tasks, onUpdate, onDelete, onReplac
           <button
             type="button"
             onClick={() => setEditing(true)}
-            title="Kliknij, aby edytować"
+            title="Click to edit"
             className="min-w-0 flex-1 truncate rounded-md text-left text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             {nextAction.text}
@@ -92,7 +92,7 @@ export function NextActionItem({ nextAction, tasks, onUpdate, onDelete, onReplac
               taskCount > 0 ? 'bg-muted text-foreground' : 'text-muted-foreground/70',
             )}
           >
-            {taskCount > 0 ? `${taskCount} ${taskCount === 1 ? 'task' : 'tasków'}` : 'do rozbicia'}
+            {taskCount > 0 ? `${taskCount} ${taskCount === 1 ? 'task' : 'tasks'}` : 'to break down'}
           </span>
 
           <Button
@@ -102,14 +102,14 @@ export function NextActionItem({ nextAction, tasks, onUpdate, onDelete, onReplac
             onClick={() => setModalOpen(true)}
           >
             <Scissors />
-            Rozbij…
+            Break down…
           </Button>
 
           <Button
             type="button"
             size="icon-sm"
             variant="ghost"
-            aria-label={`Usuń next-action: ${nextAction.text}`}
+            aria-label={`Delete next action: ${nextAction.text}`}
             className="opacity-60 hover:opacity-100"
             onClick={() => setConfirmOpen(true)}
           >
@@ -140,9 +140,9 @@ export function NextActionItem({ nextAction, tasks, onUpdate, onDelete, onReplac
 
       <ConfirmDialog
         open={confirmOpen}
-        title="Usunąć ten next-action?"
-        description="Usunę też jego taski. Tej operacji nie da się cofnąć."
-        confirmLabel="Usuń"
+        title="Delete this next action?"
+        description="I'll also delete its tasks. This action can't be undone."
+        confirmLabel="Delete"
         onCancel={() => setConfirmOpen(false)}
         onConfirm={() => {
           onDelete(nextAction.id);

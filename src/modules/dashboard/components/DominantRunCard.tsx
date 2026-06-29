@@ -34,12 +34,12 @@ export function DominantRunCard({ run, onContinue, onStartNew, onArchive }: Domi
 
   return (
     <section
-      aria-label={`Ostatni Run: ${run.name}`}
+      aria-label={`Latest run: ${run.name}`}
       className="space-y-5 rounded-xl border bg-card p-6 shadow-sm"
     >
       <div className="space-y-1">
         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Kontynuuj, gdzie skończyłeś
+          Continue where you left off
         </p>
         <Link
           to={`/run/${run.id}`}
@@ -50,10 +50,10 @@ export function DominantRunCard({ run, onContinue, onStartNew, onArchive }: Domi
         </Link>
         <p className="text-sm text-muted-foreground">
           {completed ? (
-            <span className="font-medium text-emerald-700 dark:text-emerald-400">Przejazd ukończony</span>
+            <span className="font-medium text-emerald-700 dark:text-emerald-400">Run complete</span>
           ) : (
             <>
-              Wznowisz w: <span className="font-medium text-foreground">{STEP_LABEL[run.lastReachedStep]}</span>
+              Resumes at: <span className="font-medium text-foreground">{STEP_LABEL[run.lastReachedStep]}</span>
             </>
           )}
         </p>
@@ -62,7 +62,7 @@ export function DominantRunCard({ run, onContinue, onStartNew, onArchive }: Domi
       {/* Progres na pierwszym planie — główny motywator (ADR 0026). */}
       <div className="space-y-2">
         <div className="flex items-baseline justify-between gap-2">
-          <span className="text-sm text-muted-foreground">Progres</span>
+          <span className="text-sm text-muted-foreground">Progress</span>
           <span className="text-2xl font-semibold tabular-nums">{progress}%</span>
         </div>
         <div
@@ -71,7 +71,7 @@ export function DominantRunCard({ run, onContinue, onStartNew, onArchive }: Domi
           aria-valuenow={progress}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={`Progres: ${progress}%, ${run.stats.doneCount} z ${run.stats.totalTasks} wykonanych`}
+          aria-label={`Progress: ${progress}%, ${run.stats.doneCount} of ${run.stats.totalTasks} done`}
         >
           <div
             className={`h-full rounded-full ${completed ? 'bg-emerald-500' : 'bg-primary'}`}
@@ -81,14 +81,14 @@ export function DominantRunCard({ run, onContinue, onStartNew, onArchive }: Domi
         {run.stats.totalTasks === 0 ? (
           // harden #3: świeży run bez tasków — zapraszająca linijka zamiast rozbicia zer.
           <p className="text-sm text-muted-foreground">
-            Jeszcze bez tasków — <span className="font-medium text-foreground">zacznij od brain dumpu</span>.
+            No tasks yet — <span className="font-medium text-foreground">start with a brain dump</span>.
           </p>
         ) : (
           <p className="text-sm text-muted-foreground tabular-nums">
-            <span className="font-medium text-foreground">{run.stats.doneCount}</span> z{' '}
-            {run.stats.totalTasks} zrobione · zostały{' '}
-            <span className="font-medium text-foreground">{remaining}</span> ·{' '}
-            {formatDuration(run.stats.timeSpentSec)} w focus
+            <span className="font-medium text-foreground">{run.stats.doneCount}</span> of{' '}
+            {run.stats.totalTasks} done ·{' '}
+            <span className="font-medium text-foreground">{remaining}</span> left ·{' '}
+            {formatDuration(run.stats.timeSpentSec)} in focus
           </p>
         )}
       </div>
@@ -97,18 +97,18 @@ export function DominantRunCard({ run, onContinue, onStartNew, onArchive }: Domi
       <div className="flex flex-wrap items-center gap-2">
         {completed ? (
           <Button size="lg" onClick={onArchive}>
-            <Archive /> Archiwizuj ten przejazd
+            <Archive /> Archive this run
           </Button>
         ) : (
           <Button size="lg" onClick={onContinue}>
-            Kontynuuj
+            Continue
           </Button>
         )}
         <Link to={`/run/${run.id}`} className={cn(buttonVariants({ variant: 'outline' }))}>
-          Szczegóły
+          Details
         </Link>
         <Button variant="ghost" size="sm" onClick={onStartNew}>
-          <Plus /> nowy przejazd
+          <Plus /> new run
         </Button>
       </div>
     </section>

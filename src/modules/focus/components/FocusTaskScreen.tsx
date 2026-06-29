@@ -84,22 +84,22 @@ export function FocusTaskScreen({
       {/* górny pasek: Back / Pause / Exit */}
       <div className="flex items-center justify-between">
         <Button type="button" variant="ghost" size="sm" disabled={!canGoBack} onClick={onBack}>
-          <ArrowLeft /> Wstecz
+          <ArrowLeft /> Back
         </Button>
         <div className="flex items-center gap-1">
           <Button type="button" variant="ghost" size="sm" onClick={onTogglePause}>
             {running ? (
               <>
-                <Pause /> Pauza
+                <Pause /> Pause
               </>
             ) : (
               <>
-                <Play /> Wznów
+                <Play /> Resume
               </>
             )}
           </Button>
           <Button type="button" variant="ghost" size="sm" onClick={onExit}>
-            <X /> Wyjście
+            <X /> Exit
           </Button>
         </div>
       </div>
@@ -156,14 +156,14 @@ export function FocusTaskScreen({
           <FocusTimer elapsedSeconds={elapsedSeconds} thresholdMinutes={task.estimatedTime} paused={!running} />
           <div className="grid w-full grid-cols-2 gap-2">
             <Button type="button" variant="outline" onClick={onSkip}>
-              Pomiń
+              Skip
             </Button>
             <Button type="button" variant="ghost" onClick={onDismiss}>
-              Nieaktualne
+              Not relevant
             </Button>
           </div>
           <Button type="button" size="lg" className="w-full" onClick={onDone}>
-            <Check /> Zrobione
+            <Check /> Done
           </Button>
         </div>
       </div>

@@ -50,14 +50,14 @@ export function ReasonColumn({ valence, title, hint, reasons, onAdd, onDelete }:
       >
         <input
           className="h-8 flex-1 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-          placeholder={positive ? 'np. spokój psychiczny…' : 'np. windykacja…'}
+          placeholder={positive ? 'e.g. peace of mind…' : 'e.g. debt collection…'}
           aria-label={title}
           autoComplete="off"
           maxLength={300}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
         />
-        <Button type="submit" size="icon" aria-label={`Dodaj powód: ${title}`} disabled={!draft.trim()}>
+        <Button type="submit" size="icon" aria-label={`Add reason: ${title}`} disabled={!draft.trim()}>
           <Plus />
         </Button>
       </form>
@@ -74,7 +74,7 @@ export function ReasonColumn({ valence, title, hint, reasons, onAdd, onDelete }:
                 type="button"
                 size="icon-xs"
                 variant="ghost"
-                aria-label={`Usuń powód: ${r.text}`}
+                aria-label={`Delete reason: ${r.text}`}
                 onClick={() => setConfirmId(r.id)}
               >
                 <X />
@@ -83,14 +83,14 @@ export function ReasonColumn({ valence, title, hint, reasons, onAdd, onDelete }:
           ))}
         </ul>
       ) : (
-        <p className="text-xs text-muted-foreground/70">Brak — dopisz, co przyjdzie do głowy.</p>
+        <p className="text-xs text-muted-foreground/70">None yet — write whatever comes to mind.</p>
       )}
 
       <ConfirmDialog
         open={confirmId !== null}
-        title="Usunąć ten powód?"
-        description="Ta operacja nie da się cofnąć."
-        confirmLabel="Usuń"
+        title="Delete this reason?"
+        description="This action can't be undone."
+        confirmLabel="Delete"
         onCancel={() => setConfirmId(null)}
         onConfirm={() => {
           if (confirmId) onDelete(confirmId);

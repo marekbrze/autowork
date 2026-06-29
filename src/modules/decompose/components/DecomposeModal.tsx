@@ -64,7 +64,7 @@ export function DecomposeModal({ nextAction, initialSteps, onSave, onClose }: De
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             <h3 id="decompose-title" className="text-lg font-semibold leading-tight">
-              Rozbij na mniejsze taski
+              Break into smaller tasks
             </h3>
             <p className="text-sm text-muted-foreground">{nextAction.text}</p>
           </div>
@@ -72,7 +72,7 @@ export function DecomposeModal({ nextAction, initialSteps, onSave, onClose }: De
             type="button"
             size="icon-sm"
             variant="ghost"
-            aria-label="Anuluj rozbicie"
+            aria-label="Cancel breakdown"
             onClick={onClose}
           >
             <X />
@@ -81,11 +81,11 @@ export function DecomposeModal({ nextAction, initialSteps, onSave, onClose }: De
 
         <div className="space-y-2">
           <label htmlFor="decompose-step" className="block text-sm font-medium">
-            Jak to możesz rozbić?
+            How can you break it down?
           </label>
           <p className="text-xs text-muted-foreground">
-            Wpisz mniejsze, wykonalne kroki — Enter dodaje kolejny. Pusty = ten next-action jest już
-            jednym konkretnym taskiem.
+            Type smaller, doable steps — Enter adds another. Empty = this next action is already one
+            concrete task.
           </p>
           <form
             className="flex gap-2"
@@ -98,13 +98,13 @@ export function DecomposeModal({ nextAction, initialSteps, onSave, onClose }: De
               id="decompose-step"
               ref={inputRef}
               className="h-9 flex-1 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-              placeholder="np. znajdź numer infolinii…"
+              placeholder="e.g. find the helpline number…"
               autoComplete="off"
               maxLength={300}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
             />
-            <Button type="submit" size="icon" aria-label="Dodaj krok" disabled={!draft.trim()}>
+            <Button type="submit" size="icon" aria-label="Add step" disabled={!draft.trim()}>
               <Plus />
             </Button>
           </form>
@@ -119,7 +119,7 @@ export function DecomposeModal({ nextAction, initialSteps, onSave, onClose }: De
                     type="button"
                     size="icon-xs"
                     variant="ghost"
-                    aria-label={`Usuń krok: ${step}`}
+                    aria-label={`Delete step: ${step}`}
                     onClick={() => setSteps((prev) => prev.filter((_, idx) => idx !== i))}
                   >
                     <X />
@@ -129,17 +129,17 @@ export function DecomposeModal({ nextAction, initialSteps, onSave, onClose }: De
             </ul>
           ) : (
             <p className="text-xs text-muted-foreground/70">
-              Brak kroków — to OK. Wciśnij „Pomiń", a next-action stanie się jednym konkretnym taskiem.
+              No steps — that's OK. Press "Skip" and the next action becomes one concrete task.
             </p>
           )}
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Button type="button" variant="ghost" onClick={skip}>
-            Pomiń → 1 task
+            Skip → 1 task
           </Button>
           <Button type="button" onClick={save} disabled={steps.length === 0}>
-            Zapisz → {steps.length} {steps.length === 1 ? 'task' : 'tasków'}
+            Save → {steps.length} {steps.length === 1 ? 'task' : 'tasks'}
           </Button>
         </div>
       </div>

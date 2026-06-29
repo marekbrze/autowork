@@ -23,8 +23,8 @@ export function ConfirmDialog({
   open,
   title,
   description,
-  confirmLabel = 'Usuń',
-  cancelLabel = 'Anuluj',
+  confirmLabel = 'Delete',
+  cancelLabel = 'Cancel',
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {

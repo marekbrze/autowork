@@ -39,27 +39,27 @@ export function buildDecomposeSeedFull(stressorId: string): DecomposeSeed {
   const na2 = generateId();
 
   const reasons: Reason[] = [
-    { id: generateId(), stressorId, text: 'wrócę bezpiecznie do domu każdej nocy', valence: 'positive', createdAt: TS, updatedAt: TS },
-    { id: generateId(), stressorId, text: 'spokój — nie będę nasłuchiwać każdego dźwięku spod maski', valence: 'positive', createdAt: TS, updatedAt: TS },
-    { id: generateId(), stressorId, text: 'auto zepsuje się w trasie', valence: 'negative', createdAt: TS, updatedAt: TS },
-    { id: generateId(), stressorId, text: 'droższa naprawa, gdy zignoruję objawy', valence: 'negative', createdAt: TS, updatedAt: TS },
+    { id: generateId(), stressorId, text: 'I get home safe every night', valence: 'positive', createdAt: TS, updatedAt: TS },
+    { id: generateId(), stressorId, text: 'peace — no more listening for every sound from under the hood', valence: 'positive', createdAt: TS, updatedAt: TS },
+    { id: generateId(), stressorId, text: 'the car breaks down on the road', valence: 'negative', createdAt: TS, updatedAt: TS },
+    { id: generateId(), stressorId, text: 'a pricier repair if I ignore the symptoms', valence: 'negative', createdAt: TS, updatedAt: TS },
   ];
 
   const nextActions: NextAction[] = [
-    { id: na1, stressorId, text: 'Zadzwoń do warsztatu i umów termin', createdAt: TS, updatedAt: TS },
-    { id: na2, stressorId, text: 'Sprawdź orientacyjny koszt naprawy', createdAt: TS, updatedAt: TS },
+    { id: na1, stressorId, text: 'Call the shop and book a date', createdAt: TS, updatedAt: TS },
+    { id: na2, stressorId, text: 'Check the rough repair cost', createdAt: TS, updatedAt: TS },
   ];
 
   const tasks: Task[] = [
-    bareTask(na1, stressorId, 'Znajdź numer telefonu do warsztatu'),
-    bareTask(na1, stressorId, 'Zadzwoń i umów wizytę na ten tydzień'),
-    bareTask(na2, stressorId, 'Sprawdź orientacyjny koszt naprawy'), // skip = 1 konkretny task
+    bareTask(na1, stressorId, 'Find the shop\'s phone number'),
+    bareTask(na1, stressorId, 'Call and book a visit this week'),
+    bareTask(na2, stressorId, 'Check the rough repair cost'), // skip = 1 concrete task
   ];
 
   return {
     reasons,
     nextActions,
     tasks,
-    doneVision: [stressorId, { text: 'samochód jedzie gładko i milczy, jazda bez napięcia', emoji: '😌' }],
+    doneVision: [stressorId, { text: 'the car runs smooth and quiet, driving without stress', emoji: '😌' }],
   };
 }

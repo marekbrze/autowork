@@ -14,8 +14,11 @@ import { ArchivedRuns } from '@/modules/run/components/ArchivedRuns'
 import { ReviewRun } from '@/modules/run/components/ReviewRun'
 
 function App() {
+  // basename mirrors vite.config.ts `base` so routes resolve under the deploy path
+  // (GitHub project Pages: <user>.github.io/<repo>/). import.meta.env.BASE_URL keeps
+  // router and build in sync — see docs/changes/dashboard-blank-on-pages.md.
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <AppShell>
         <Routes>
           {/* Home / Dashboard — launcher (runway). Dashboard module owns it (ADR 0026). */}
