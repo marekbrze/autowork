@@ -38,6 +38,7 @@ erDiagram
         float progress "(completedTasks + dismissedTasks) / totalTasks"
         int timeSpent "cumulative focus time (sum of timerElapsed)"
         FunnelStep lastReachedStep "for resume routing"
+        datetime lastActiveAt "last activity; drives dashboard ordering (ADR 0028)"
         RunState state "in_progress | archived"
     }
 ```
@@ -67,6 +68,7 @@ erDiagram
   - `progress`: float — `(completedTasks + dismissedTasks) / totalTasks`.
   - `timeSpent`: int — łączny czas z focusa (suma `timerElapsed` po taskach/sesjach).
   - `lastReachedStep`: `FunnelStep` — najdalszy osiągnięty krok lejka; steruje routingiem Kontynuuj.
+  - `lastActiveAt`: `datetime` — znacznik ostatniej aktywności w Runie (praca w lejku, Continue); steruje sortowaniem na dashboardzie i wyborem dominującej karty (ADR 0028).
 **Contains**: Stressory, FocusSessiony.
 **Belongs to**: User.
 

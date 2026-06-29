@@ -47,11 +47,11 @@ Aplikacja to jednokierunkowy lejek wyciągający usera z paraliżu planowania. R
 
 ### dashboard
 **Type**: Supporting
-**Description**: Ekran motywacyjny: historia runów, progres każdego z nich i porównanie przejazdów. Wartość wyłoniona w deepen — łapanie motywacji przez kontrast z poprzednimi przejazdami.
+**Description**: **Pas startowy apki, nie neutralna lista** — w jednym kliku wrzuca usera z powrotem do roboty. Dominująca karta ostatnio-pracowanego runa (duża, progres na pierwszym planie, Continue primary) + obok świadomy „rozpocznij nowy"; poniżej mniejsze karty aktywnych runów (każda Continue + Szczegóły, sortowane po `lastActiveAt`); na końcu listy wejście do archiwum/historii. Motywacja = głównie momentum progresem. ~~Porównanie/„Compare runs"~~ wyrzucone z MVP. Szczegóły: `docs/modules/dashboard.md`. (ADR 0026, 0027, 0028)
 **Entities**: — (czyta `Run` i jego progres)
-**Key Actions**: View Dashboard, Compare runs
-**Connects to**: `run` (wybór runa do wznowienia; odczyt historii/progresu)
-**Design priority**: Low — warstwa motywacji, budowana na końcu; na MVP można pominąć i startować prosto z lejka.
+**Key Actions**: View Dashboard, Continue (resume), View Details/Stats, Start new Run, Enter archive, Un-archive
+**Connects to**: `run` (czyta runy + `lastActiveAt`; uruchamia Continue/Create/Details/archive); pośrednio wszystkie Core przez Continue (smart-routing)
+**Design priority**: Low — warstwa launcher + motywacji, budowana na końcu; na MVP można pominąć i startować prosto z lejka.
 
 ---
 

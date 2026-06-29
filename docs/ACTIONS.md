@@ -12,7 +12,7 @@ Kompletna lista akcji, jakie user może wykonać — pogrupowana po encji. Forma
 | Action | Description | Role | Notes |
 |--------|-------------|------|-------|
 | Create Run | Rozpocznij nowy przejazd lejka („start fresh") z dashboardu. | User | `capture` tworzy Run implicite (nazwa = data/godzina); zaczyna od brain dump. Run = widoczny obiekt ze statystykami (ADR 0020). |
-| View Dashboard | Zobacz listę runów (aktywne + archiwum) + progres każdego; porównaj dla motywacji. | User | Ekran główny / launcher. Właściciel: moduł `dashboard`. |
+| View Dashboard | Otwórz launcher: dominujący ostatnio-pracowany run (progres na pierwszym planie) + mniejsze aktywne runy + wejście do archiwum. | User | Ekran wejściowy apki. Właściciel: moduł `dashboard`. ~~Porównanie runów~~ wyrzucone z MVP (ADR 0027). |
 | Continue (resume) | Wróć do Runa tam, gdzie skończyłeś — smart-routing do najdalszego kroku z pracą. | User | Z karty Runa na dashboardzie. Routing: zapauzowana sesja → wznów • ≥1 task → focus • brak → process/decompose/ranking/brain dump • wszystko done → szczegóły. Atrybuty nie bramkują (ADR 0013). ADR 0022. |
 | View Details / Stats | Otwórz ekran statystyk Runa: czas spędzony (suma focusa), wykonane (`completed + dismissed`), zostało, progress %. | User | Ekran zarządzania Runem („Szczegóły"). |
 | Rename Run | Nadaj / edytuj opcjonalną nazwę. | User | Domyślnie = data/godzina; ze Szczegółów. |
