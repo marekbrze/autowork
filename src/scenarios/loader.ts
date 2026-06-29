@@ -21,5 +21,8 @@ export function loadScenario(name: string): void {
 }
 
 export function getCurrentScenarioName(): string {
+  // Production is locked to the 'empty' scenario so first-time visitors see the
+  // clean onboarding state, and a developer's localStorage can't leak dev data.
+  if (import.meta.env.PROD) return 'empty';
   return localStorage.getItem(STORAGE_KEY) || 'empty';
 }

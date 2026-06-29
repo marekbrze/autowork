@@ -12,13 +12,6 @@ dist
 dist-ssr
 *.local
 
-# Lockfiles — this template is package-manager agnostic (npm/pnpm/bun/yarn/deno).
-# Each user generates their own after install.
-package-lock.json
-pnpm-lock.yaml
-yarn.lock
-bun.lockb
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
