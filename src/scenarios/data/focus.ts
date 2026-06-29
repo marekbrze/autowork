@@ -58,12 +58,24 @@ function attributedTask(
  * „brak motywacji"). Wystarcza do przetestowania filtra, kolejki po ranku,
  * pętli Done/Skip/Dismiss/Back oraz podsumowania z sekcją „Nieaktualne".
  */
-export function buildFocusSeed(): FocusSeed {
-  const stressors: Stressor[] = [
-    mkStressor('zaległe podatki'),
-    mkStressor('samochód do naprawy'),
-    mkStressor('rozmowa z szefem o podwyżce'),
-  ];
+/**
+ * Opcjonalne referencje stresorów. Scenariusz `full` ma już te 3 tematy w brain
+ * dumpie, więc przekazuje istniejące stresory (bez duplikatów); pominięcie = buduje
+ * własne (dla samodzielnego scenariusza `focus`).
+ */
+export interface FocusStressorRefs {
+  podatki: Stressor;
+  auto: Stressor;
+  podwyzka: Stressor;
+}
+
+export function buildFocusSeed(refs?: FocusStressorRefs): FocusSeed {
+  const r: FocusStressorRefs = refs ?? {
+    podatki: mkStressor('zaległe podatki'),
+    auto: mkStressor('samochód do naprawy'),
+    podwyzka: mkStressor('rozmowa z szefem o podwyżce'),
+  };
+  const stressors: Stressor[] = [r.podatki, r.auto, r.podwyzka];
   const [sPodatki, sAuto, sPodwyzka] = stressors;
 
   const reasons: Reason[] = [];

@@ -14,7 +14,14 @@ import { useTasks } from '@/modules/decompose/hooks/use-tasks';
 import type { Task } from '@/modules/decompose/types/task';
 
 import { useFocusTimer } from '../hooks/use-focus-timer';
-import { EMPTY_FILTER, type FilterSelection, type FocusScreen, type SessionSnapshot } from '../types/focus';
+import {
+  CONTEXT_ORDER,
+  EMPTY_FILTER,
+  ENERGY_ORDER,
+  type FilterSelection,
+  type FocusScreen,
+  type SessionSnapshot,
+} from '../types/focus';
 import { DismissUndoToast, ReadErrorState, SessionResumeBanner } from './FocusStates';
 import { FocusTaskScreen } from './FocusTaskScreen';
 import { SessionFilter } from './SessionFilter';
@@ -35,6 +42,9 @@ import { SessionSummary } from './SessionSummary';
  *   `StorageStatusToast` z retry zostaje widoczny, user zostaje na tasku.
  * - **Resume sesji** — snapshot (kolejka+pozycja) persystowany w `focus:session`;
  *   wejście w `/focus` z przerwaną sesją pokazuje banner „Wznów" (Exit/refresh/back).
+ * - **Persystencja filtra** — wybór kontekstów/energii trzymany w `focus:filter`;
+ *   kontynuacja Runu z dashboardu pokazuje zapamiętany filtr (punkt startowy), a nie
+ *   pusty ekran „żadne filtry".
  * - **Rekonsyliacja mid-session** — task rozwiązany w innej karcie nie wyskakuje jako
  *   bieżący: przewijamy do następnego pending w kolejce.
  */
@@ -46,7 +56,10 @@ export function FocusView() {
   const { tasks, updateTask, deleteTask, storage: taskStorage } = useTasks();
 
   const [screen, setScreen] = useState<FocusScreen>('filter');
-  const [selection, setSelection] = useState<FilterSelection>(EMPTY_FILTER);
+  // Persystencja wyboru filtra (`focus:filter`) — kontynuacja Runa z dashboardu
+  // nie może resetować kontekstów/energii do pustego ekranu („żadne filtry…").
+  // Zapamiętany filtr = punkt startowy przy powrocie do pracy; user może go zmienić.
+  const [persistedSelection, setSelection] = useLocalStorage<FilterSelection>('focus:filter', EMPTY_FILTER);
   const [queue, setQueue] = useState<string[]>([]);
   const [cursor, setCursor] = useState(0);
   const [running, setRunning] = useState(true);
@@ -77,6 +90,16 @@ export function FocusView() {
   const resolvedAttributed = useMemo(
     () => tasks.filter((t) => t.context && t.energy && t.estimatedTime && t.state !== 'pending').length,
     [tasks],
+  );
+
+  // Sanitize odtworzony filtr — odrzuć konteksty/energie spoza słownika (stary/uszkodzony
+  // storage nie tworzy fantomowych chipów ani martwego filtra 0-dopasowań).
+  const selection = useMemo<FilterSelection>(
+    () => ({
+      contexts: persistedSelection.contexts.filter((c) => CONTEXT_ORDER.includes(c)),
+      energies: persistedSelection.energies.filter((e) => ENERGY_ORDER.includes(e)),
+    }),
+    [persistedSelection],
   );
 
   const matchCount = useMemo(
