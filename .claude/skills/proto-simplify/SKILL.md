@@ -38,7 +38,7 @@ Do this **first**, before reading prerequisites or touching anything, so this sk
 When you finish the skill, before the handoff:
 
 1. `git status --porcelain` — empty means nothing changed; skip.
-2. `git add -A && git commit -m "proto-<skill>: <short summary>"` — e.g. `proto-harden(recipe-management): implement edge-case states`.
+2. `git add -A && git commit -m "proto:<skill>: <short summary>"` — e.g. `proto-harden(recipe-management): implement edge-case states`.
 3. Tell the user the commit hash and what's in it.
 
 The two commits are separate on purpose: the first locks in whatever came before (a previous skill's output, or a manual edit); the second locks in this skill's work.
@@ -163,7 +163,7 @@ If the project has no ADR convention, skip it. If you started without `docs/AUDI
 
 ## After building
 
-**Commit this skill's work first** — see the Git checkpoint section's "After your work" step (`proto-<skill>: <summary>`) — then do the handoff below.
+**Commit this skill's work first** — see the Git checkpoint section's "After your work" step (`proto:<skill>: <summary>`) — then do the handoff below.
 
 Tell the user:
 1. What changed — per priority step (tokens, typography, states, layout, missing states, consolidation)
@@ -173,5 +173,5 @@ Tell the user:
 
 Suggest next steps:
 - "Przetestuj prototyp z userami w tej czystej formie — łatwiej ocenić same flows bez dekoracji"
-- "Jak chcesz rozwinąć to graficznie (charakter marki, fonty, sygnatura) — to osobny przebieg, nie dziś"
+- "Jak chcesz rozwinąć to graficznie (charakter marki, fonty, sygnatura) — odpal proto-brand żeby ustalić kierunek w docs/DESIGN.md, potem proto-design + proto-polish żeby wdrożyć hi-fi"
 - "Odpal ponownie proto-audit żeby zobaczyć nowy baseline po uproszczeniu"

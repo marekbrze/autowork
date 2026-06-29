@@ -30,7 +30,7 @@ Do this **first**, before reading prerequisites or touching anything, so this sk
 When you finish the skill, before the handoff:
 
 1. `git status --porcelain` — empty means nothing changed; skip.
-2. `git add -A && git commit -m "proto-<skill>: <short summary>"` — e.g. `proto-harden(recipe-management): implement edge-case states`.
+2. `git add -A && git commit -m "proto:<skill>: <short summary>"` — e.g. `proto-harden(recipe-management): implement edge-case states`.
 3. Tell the user the commit hash and what's in it.
 
 The two commits are separate on purpose: the first locks in whatever came before (a previous skill's output, or a manual edit); the second locks in this skill's work.
@@ -175,7 +175,7 @@ Create `docs/modules/` if it doesn't exist.
 
 ## After writing
 
-**Commit this skill's work first** — see the Git checkpoint section's "After your work" step (`proto-<skill>: <summary>`) — then do the handoff below.
+**Commit this skill's work first** — see the Git checkpoint section's "After your work" step (`proto:<skill>: <summary>`) — then do the handoff below.
 
 Tell the user where the files are and summarize:
 - Module file created
