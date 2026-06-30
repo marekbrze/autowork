@@ -66,6 +66,11 @@ Kompletna lista akcji, jakie user może wykonać — pogrupowana po encji. Forma
 | Back (reopen previous) | Poprzedni task znów `active`; bieżący → `pending`. | User | Cofnięcie Done / dokończenie. |
 | Dismiss → `dismissed` | Oznacz jako nieaktualne (zdezaktualizowane/straciło sens); nie wraca w kolejnych sesjach. | User | Osobny od Skip (temporary) i Done. Widoczny w `SessionSummary` (osobna sekcja); liczy do progresem; **undo** (jak ADR 0004). ADR 0017. |
 | ClearCompleted | Usuń completed **i dismissed** taski (moment celebracji). | User | Z SessionSummary. |
+| Reorder queue | Przełóż dopasowane taski (drag / ↑↓) na liście filtra focus. | User | Aktualizuje `TaskOrder` — jeden współdzielony model kolejności (ADR 0036); default = rank stresora. Honest persistence przy awarii zapisu. |
+| Reset queue order | Wyczyść `TaskOrder` → powrót do ranku stresora. | User | Z filtra focus (i dziedziczony przez listę run); dostępne gdy aktywny porządek ręczny. |
+| View run task list | Zobacz wszystkie taski z prawdziwym stanem na Szczegółach Runa (pogrupowane, sortowane po `TaskOrder`). | User | `run` czyta taski cross-module (store `decompose`). ADR 0036/0037. |
+| Mark task done (from details) | `pending`/`skipped`/`active` → `completed` z listy na Szczegółach. | User | `run` mutuje stan taska (pierwszy raz — ADR 0037); liczy do progresem. |
+| Mark task not-relevant (from details) | → `dismissed` z listy na Szczegółach. | User | Terminalnie; undo; liczy do progresem (ADR 0017). |
 
 ### FocusSession
 

@@ -43,8 +43,10 @@ erDiagram
     }
 ```
 
-**Typy wartości (atrybuty, nie encje):** `Context` (enum), `Energy` (1–3), `EstimatedTime` (preset), `Valence` (positive|negative), `DoneVision` (text+emoji), `RunState` (`in_progress` | `archived`), `FunnelStep` (krok lejka, steruje routingiem resume).
+**Typy wartości (atrybuty, nie encje):** `Context` (enum), `Energy` (1–3), `EstimatedTime` (preset), `Valence` (positive|negative), `DoneVision` (text+emoji), `RunState` (`in_progress` | `archived`), `FunnelStep` (krok lejka, steruje routingiem resume), `TaskOrder` (uporządkowana lista ID tasków — ręczny porządek kolejki; relacja `Run 1—1 TaskOrder 1—* Task`).
 **Pomijalnie jako encje (przejściowe ekrany/kroki):** `BrainDump`, `StressRanking`, `Processing`, `SessionFilter`, `Dashboard`.
+
+**`TaskOrder` — jeden współdzielony model kolejności (ADR 0036):** uporządkowana lista ID tasków, default (pusty / po resecie) = kolejność po ranku stresora (jak `attributed` w `FocusView`). Ręczne przełożenie (drag / ↑↓ na liście filtra focus) go nadpisuje. Ten sam `TaskOrder` decyduje o kolejności w **trzech miejscach**: liście dopasowanych w filtrze focus, kolejce sesji po Starcie, liście zadań na Szczegółach Runa (sort wewnątrz grup stanu). W prototypie globalny (dane lejka bez `runId`, ADR 0020); w intencji per-Run.
 
 ## Entities
 
