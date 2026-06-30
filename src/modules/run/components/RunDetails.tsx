@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { StorageStatusToast } from '@/modules/capture/components/StorageStatusToast';
 
-import { useRuns } from '../hooks/use-runs';
+import { useLiveRuns } from '../hooks/use-live-runs';
 import { isRunCompleted, STEP_LABEL, STEP_ROUTE } from '../types/run';
 import { RunStatTiles } from './RunStatTiles';
 import { RunCompleted } from './RunStates';
@@ -18,7 +18,8 @@ import { RunCompleted } from './RunStates';
  */
 export function RunDetails() {
   const { runId } = useParams<{ runId: string }>();
-  const { getRun, renameRun, archiveRun, unarchiveRun, deleteRun, storage } = useRuns();
+  // Statystyki / krok resume wyprowadzane na żywo z lejka (use-live-runs.ts).
+  const { getRun, renameRun, archiveRun, unarchiveRun, deleteRun, storage } = useLiveRuns();
   const navigate = useNavigate();
 
   const run = runId ? getRun(runId) : undefined;

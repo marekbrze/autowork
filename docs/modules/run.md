@@ -72,7 +72,7 @@ To odejście od wczesnej notki „MVP = jeden ukryty aktywny Run" (`MODULES.md`)
 - **Błąd odczytu storage** (uszkodzony `run:runs`): stan błędu (`RunReadError`) zamiast mylnego empty-state; odśwież jako droga naprawy.
 - **Walidacja rename**: pusta nazwa (lub same spacje) blokuje „Zapisz" + inline komunikat (`aria-invalid`); `maxLength` 60.
 - **Bulk-usuwanie w Review**: „Usuń przeterminowane" wymaga potwierdzenia (`ConfirmDialog`).
-- **Statystyki poglądowe**: w prototypie statystyki / `lastReachedStep` / review-items są mockiem (dane lejka globalne) — oznaczone jako poglądowe. Realne spięcie per-Run odłożone do fazy integracji (cross-module).
+- **Statystyki poglądowe**: w prototypie `stats` (`totalTasks`/`doneCount`/`dismissedCount`/`timeSpentSec`) oraz `lastReachedStep` są **wyprowadzane na żywo** z globalnych danych lejka (`src/modules/run/stats.ts`, `use-live-runs.ts`) — karty pokazują realny progres i krok resume. Dane lejka są globalne (bez `runId`), więc wszystkie Runy dzielą ten sam zestaw; mockiem pozostają `reviewItems`. Odłożone do fazy per-Run (ADR 0020): scope'owanie danych lejka po `runId`. Zob. diagnozę `docs/changes/dashboard-run-stats-disconnected.md`.
 
 Pełny audyt i status każdej luki: `docs/modules/run-edgecases.md` (po `proto-harden`: ✅ 6 wdrożonych, ❌ 10 odłożonych z racją).
 

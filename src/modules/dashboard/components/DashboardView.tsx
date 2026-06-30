@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { StorageStatusToast } from '@/modules/capture/components/StorageStatusToast';
 import { RunCard } from '@/modules/run/components/RunCard';
 import { RunReadError } from '@/modules/run/components/RunStates';
-import { useRuns } from '@/modules/run/hooks/use-runs';
+import { useLiveRuns } from '@/modules/run/hooks/use-live-runs';
 import { STEP_ROUTE } from '@/modules/run/types/run';
 
 import { DominantRunCard } from './DominantRunCard';
@@ -21,7 +21,9 @@ import { DominantRunCard } from './DominantRunCard';
  * Aktywne runy sortowane po `lastActiveAt` desc (ADR 0028).
  */
 export function DashboardView() {
-  const { runs, createRun, archiveRun, storage } = useRuns();
+  // `useLiveRuns` scalia statystyki i krok resume wyprowadzane na żywo z danych lejka
+  // (zob. run/hooks/use-live-runs.ts) — bez tego karty czytałyby zamrożone zera.
+  const { runs, createRun, archiveRun, storage } = useLiveRuns();
   const navigate = useNavigate();
 
   const active = useMemo(

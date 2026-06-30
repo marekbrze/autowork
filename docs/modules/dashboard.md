@@ -66,7 +66,7 @@ To ekran wejściowy apki — ustawia ton tak samo jak `capture`, tylko od strony
 - **Run bez tasków (`totalTasks=0`) jako dominant**: zamiast rozbicia zer pokazuje „Jeszcze bez tasków — zacznij od brain dumpu" (harden #3).
 - **Błąd odczytu storage** (uszkodzony `run:runs`): stan błędu (`RunReadError`) zamiast mylnego empty-state; odśwież jako droga naprawy (jak `run.md`).
 - **Wiele aktywnych runów**: sortowanie po `lastActiveAt` desc; dominująca karta = max(`lastActiveAt`). W prototypie bez paginacji — długą listę trzeba będzie ogarnąć w lofi.
-- **Statystyki poglądowe**: w prototypie statystyki / `lastActiveAt` / ordering są mockiem (dane lejka globalne, jak `run.md`) — oznaczone jako poglądowe; realne spięcie per-Run odłożone do fazy integracji (cross-module).
+- **Statystyki poglądowe**: w prototypie `stats` i `lastReachedStep` Runa są **wyprowadzane na żywo** z globalnych danych lejka (`run.md` §Integration, `run/stats.ts`) — dominująca/mini karta pokazuje realny progres. Dane lejka są globalne (bez `runId`), więc wszystkie Runy pokazują ten sam progres; `lastActiveAt`/ordering wciąż z pojemnika Runa. Odłożone do fazy per-Run (ADR 0020): scope'owanie danych po `runId`.
 
 ## Integration Points
 

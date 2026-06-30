@@ -15,7 +15,11 @@ export type FunnelStep =
 /** Stan Runa (ADR 0021). `in_progress` = aktywny/wznawialny; `archived` = w historii, odwracalny. */
 export type RunState = 'in_progress' | 'archived';
 
-/** Statystyki Runa — w prototypie przechowywane (mock), bo dane lejka są globalne (ADR 0020). */
+/**
+ * Statystyki Runa. Wartość w `run:runs` to ziarno (zera przy tworzeniu); warstwa widoku
+ * scalia tu statystyki **wyprowadzane na żywo** z tasków lejka (`run/stats.ts` → `useLiveRuns`).
+ * Dane lejka są globalne (ADR 0020), więc w prototypie wszystkie Runy dzielą ten sam progres.
+ */
 export interface RunStats {
   /** Łączny czas w focus (suma `timerElapsed`), w sekundach. */
   timeSpentSec: number;

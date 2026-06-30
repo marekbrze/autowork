@@ -7,13 +7,15 @@ import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { StorageStatusToast } from '@/modules/capture/components/StorageStatusToast';
 
-import { useRuns } from '../hooks/use-runs';
+import { useLiveRuns } from '../hooks/use-live-runs';
 import { RunCard } from './RunCard';
 import { RunReadError } from './RunStates';
 
 /** Ekran archiwum (historia) — zarchiwizowane Runy z rozarchiwizowaniem / usuwaniem. */
 export function ArchivedRuns() {
-  const { runs, unarchiveRun, deleteRun, storage } = useRuns();
+  // Statystyki wyprowadzane na żywo z lejka (use-live-runs.ts); zarchiwizowane Runy
+  // pokazują bieżący globalny progres (caveat prototypu — dane lejka nie są per-Run).
+  const { runs, unarchiveRun, deleteRun, storage } = useLiveRuns();
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const archived = useMemo(

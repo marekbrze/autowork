@@ -47,9 +47,10 @@ export function RunStatTiles({ run }: RunStatTilesProps) {
         <span className="font-medium text-foreground">{remaining}</span> left
       </p>
 
-      {/* CM-1: statystyki poglądowe — realna derywacja z przebiegu lejka odłożona (cross-module). */}
+      {/* Statystyki liczone na żywo z tasków lejka (run/stats.ts). Prototype: dane globalne,
+          nie per-Run — pełne spięcie per-Run odłożone (ADR 0020). */}
       <p className="text-xs text-muted-foreground/80">
-        Overview stats — full funnel integration is in progress.
+        Live stats from your tasks — per-run breakdown comes later.
       </p>
     </div>
   );
