@@ -72,11 +72,15 @@ export function FocusView() {
   // Pozycja stresora w tablicy = jego rank (najbardziej stresujący = 0).
   const stressorRank = useMemo(() => new Map(stressors.map((s, i) => [s.id, i])), [stressors]);
 
-  // Pending taski z pełnymi atrybutami — kandydaci do sesji; sortowanie po ranku.
+  // Pending i skipped taski z pełnymi atrybutami — kandydaci do sesji. Skipped = odłożone
+  // („nie teraz"), ale nadal dostępne w puli; przywracane do `pending` przy starcie nowej
+  // sesji (patrz `start`). Sortowanie po ranku stresora (najbardziej stresujący → pierwsze).
   const attributed = useMemo(
     () =>
       tasks
-        .filter((t) => t.state === 'pending' && t.context && t.energy && t.estimatedTime)
+        .filter(
+          (t) => (t.state === 'pending' || t.state === 'skipped') && t.context && t.energy && t.estimatedTime,
+        )
         .sort((a, b) => {
           const ra = stressorRank.get(a.stressorId) ?? 99;
           const rb = stressorRank.get(b.stressorId) ?? 99;
@@ -85,10 +89,14 @@ export function FocusView() {
     [tasks, stressorRank],
   );
 
-  // Atrybuowane taski już rozwiązane (done/skipped/dismissed) — do rozdzielenia
-  // empty-state (#4): „nic nie opisano" vs „wszystko zrobione".
+  // Atrybuowane taski już rozwiązane (completed/dismissed) — do rozdzielenia empty-state
+  // (#4): „nic nie opisano" vs „wszystko zrobione". Skipped NIE liczy się jako rozwiązane
+  // (to odłożone, nadal w puli — patrz `attributed`); różne od terminalnego dismissed.
   const resolvedAttributed = useMemo(
-    () => tasks.filter((t) => t.context && t.energy && t.estimatedTime && t.state !== 'pending').length,
+    () =>
+      tasks.filter(
+        (t) => t.context && t.energy && t.estimatedTime && (t.state === 'completed' || t.state === 'dismissed'),
+      ).length,
     [tasks],
   );
 
@@ -180,6 +188,10 @@ export function FocusView() {
   // --- nawigacja / akcje ---
 
   const start = () => {
+    // Skip = tymczasowe: przy starcie NOWEJ sesji ominięte zadania wracają do puli jako
+    // `pending` (spec focus.md §Skip: „wraca jako pending przy następnej sesji"). Tu, a nie
+    // przy wyjściu/nawigacji — dzięki temu skip nie zależy od tego, którą drogą wracasz.
+    returnSkippedToPool();
     const matched = attributed
       .filter((t) => selection.contexts.includes(t.context!) && selection.energies.includes(t.energy!))
       .map((t) => t.id);
@@ -264,9 +276,10 @@ export function FocusView() {
 
   const togglePause = () => setRunning((r) => !r);
 
-  // Skip = tymczasowe: ominięte zadania wracają do puli przy następnej sesji
-  // (Skip → skipped → pending next session). Resetujemy je, gdy wracamy do
-  // wyboru sesji (wyjście / nowa sesja / czyszczenie skończonych).
+  // Skip = tymczasowe: ominięte zadania wracają do puli jako `pending`. Główny moment
+  // przywracania to start nowej sesji (`start`) — niezależny od tego, jak user opuścił
+  // sesję (Exit / Dashboard / refresh / abandona snapshota). Pozostałe wywołania (exit /
+  // clearCompleted / onNewSession) to idempotentne bezpieczeństwo — pula pokazuje skipped od razu.
   const returnSkippedToPool = () => {
     tasks.filter((t) => t.state === 'skipped').forEach((t) => updateTask(t.id, { state: 'pending' }));
   };
