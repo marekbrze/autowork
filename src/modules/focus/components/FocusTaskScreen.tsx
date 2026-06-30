@@ -44,7 +44,7 @@ interface FocusTaskScreenProps {
   doneVision?: DoneVision;
   elapsedSeconds: number;
   running: boolean;
-  position: { index: number; total: number };
+  position: { index: number; total: number; deferred?: number };
   canGoBack: boolean;
   onDone: () => void;
   onSkip: () => void;
@@ -141,6 +141,14 @@ export function FocusTaskScreen({
           <span className="text-xs tabular-nums">
             {position.index + 1} / {position.total}
           </span>
+          {!!position.deferred && (
+            <span
+              className="text-xs text-muted-foreground"
+              title="Skipped tasks return in your next session"
+            >
+              · {position.deferred} skipped
+            </span>
+          )}
         </div>
       </div>
 

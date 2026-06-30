@@ -134,6 +134,12 @@ export function FocusView() {
 
   // Bieżąca pozycja w sesji po rekonsyliacji; -1 gdy brak pending.
   const activeCursor = screen === 'session' ? firstPendingFrom(queue, cursor) : -1;
+  // Odłożone (skip) przed bieżącym kursorem — wskaźnik pozycji musi je odróżnić od załatwionych,
+  // inaczej "X / Y" myli, licząc skip jako done (ADR 0038).
+  const deferredEarlier =
+    activeCursor > 0
+      ? queue.slice(0, activeCursor).filter((id) => tasks.find((t) => t.id === id)?.state === 'skipped').length
+      : 0;
   const currentTask = activeCursor >= 0 ? tasks.find((t) => t.id === queue[activeCursor]) ?? null : null;
   const currentStressor = currentTask ? (stressors.find((s) => s.id === currentTask.stressorId) ?? null) : null;
   const currentNextAction = currentTask ? (nextActions.find((n) => n.id === currentTask.nextActionId) ?? null) : null;
@@ -278,8 +284,9 @@ export function FocusView() {
 
   // Skip = tymczasowe: ominięte zadania wracają do puli jako `pending`. Główny moment
   // przywracania to start nowej sesji (`start`) — niezależny od tego, jak user opuścił
-  // sesję (Exit / Dashboard / refresh / abandona snapshota). Pozostałe wywołania (exit /
-  // clearCompleted / onNewSession) to idempotentne bezpieczeństwo — pula pokazuje skipped od razu.
+  // sesję (Exit / Dashboard / refresh / abandona snapshota). `clearCompleted` i `onNewSession`
+  // wołają to też (idempotentne bezpieczeństwo na końcu sesji). `exit()` NIE — skips zostają
+  // odłożone aż do Startu (ADR 0038); pulę i tak widać `skipped` w `attributed`.
   const returnSkippedToPool = () => {
     tasks.filter((t) => t.state === 'skipped').forEach((t) => updateTask(t.id, { state: 'pending' }));
   };
@@ -287,8 +294,9 @@ export function FocusView() {
   const exit = () => {
     flush();
     setRunning(false);
-    returnSkippedToPool();
     // Snapshot sesji utrzymywany przez sync-effect — zostaje do wznowienia (#2).
+    // Celowo NIE przywracamy skipped → pending: skips zostają odłożone aż do świeżego Startu,
+    // inaczej Resume (kursor za skipami) by ich nie sięgnął (ADR 0038).
     setScreen('filter');
   };
 
@@ -396,7 +404,7 @@ export function FocusView() {
           doneVision={currentVision}
           elapsedSeconds={elapsed}
           running={running}
-          position={{ index: activeCursor, total: queue.length }}
+          position={{ index: activeCursor, total: queue.length, deferred: deferredEarlier }}
           canGoBack={activeCursor > 0}
           onDone={done}
           onSkip={skip}
