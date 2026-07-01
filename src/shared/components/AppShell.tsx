@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom'
 
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
+import { ActiveRunChip } from '@/modules/run/components/ActiveRunChip'
 
 /**
  * App shell — top bar + contained content slot.
@@ -38,7 +39,8 @@ export function AppShell({ children }: { children: ReactNode }) {
               Dashboard
             </NavLink>
           </nav>
-          {/* Right slot reserved for the active-Run chip / user menu (wired by proto-lofi) */}
+          {/* Aktywny Run — display-only (switching przez Dashboard); PR-10, ADR 0044 */}
+          <ActiveRunChip className="ml-auto" />
         </div>
       </header>
       <main className="flex-1">
