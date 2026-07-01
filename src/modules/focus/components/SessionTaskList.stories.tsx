@@ -6,6 +6,7 @@ import { SessionTaskList } from './SessionTaskList';
 
 const base = (over: Partial<Task>): Task => ({
   id: 't',
+  runId: 'story',
   text: 'Task',
   nextActionId: 'n',
   stressorId: 's',

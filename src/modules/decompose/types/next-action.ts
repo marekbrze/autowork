@@ -9,4 +9,6 @@ import type { BaseEntity } from '@/shared/types';
 export interface NextAction extends BaseEntity {
   stressorId: string;
   text: string;
+  /** Run, do którego należy ten next-action (ADR 0044). */
+  runId: string;
 }

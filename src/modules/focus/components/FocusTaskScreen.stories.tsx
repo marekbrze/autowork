@@ -24,6 +24,7 @@ const TS = '2026-06-28T00:00:00.000Z';
 
 const task: Task = {
   id: 't1',
+  runId: 'story',
   text: 'Znajdź numer telefonu do warsztatu',
   nextActionId: 'na1',
   stressorId: 's1',
@@ -36,12 +37,12 @@ const task: Task = {
   updatedAt: TS,
 };
 
-const stressor = { id: 's1', text: 'samochód do naprawy', createdAt: TS, updatedAt: TS };
-const nextAction = { id: 'na1', stressorId: 's1', text: 'Umów naprawę w warsztacie', createdAt: TS, updatedAt: TS };
+const stressor = { id: 's1', runId: 'story', text: 'samochód do naprawy', createdAt: TS, updatedAt: TS };
+const nextAction = { id: 'na1', runId: 'story', stressorId: 's1', text: 'Umów naprawę w warsztacie', createdAt: TS, updatedAt: TS };
 
 const reasons = [
-  { id: 'r1', stressorId: 's1', text: 'wrócę bezpiecznie do domu każdej nocy', valence: 'positive' as const, createdAt: TS, updatedAt: TS },
-  { id: 'r2', stressorId: 's1', text: 'auto zepsuje się w trasie', valence: 'negative' as const, createdAt: TS, updatedAt: TS },
+  { id: 'r1', runId: 'story', stressorId: 's1', text: 'wrócę bezpiecznie do domu każdej nocy', valence: 'positive' as const, createdAt: TS, updatedAt: TS },
+  { id: 'r2', runId: 'story', stressorId: 's1', text: 'auto zepsuje się w trasie', valence: 'negative' as const, createdAt: TS, updatedAt: TS },
 ];
 
 const baseArgs = {

@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
 
 import { useLocalStorage, type LocalStorageStatus } from '@/shared/hooks/use-local-storage';
+import { useActiveRun } from '@/shared/active-run';
+import { clearRunFunnelData } from '@/shared/funnel-storage';
 import { generateId } from '@/shared/types';
 
 import type { ReviewItem, Run } from '../types/run';
@@ -20,10 +22,12 @@ function defaultRunName(): string {
 
 export function useRuns() {
   const [runs, setRuns, , storage] = useLocalStorage<Run[]>(STORAGE_KEY, []);
+  const { activeRunId, setActiveRun } = useActiveRun();
 
   const getRun = useCallback((id: string): Run | undefined => runs.find((r) => r.id === id), [runs]);
 
-  /** Tworzy nowy Run (nazwa = data/godzina, krok brain-dump, zerowe statystyki). Zwraca Run | null (null = awaria zapisu). */
+  /** Tworzy nowy Run (nazwa = data/godzina, krok brain-dump, zerowe statystyki) i ustawia go aktywnym.
+   *  Zwraca Run | null (null = awaria zapisu). */
   const createRun = useCallback(
     (name?: string): Run | null => {
       const now = new Date().toISOString();
@@ -39,9 +43,10 @@ export function useRuns() {
         lastActiveAt: now,
       };
       const ok = setRuns((prev) => [run, ...prev]);
+      if (ok) setActiveRun(run.id); // nowy Run staje się aktywnym → jego lejek od teraz widać (ADR 0044)
       return ok ? run : null;
     },
-    [setRuns],
+    [setRuns, setActiveRun],
   );
 
   const renameRun = useCallback(
@@ -57,11 +62,14 @@ export function useRuns() {
   );
 
   const archiveRun = useCallback(
-    (id: string): boolean =>
-      setRuns((prev) =>
+    (id: string): boolean => {
+      const ok = setRuns((prev) =>
         prev.map((r) => (r.id === id ? { ...r, state: 'archived', updatedAt: new Date().toISOString() } : r)),
-      ),
-    [setRuns],
+      );
+      if (ok && activeRunId === id) setActiveRun(null); // archiwizacja aktywnego → brak aktywnego (ADR 0044)
+      return ok;
+    },
+    [setRuns, activeRunId, setActiveRun],
   );
 
   const unarchiveRun = useCallback(
@@ -75,8 +83,15 @@ export function useRuns() {
   );
 
   const deleteRun = useCallback(
-    (id: string): boolean => setRuns((prev) => prev.filter((r) => r.id !== id)),
-    [setRuns],
+    (id: string): boolean => {
+      const ok = setRuns((prev) => prev.filter((r) => r.id !== id));
+      if (ok) {
+        clearRunFunnelData(id); // kaskada: usuń dane lejka tego Runa (ADR 0044)
+        if (activeRunId === id) setActiveRun(null); // usunięto aktywnego → brak aktywnego
+      }
+      return ok;
+    },
+    [setRuns, activeRunId, setActiveRun],
   );
 
   /** Oznacza pozycję w przeglądzie jako aktualną (relevant) lub przeterminowaną (stale). */

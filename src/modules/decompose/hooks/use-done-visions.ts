@@ -1,19 +1,22 @@
 import { useCallback } from 'react';
 
 import { useLocalStorage, type LocalStorageStatus } from '@/shared/hooks/use-local-storage';
+import { useActiveRunId } from '@/shared/active-run';
+import { doneVisionsKey } from '@/shared/funnel-storage';
 import type { DoneVision } from '@/shared/types';
 
 /**
  * `doneVision` — opcjonalna (0..1) pozytywna wizja zrobionego stanu stresora.
- * Konceptualnie atrybut `Stressor` (ADR 0005); w prototypie trzymana
- * side-storem (klucz → wizja), żeby zostawić `capture` nietkniętym.
+ * Konceptualnie atrybut `Stressor` (ADR 0005); trzymana side-storem (klucz → wizja).
+ * Per-Run: klucz namespaced po aktywnym Runie (ADR 0044) — brak leaku między runami.
  */
 type DoneVisionMap = Record<string, DoneVision>;
 
-const STORAGE_KEY = 'decompose:doneVisions';
-
-export function useDoneVisions() {
-  const [visions, setVisions, , storage] = useLocalStorage<DoneVisionMap>(STORAGE_KEY, {});
+/** Done-visions aktywnego Runa (lub `runId`, jeśli podano). */
+export function useDoneVisions(runId?: string) {
+  const activeRunId = useActiveRunId(runId);
+  const key = doneVisionsKey(activeRunId ?? '__none__');
+  const [visions, setVisions, , storage] = useLocalStorage<DoneVisionMap>(key, {});
 
   const setDoneVision = useCallback(
     (stressorId: string, vision: DoneVision | null) => {

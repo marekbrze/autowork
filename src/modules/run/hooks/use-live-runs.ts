@@ -1,58 +1,60 @@
 import { useCallback, useMemo } from 'react';
 
-import { useLocalStorage } from '@/shared/hooks/use-local-storage';
-import { useStressors } from '@/modules/capture/hooks/use-stressors';
-import { useNextActions } from '@/modules/decompose/hooks/use-next-actions';
-import { useTasks } from '@/modules/decompose/hooks/use-tasks';
-import type { SessionSnapshot } from '@/modules/focus/types/focus';
+import { tasksKey, stressorsKey, nextActionsKey } from '@/shared/funnel-storage';
+import type { Task } from '@/modules/decompose/types/task';
+import type { Stressor } from '@/modules/capture/types/stressor';
+import type { NextAction } from '@/modules/decompose/types/next-action';
 
 import { deriveLastReachedStep, deriveRunStats } from '../stats';
 import type { Run } from '../types/run';
 import { useRuns } from './use-runs';
 
+/** Bezpieczny odczyt+parse z localStorage (fallback przy braku/uszkodzonym JSON). */
+function readJson<T>(key: string, fallback: T): T {
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 /**
- * `useRuns` + wyprowadzane na żywo statystyki / krok resume z globalnych danych lejka
- * (zob. ../stats.ts). Zwraca te same mutacje co `useRuns`, ale `runs` / `getRun`
- * zwracają Runy z **scaloną** `stats` i `lastReachedStep` — wyłącznie do wyświetlania
- * (nie persystujemy z powrotem do `run:runs`).
+ * `useRuns` + statystyki / krok resume wyprowadzane per-Run z各自 stores lejka (ADR 0044).
+ * Każdy Run pokazuje **swój** progres ( wcześniej wszystkie Runy dzieliły jeden globalny zestaw).
  *
- * Multi-run (prototype): dane lejka są globalne, więc każdy Run pokazuje ten sam żywy
- * progres — akceptowalne dla jednego aktywnego Runa naraz; per-Run odłożone (ADR 0020).
- *
- * Wystawia też mutatory tasków (`updateTask`/`deleteTask`/`taskStorage`) ze **swojej**
- * instancji `useTasks` — dzięki temu komponent (np. `RunDetails`) mutuje taski przez
- * tę samą instancję, z której wyprowadzane są statystyki, więc kafelki/Continue
- * przeliczają się na żywo (ADR 0035, R2-1). Dwie osobne instancje `useTasks` w jednym
- * komponencie nie synchronizują się w tej samej karcie (`storage` event = cross-tab).
+ * Statystyki czytane **bezpośrednio** z localStorage (nie przez hooki lejka) — dzięki temu moduł
+ * `run` nie importuje hooków `capture`/`decompose` (koniec cyklu zależności; lejek importuje
+ * `active-run` z `shared`, nie odwrotnie). Na ekranach zarządczych (Dashboard/Archived) nie
+ * edytujemy lejka, więc brak reaktywności w locie jest akceptowalny — powrót na ekran = remount =
+ * świeży odczyt. RunDetails liczy statystyki **lokalnie** ze swoich scope'owanych hooków (reaktywnie).
  */
 export function useLiveRuns() {
   const runsApi = useRuns();
-  const { stressors } = useStressors();
-  const { nextActions } = useNextActions();
-  const { tasks, updateTask, deleteTask, storage: taskStorage } = useTasks();
-  const [snapshot] = useLocalStorage<SessionSnapshot | null>('focus:session', null);
+  const { runs } = runsApi;
 
-  const stats = useMemo(() => deriveRunStats(tasks), [tasks]);
-
-  const lastReachedStep = useMemo(
+  const live = useMemo(
     () =>
-      deriveLastReachedStep({
-        stressorCount: stressors.length,
-        nextActionCount: nextActions.length,
-        taskCount: tasks.length,
-        doneCount: stats.doneCount,
-        hasResumableSession: Boolean(snapshot && snapshot.queue.length > 0),
+      runs.map((r) => {
+        const tasks = readJson<Task[]>(tasksKey(r.id), []);
+        const stressors = readJson<Stressor[]>(stressorsKey(r.id), []);
+        const nextActions = readJson<NextAction[]>(nextActionsKey(r.id), []);
+        const stats = deriveRunStats(tasks);
+        const lastReachedStep = deriveLastReachedStep({
+          stressorCount: stressors.length,
+          nextActionCount: nextActions.length,
+          taskCount: tasks.length,
+          doneCount: stats.doneCount,
+          // Kosmetyczne dla karty (routing do /focus taki sam bez względu na sesję);
+          // rzeczywiste wznowienie sesji rozstrzyga FocusView dla aktywnego Runa.
+          hasResumableSession: false,
+        });
+        return { ...r, stats, lastReachedStep };
       }),
-    [stressors.length, nextActions.length, tasks.length, stats.doneCount, snapshot],
+    [runs],
   );
 
-  const runs = useMemo(
-    () => runsApi.runs.map((r) => ({ ...r, stats, lastReachedStep })),
-    [runsApi.runs, stats, lastReachedStep],
-  );
+  const getRun = useCallback((id: string): Run | undefined => live.find((r) => r.id === id), [live]);
 
-  // Nadpisujemy getRun, by zwracało Run ze scalonymi (żywymi) polami.
-  const getRun = useCallback((id: string): Run | undefined => runs.find((r) => r.id === id), [runs]);
-
-  return { ...runsApi, runs, getRun, tasks, updateTask, deleteTask, taskStorage };
+  return { ...runsApi, runs: live, getRun };
 }

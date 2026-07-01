@@ -31,6 +31,8 @@ export interface Task extends BaseEntity {
   nextActionId: string;
   /** Denormalizowane dla wygody (motywacja / grupowanie po stresorze). */
   stressorId: string;
+  /** Run, do którego należy ten task (ADR 0044 — per-Run własność lejka). */
+  runId: string;
   state: TaskState;
   /** Przypinane w `process`. */
   context?: Context;

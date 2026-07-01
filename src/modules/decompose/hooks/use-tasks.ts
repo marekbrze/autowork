@@ -1,20 +1,21 @@
 import { useCallback } from 'react';
 
 import { useLocalStorage, type LocalStorageStatus } from '@/shared/hooks/use-local-storage';
+import { useActiveRunId } from '@/shared/active-run';
+import { tasksKey } from '@/shared/funnel-storage';
 import { generateId } from '@/shared/types';
 
 import type { Task } from '../types/task';
 import type { NextAction } from '../types/next-action';
 
-const STORAGE_KEY = 'decompose:tasks';
-
-function bareTask(nextActionId: string, stressorId: string, text: string): Task {
+function bareTask(nextActionId: string, stressorId: string, runId: string, text: string): Task {
   const now = new Date().toISOString();
   return {
     id: generateId(),
     text,
     nextActionId,
     stressorId,
+    runId,
     state: 'pending',
     timerElapsed: 0,
     createdAt: now,
@@ -22,8 +23,12 @@ function bareTask(nextActionId: string, stressorId: string, text: string): Task 
   };
 }
 
-export function useTasks() {
-  const [tasks, setTasks, , storage] = useLocalStorage<Task[]>(STORAGE_KEY, []);
+/** Taski aktywnego Runa (lub `runId`, jeśli podano — np. RunDetails scope'uje po URL `:runId`). */
+export function useTasks(runId?: string) {
+  const activeRunId = useActiveRunId(runId);
+  const rid = activeRunId ?? '__none__';
+  const key = tasksKey(rid);
+  const [tasks, setTasks, , storage] = useLocalStorage<Task[]>(key, []);
 
   const updateTask = useCallback(
     (id: string, patch: Partial<Task>): boolean =>
@@ -67,12 +72,12 @@ export function useTasks() {
             usedIds.add(match.id);
             return match;
           }
-          return bareTask(nextAction.id, nextAction.stressorId, text);
+          return bareTask(nextAction.id, nextAction.stressorId, rid, text);
         });
         return [...kept, ...resolved];
       });
     },
-    [setTasks],
+    [setTasks, rid],
   );
 
   /**
@@ -85,10 +90,10 @@ export function useTasks() {
         const withTasks = new Set(prev.map((t) => t.nextActionId));
         const toCreate = nextActions.filter((n) => !withTasks.has(n.id));
         if (toCreate.length === 0) return prev;
-        return [...prev, ...toCreate.map((n) => bareTask(n.id, n.stressorId, n.text))];
+        return [...prev, ...toCreate.map((n) => bareTask(n.id, n.stressorId, rid, n.text))];
       });
     },
-    [setTasks],
+    [setTasks, rid],
   );
 
   return {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
@@ -7,10 +7,15 @@ import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { StorageStatusToast } from '@/modules/capture/components/StorageStatusToast';
 import { useLocalStorage } from '@/shared/hooks/use-local-storage';
+import { useActiveRun } from '@/shared/active-run';
+import { focusTaskOrderKey } from '@/shared/funnel-storage';
 import { useStressors } from '@/modules/capture/hooks/use-stressors';
+import { useNextActions } from '@/modules/decompose/hooks/use-next-actions';
+import { useTasks } from '@/modules/decompose/hooks/use-tasks';
 import { DismissUndoToast } from '@/modules/focus/components/FocusStates';
 
 import { useLiveRuns } from '../hooks/use-live-runs';
+import { deriveLastReachedStep, deriveRunStats } from '../stats';
 import { isRunCompleted, STEP_LABEL, STEP_ROUTE } from '../types/run';
 import { RunStatTiles } from './RunStatTiles';
 import { RunTaskList } from './RunTaskList';
@@ -22,23 +27,15 @@ import { RunCompleted } from './RunStates';
  */
 export function RunDetails() {
   const { runId } = useParams<{ runId: string }>();
-  // Statystyki / krok resume / mutatory tasków — wszystko z jednej instancji `useTasks`
-  // wewnątrz `useLiveRuns`, żeby kafelki i Continue przeliczały się na żywo po akcjach z listy
-  // (ADR 0035, R2-1: dwie osobne instancje nie synchronizują się w tej samej karcie).
-  // Współdzielony `TaskOrder` z focus sortuje listę (ADR 0036).
-  const {
-    getRun,
-    renameRun,
-    archiveRun,
-    unarchiveRun,
-    deleteRun,
-    storage,
-    tasks,
-    updateTask,
-    taskStorage,
-  } = useLiveRuns();
-  const { stressors } = useStressors();
-  const [taskOrder] = useLocalStorage<string[]>('focus:taskOrder', []);
+  const { getRun, renameRun, archiveRun, unarchiveRun, deleteRun, storage } = useLiveRuns();
+  // Dane scope'owane po URL `:runId` (Details to widok zarządczy dowolnego Runa, nie tylko
+  // aktywnego). Lokalne hooki dają reaktywne dane → statystyki/Continue przeliczają się na żywo
+  // po akcjach z listy (R2-1). Współdzielony `TaskOrder` z focus sortuje listę (ADR 0036), per-Run.
+  const { tasks, updateTask, storage: taskStorage } = useTasks(runId);
+  const { stressors } = useStressors(runId);
+  const { nextActions } = useNextActions(runId);
+  const [taskOrder] = useLocalStorage<string[]>(focusTaskOrderKey(runId ?? '__none__'), []);
+  const { setActiveRun } = useActiveRun();
   // R2-2: undo dla Dismiss z listy (ADR 0017). Done = implicit feedback (migracja do grupy Done).
   const [dismissUndo, setDismissUndo] = useState<{ id: string; text: string } | null>(null);
   const markDone = (id: string) => updateTask(id, { state: 'completed' });
@@ -55,6 +52,24 @@ export function RunDetails() {
   const navigate = useNavigate();
 
   const run = runId ? getRun(runId) : undefined;
+  // Statystyki / krok resume liczone LOKALNIE z reaktywnych danych tego Runa (per-Run, ADR 0044).
+  const stats = useMemo(() => deriveRunStats(tasks), [tasks]);
+  const resumeStep = useMemo(
+    () =>
+      deriveLastReachedStep({
+        stressorCount: stressors.length,
+        nextActionCount: nextActions.length,
+        taskCount: tasks.length,
+        doneCount: stats.doneCount,
+        hasResumableSession: false,
+      }),
+    [stressors.length, nextActions.length, tasks.length, stats.doneCount],
+  );
+  const continueRun = () => {
+    if (!run) return;
+    setActiveRun(run.id); // Continue ustawia aktywny Run → jego lejek od teraz widać (ADR 0044)
+    navigate(STEP_ROUTE[resumeStep]);
+  };
 
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(run?.name ?? '');
@@ -85,7 +100,7 @@ export function RunDetails() {
     );
   }
 
-  const completed = isRunCompleted(run);
+  const completed = isRunCompleted({ ...run, stats });
   const archived = run.state === 'archived';
   const staleCount = run.reviewItems.filter((it) => it.stale).length;
   // FI-1: walidacja rename — nazwa nie może być pusta (same spacje = nieważna).
@@ -165,7 +180,7 @@ export function RunDetails() {
 
       {/* Statystyki */}
       <section aria-label="Run stats">
-        <RunStatTiles run={run} />
+        <RunStatTiles run={{ ...run, stats }} />
       </section>
 
       {/* Tasks — lista zadań z prawdziwym stanem + akcje z listy (ADR 0035/0037). */}
@@ -200,14 +215,11 @@ export function RunDetails() {
             ) : (
               <>
                 <span className="text-muted-foreground">Resumes at: </span>
-                <span className="font-medium">{STEP_LABEL[run.lastReachedStep]}</span>
+                <span className="font-medium">{STEP_LABEL[resumeStep]}</span>
               </>
             )}
           </div>
-          <Button
-            disabled={archived}
-            onClick={() => navigate(STEP_ROUTE[run.lastReachedStep])}
-          >
+          <Button disabled={archived} onClick={continueRun}>
             Continue
           </Button>
         </section>

@@ -6,6 +6,8 @@ import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { FunnelStepper } from '@/shared/components/FunnelStepper';
 import { StorageStatusToast } from '@/modules/capture/components/StorageStatusToast';
 import { useLocalStorage } from '@/shared/hooks/use-local-storage';
+import { useActiveRunId } from '@/shared/active-run';
+import { focusFilterKey, focusSessionKey, focusTaskOrderKey } from '@/shared/funnel-storage';
 import { useStressors } from '@/modules/capture/hooks/use-stressors';
 import { useDoneVisions } from '@/modules/decompose/hooks/use-done-visions';
 import { useNextActions } from '@/modules/decompose/hooks/use-next-actions';
@@ -49,6 +51,8 @@ import { SessionSummary } from './SessionSummary';
  *   bieżący: przewijamy do następnego pending w kolejce.
  */
 export function FocusView() {
+  const activeRunId = useActiveRunId();
+  const rid = activeRunId ?? '__none__';
   const { stressors, storage: stressorStorage } = useStressors();
   const { nextActions, storage: nextActionStorage } = useNextActions();
   const { reasons, storage: reasonStorage } = useReasons();
@@ -56,10 +60,10 @@ export function FocusView() {
   const { tasks, updateTask, deleteTask, storage: taskStorage } = useTasks();
 
   const [screen, setScreen] = useState<FocusScreen>('filter');
-  // Persystencja wyboru filtra (`focus:filter`) — kontynuacja Runa z dashboardu
+  // Persystencja wyboru filtra — per-Run (ADR 0044). Kontynuacja Runa z dashboardu
   // nie może resetować kontekstów/energii do pustego ekranu („żadne filtry…").
   // Zapamiętany filtr = punkt startowy przy powrocie do pracy; user może go zmienić.
-  const [persistedSelection, setSelection] = useLocalStorage<FilterSelection>('focus:filter', EMPTY_FILTER);
+  const [persistedSelection, setSelection] = useLocalStorage<FilterSelection>(focusFilterKey(rid), EMPTY_FILTER);
   const [queue, setQueue] = useState<string[]>([]);
   const [cursor, setCursor] = useState(0);
   const [running, setRunning] = useState(true);
@@ -68,13 +72,12 @@ export function FocusView() {
   // F2-1: potwierdzenie „Reset to default" (destruktywne — trwale czyści ręczny TaskOrder).
   const [confirmReset, setConfirmReset] = useState(false);
 
-  // Snapshot przerwanej sesji — best-effort (utrata = brak wznowienia, nie utrata danych).
-  const [snapshot, setSnapshot, removeSnapshot] = useLocalStorage<SessionSnapshot | null>('focus:session', null);
+  // Snapshot przerwanej sesji — per-Run (ADR 0044); best-effort (utrata = brak wznowienia).
+  const [snapshot, setSnapshot, removeSnapshot] = useLocalStorage<SessionSnapshot | null>(focusSessionKey(rid), null);
 
-  // Ręczny porządek kolejki (`focus:taskOrder`) — jeden współdzielony model kolejności
-  // zadań (ADR 0036): default (pusty) = rank stresora; przełożenie w filtrze nadpisuje.
-  // Ten sam porządek sortuje listę dopasowanych tu, kolejkę sesji i listę na run.
-  const [taskOrder, setTaskOrder, removeTaskOrder, taskOrderStorage] = useLocalStorage<string[]>('focus:taskOrder', []);
+  // Ręczny porządek kolejki — per-Run (ADR 0044/0036): default (pusty) = rank stresora;
+  // przełożenie w filtrze nadpisuje. Ten sam porządek sortuje listę tu, kolejkę sesji i listę na run.
+  const [taskOrder, setTaskOrder, removeTaskOrder, taskOrderStorage] = useLocalStorage<string[]>(focusTaskOrderKey(rid), []);
   const hasManualOrder = taskOrder.length > 0;
 
   // Pozycja stresora w tablicy = jego rank (najbardziej stresujący = 0).

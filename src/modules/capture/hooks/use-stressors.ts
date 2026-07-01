@@ -1,28 +1,40 @@
 import { useCallback } from 'react';
 
 import { useLocalStorage, type LocalStorageStatus } from '@/shared/hooks/use-local-storage';
+import { useActiveRunId } from '@/shared/active-run';
+import { stressorsKey } from '@/shared/funnel-storage';
 import { generateId } from '@/shared/types';
 
 import type { Stressor } from '../types/stressor';
-
-const STORAGE_KEY = 'capture:stressors';
 
 export interface RemovedStressor {
   item: Stressor;
   index: number;
 }
 
-export function useStressors() {
-  const [stressors, setStressors, , storage] = useLocalStorage<Stressor[]>(STORAGE_KEY, []);
+/**
+ * Stresory aktywnego Runa (lub `runId`, jeśli podano — np. RunDetails scope'uje po URL `:runId`).
+ * Store jest per-Run, więc kolejność (rank) jest niezależna między runami.
+ */
+export function useStressors(runId?: string) {
+  const activeRunId = useActiveRunId(runId);
+  const key = stressorsKey(activeRunId ?? '__none__');
+  const [stressors, setStressors, , storage] = useLocalStorage<Stressor[]>(key, []);
 
   const addStressor = useCallback(
     (text: string): Stressor => {
       const now = new Date().toISOString();
-      const item: Stressor = { id: generateId(), text, createdAt: now, updatedAt: now };
+      const item: Stressor = {
+        id: generateId(),
+        text,
+        runId: activeRunId ?? '__none__',
+        createdAt: now,
+        updatedAt: now,
+      };
       setStressors((prev) => [...prev, item]);
       return item;
     },
-    [setStressors],
+    [activeRunId, setStressors],
   );
 
   const updateStressor = useCallback(

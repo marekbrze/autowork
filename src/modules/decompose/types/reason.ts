@@ -10,4 +10,6 @@ export interface Reason extends BaseEntity {
   stressorId: string;
   text: string;
   valence: Valence;
+  /** Run, do którego należy ten powód (ADR 0044). */
+  runId: string;
 }

@@ -17,8 +17,8 @@ export const Full: Story = {
   args: {
     doneVision: { text: 'samochód jedzie gładko i milczy, jazda bez napięcia', emoji: '😌' },
     reasons: [
-      { id: 'r1', stressorId: 's1', text: 'wrócę bezpiecznie do domu każdej nocy', valence: 'positive', createdAt: TS, updatedAt: TS },
-      { id: 'r2', stressorId: 's1', text: 'auto zepsuje się w trasie', valence: 'negative', createdAt: TS, updatedAt: TS },
+      { id: 'r1', runId: 'story', stressorId: 's1', text: 'wrócę bezpiecznie do domu każdej nocy', valence: 'positive', createdAt: TS, updatedAt: TS },
+      { id: 'r2', runId: 'story', stressorId: 's1', text: 'auto zepsuje się w trasie', valence: 'negative', createdAt: TS, updatedAt: TS },
     ],
   },
 };
@@ -26,7 +26,7 @@ export const Full: Story = {
 export const ReasonsOnly: Story = {
   args: {
     reasons: [
-      { id: 'r1', stressorId: 's1', text: 'spokój — urząd przestanie wisieć nad głową', valence: 'positive', createdAt: TS, updatedAt: TS },
+      { id: 'r1', runId: 'story', stressorId: 's1', text: 'spokój — urząd przestanie wisieć nad głową', valence: 'positive', createdAt: TS, updatedAt: TS },
     ],
   },
 };

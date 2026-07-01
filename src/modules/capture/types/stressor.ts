@@ -10,4 +10,6 @@ import type { BaseEntity } from '@/shared/types';
  */
 export interface Stressor extends BaseEntity {
   text: string;
+  /** Run, do którego należy ten stresor (ADR 0044 — per-Run własność lejka). */
+  runId: string;
 }

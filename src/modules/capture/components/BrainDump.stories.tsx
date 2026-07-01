@@ -7,6 +7,7 @@ import type { Stressor } from '../types/stressor';
 function makeStressors(texts: string[]): Stressor[] {
   return texts.map((text, i) => ({
     id: `stressor-${i + 1}`,
+    runId: 'story',
     text,
     createdAt: '2026-06-28T00:00:00.000Z',
     updatedAt: '2026-06-28T00:00:00.000Z',

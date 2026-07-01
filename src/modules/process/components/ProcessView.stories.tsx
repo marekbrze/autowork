@@ -9,17 +9,17 @@ import type { Task } from '@/modules/decompose/types/task';
 const TS = '2026-06-28T00:00:00.000Z';
 
 const stressors: Stressor[] = [
-  { id: 's1', text: 'samochód do naprawy', createdAt: TS, updatedAt: TS },
-  { id: 's2', text: 'wypowiedzenie umowy najmu', createdAt: TS, updatedAt: TS },
+  { id: 's1', runId: 'story', text: 'samochód do naprawy', createdAt: TS, updatedAt: TS },
+  { id: 's2', runId: 'story', text: 'wypowiedzenie umowy najmu', createdAt: TS, updatedAt: TS },
 ];
 
 const nextActions: NextAction[] = [
-  { id: 'na1', stressorId: 's1', text: 'Umów warsztat', createdAt: TS, updatedAt: TS },
-  { id: 'na2', stressorId: 's2', text: 'Wypowiedz najem', createdAt: TS, updatedAt: TS },
+  { id: 'na1', runId: 'story', stressorId: 's1', text: 'Umów warsztat', createdAt: TS, updatedAt: TS },
+  { id: 'na2', runId: 'story', stressorId: 's2', text: 'Wypowiedz najem', createdAt: TS, updatedAt: TS },
 ];
 
 function bareTask(id: string, nextActionId: string, stressorId: string, text: string): Task {
-  return { id, text, nextActionId, stressorId, state: 'pending', timerElapsed: 0, createdAt: TS, updatedAt: TS };
+  return { id, runId: 'story', text, nextActionId, stressorId, state: 'pending', timerElapsed: 0, createdAt: TS, updatedAt: TS };
 }
 
 function seed(tasks: Task[]) {

@@ -6,9 +6,9 @@ import type { Task } from '@/modules/decompose/types/task';
 
 /** Dopasowane do filtra Phone/Creative × energie 1–3. */
 const matchedTasks: Task[] = [
-  { id: '1', text: 'Call the bank about the mortgage rate', nextActionId: 'n', stressorId: 's', state: 'pending', context: 'Phone', energy: 1, estimatedTime: 15, timerElapsed: 0, createdAt: '2026-06-30T00:00:00.000Z', updatedAt: '2026-06-30T00:00:00.000Z' },
-  { id: '2', text: 'Draft landing page hero copy', nextActionId: 'n', stressorId: 's', state: 'pending', context: 'Creative', energy: 3, estimatedTime: 45, timerElapsed: 0, createdAt: '2026-06-30T00:00:01.000Z', updatedAt: '2026-06-30T00:00:01.000Z' },
-  { id: '3', text: 'Reply to the landlord about the leak', nextActionId: 'n', stressorId: 's', state: 'pending', context: 'Phone', energy: 2, estimatedTime: 5, timerElapsed: 0, createdAt: '2026-06-30T00:00:02.000Z', updatedAt: '2026-06-30T00:00:02.000Z' },
+  { id: '1', runId: 'story', text: 'Call the bank about the mortgage rate', nextActionId: 'n', stressorId: 's', state: 'pending', context: 'Phone', energy: 1, estimatedTime: 15, timerElapsed: 0, createdAt: '2026-06-30T00:00:00.000Z', updatedAt: '2026-06-30T00:00:00.000Z' },
+  { id: '2', runId: 'story', text: 'Draft landing page hero copy', nextActionId: 'n', stressorId: 's', state: 'pending', context: 'Creative', energy: 3, estimatedTime: 45, timerElapsed: 0, createdAt: '2026-06-30T00:00:01.000Z', updatedAt: '2026-06-30T00:00:01.000Z' },
+  { id: '3', runId: 'story', text: 'Reply to the landlord about the leak', nextActionId: 'n', stressorId: 's', state: 'pending', context: 'Phone', energy: 2, estimatedTime: 5, timerElapsed: 0, createdAt: '2026-06-30T00:00:02.000Z', updatedAt: '2026-06-30T00:00:02.000Z' },
 ];
 
 const meta: Meta<typeof SessionFilter> = {

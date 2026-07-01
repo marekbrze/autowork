@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { StorageStatusToast } from '@/modules/capture/components/StorageStatusToast';
+import { useActiveRun } from '@/shared/active-run';
 import { RunCard } from '@/modules/run/components/RunCard';
 import { RunReadError } from '@/modules/run/components/RunStates';
 import { useLiveRuns } from '@/modules/run/hooks/use-live-runs';
@@ -24,6 +25,7 @@ export function DashboardView() {
   // `useLiveRuns` scalia statystyki i krok resume wyprowadzane na żywo z danych lejka
   // (zob. run/hooks/use-live-runs.ts) — bez tego karty czytałyby zamrożone zera.
   const { runs, createRun, archiveRun, storage } = useLiveRuns();
+  const { setActiveRun } = useActiveRun();
   const navigate = useNavigate();
 
   const active = useMemo(
@@ -42,10 +44,9 @@ export function DashboardView() {
   const dominant = active[0];
   const rest = active.slice(1);
 
-  // Start new → tworzy Run i prowadzi do brain dumpa (krok 1 lejka). Dane lejka są
-  // globalne w prototypie, więc capture nie tworzy duplikatu (ADR 0020).
-  // harden #2: strażnik double-submit — createRun jest sync, ale dwa szybkie kliknięcia
-  // mogłyby stworzyć osierocony run. Ref jest synchroniczny, blokuje drugie wołanie.
+  // Start new → tworzy Run (z pustym lejkiem — per-Run własność, ADR 0044), ustawia go aktywnym
+  // (w `useRuns`) i prowadzi do brain dumpa. harden #2: strażnik double-submit — createRun jest
+  // sync, ale dwa szybkie kliknięcia mogłyby stworzyć osierocony run. Ref blokuje drugie wołanie.
   const creatingRef = useRef(false);
   const handleStartNew = () => {
     if (creatingRef.current) return;
@@ -55,7 +56,11 @@ export function DashboardView() {
     else creatingRef.current = false; // awaria zapisu — pozwól retry (toast zostaje widoczny)
   };
 
-  const continueRun = (step: keyof typeof STEP_ROUTE) => navigate(STEP_ROUTE[step]);
+  // Continue ustawia Run aktywnym (jego lejek od teraz widać w ekranach funnel) + route do kroku.
+  const continueRun = (runId: string, step: keyof typeof STEP_ROUTE) => {
+    setActiveRun(runId);
+    navigate(STEP_ROUTE[step]);
+  };
 
   if (storage.readError) {
     return (
@@ -78,7 +83,7 @@ export function DashboardView() {
         <>
           <DominantRunCard
             run={dominant}
-            onContinue={() => continueRun(dominant.lastReachedStep)}
+            onContinue={() => continueRun(dominant.id, dominant.lastReachedStep)}
             onStartNew={handleStartNew}
             onArchive={() => archiveRun(dominant.id)}
           />
@@ -93,7 +98,7 @@ export function DashboardView() {
                       run={run}
                       actions={
                         <>
-                          <Button size="sm" onClick={() => continueRun(run.lastReachedStep)}>
+                          <Button size="sm" onClick={() => continueRun(run.id, run.lastReachedStep)}>
                             Continue
                           </Button>
                           <Link

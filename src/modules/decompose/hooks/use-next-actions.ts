@@ -1,23 +1,33 @@
 import { useCallback } from 'react';
 
 import { useLocalStorage, type LocalStorageStatus } from '@/shared/hooks/use-local-storage';
+import { useActiveRunId } from '@/shared/active-run';
+import { nextActionsKey } from '@/shared/funnel-storage';
 import { generateId } from '@/shared/types';
 
 import type { NextAction } from '../types/next-action';
 
-const STORAGE_KEY = 'decompose:nextActions';
-
-export function useNextActions() {
-  const [nextActions, setNextActions, , storage] = useLocalStorage<NextAction[]>(STORAGE_KEY, []);
+/** Next-actiony aktywnego Runa (lub `runId`, jeśli podano). */
+export function useNextActions(runId?: string) {
+  const activeRunId = useActiveRunId(runId);
+  const key = nextActionsKey(activeRunId ?? '__none__');
+  const [nextActions, setNextActions, , storage] = useLocalStorage<NextAction[]>(key, []);
 
   const addNextAction = useCallback(
     (stressorId: string, text: string): NextAction => {
       const now = new Date().toISOString();
-      const item: NextAction = { id: generateId(), stressorId, text, createdAt: now, updatedAt: now };
+      const item: NextAction = {
+        id: generateId(),
+        stressorId,
+        text,
+        runId: activeRunId ?? '__none__',
+        createdAt: now,
+        updatedAt: now,
+      };
       setNextActions((prev) => [...prev, item]);
       return item;
     },
-    [setNextActions],
+    [activeRunId, setNextActions],
   );
 
   const updateNextAction = useCallback(

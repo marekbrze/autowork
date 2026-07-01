@@ -5,6 +5,7 @@ import type { NextAction } from '../types/next-action';
 
 const nextAction: NextAction = {
   id: 'na-1',
+  runId: 'story',
   stressorId: 'stressor-1',
   text: 'Zadzwoń do warsztatu i umów termin',
   createdAt: '2026-06-28T00:00:00.000Z',

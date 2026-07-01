@@ -8,6 +8,7 @@ import type { Stressor } from '@/modules/capture/types/stressor';
 function makeStressors(texts: string[]): Stressor[] {
   return texts.map((text, i) => ({
     id: `stressor-${i + 1}`,
+    runId: 'story',
     text,
     createdAt: '2026-06-28T00:00:00.000Z',
     updatedAt: '2026-06-28T00:00:00.000Z',
@@ -59,7 +60,7 @@ export const WithData: Story = {
       localStorage.setItem('capture:stressors', JSON.stringify(stressors));
 
       // wypełniony WHY + HOW dla pierwszego stresora
-      const seed = buildDecomposeSeedFull('stressor-1');
+      const seed = buildDecomposeSeedFull('stressor-1', 'story');
       localStorage.setItem('decompose:reasons', JSON.stringify(seed.reasons));
       localStorage.setItem('decompose:nextActions', JSON.stringify(seed.nextActions));
       localStorage.setItem('decompose:tasks', JSON.stringify(seed.tasks));

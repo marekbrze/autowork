@@ -6,12 +6,13 @@ import type { Stressor } from '@/modules/capture/types/stressor';
 import { RunTaskList } from './RunTaskList';
 
 const stressors: Stressor[] = [
-  { id: 's1', text: 'Mortgage renewal', createdAt: '2026-06-30T00:00:00.000Z', updatedAt: '2026-06-30T00:00:00.000Z' },
-  { id: 's2', text: 'Launch deadline', createdAt: '2026-06-30T00:00:01.000Z', updatedAt: '2026-06-30T00:00:01.000Z' },
+  { id: 's1', runId: 'story', text: 'Mortgage renewal', createdAt: '2026-06-30T00:00:00.000Z', updatedAt: '2026-06-30T00:00:00.000Z' },
+  { id: 's2', runId: 'story', text: 'Launch deadline', createdAt: '2026-06-30T00:00:01.000Z', updatedAt: '2026-06-30T00:00:01.000Z' },
 ];
 
 const base = (over: Partial<Task>): Task => ({
   id: 't',
+  runId: 'story',
   text: 'Task',
   nextActionId: 'n',
   stressorId: 's1',
