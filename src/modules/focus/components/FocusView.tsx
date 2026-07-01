@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
@@ -71,6 +71,9 @@ export function FocusView() {
   const [confirmClear, setConfirmClear] = useState(false);
   // F2-1: potwierdzenie „Reset to default" (destruktywne — trwale czyści ręczny TaskOrder).
   const [confirmReset, setConfirmReset] = useState(false);
+  // ADR 0048: guard przed wyjściem z aktywnej sesji focus przez klikalny stepper.
+  const navigate = useNavigate();
+  const [leaveTarget, setLeaveTarget] = useState<string | null>(null);
 
   // Snapshot przerwanej sesji — per-Run (ADR 0044); best-effort (utrata = brak wznowienia).
   const [snapshot, setSnapshot, removeSnapshot] = useLocalStorage<SessionSnapshot | null>(focusSessionKey(rid), null);
@@ -403,7 +406,17 @@ export function FocusView() {
 
   return (
     <div className="space-y-6">
-      <FunnelStepper current="focus" />
+      <FunnelStepper
+        current="focus"
+        onBeforeNavigate={(_stage, route) => {
+          // Aktywna sesja (timer leci) → zapytaj przed wyjściem (ADR 0048).
+          if (screen === 'session' && running) {
+            setLeaveTarget(route);
+            return false;
+          }
+          return true;
+        }}
+      />
 
       {/* #10: awaria odczytu storage → stan błędu (nie mylny empty-state listy). */}
       {screen === 'filter' && storageView.readError ? (
@@ -519,6 +532,21 @@ export function FocusView() {
         confirmLabel="Reset to default"
         onConfirm={doResetOrder}
         onCancel={() => setConfirmReset(false)}
+      />
+
+      {/* ADR 0048: potwierdzenie wyjścia z aktywnej sesji focus przez klikalny stepper. */}
+      <ConfirmDialog
+        open={leaveTarget !== null}
+        title="Leave the active session?"
+        description="Your focus session is running. It'll pause — resume it when you come back to Focus."
+        confirmLabel="Leave"
+        cancelLabel="Stay"
+        onConfirm={() => {
+          const target = leaveTarget;
+          setLeaveTarget(null);
+          if (target) navigate(target);
+        }}
+        onCancel={() => setLeaveTarget(null)}
       />
     </div>
   );

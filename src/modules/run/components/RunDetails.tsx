@@ -183,25 +183,6 @@ export function RunDetails() {
         <RunStatTiles run={{ ...run, stats }} />
       </section>
 
-      {/* Tasks — lista zadań z prawdziwym stanem + akcje z listy (ADR 0035/0037). */}
-      {/* R2-3: zarchiwizowany Run = lista read-only (mutacje w „ukończonym" Runie niepożądane). */}
-      <section aria-label="Run tasks" className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium">Tasks</h3>
-          {archived && (
-            <span className="text-xs text-muted-foreground">Read-only — unarchive to edit</span>
-          )}
-        </div>
-        <RunTaskList
-          tasks={tasks}
-          taskOrder={taskOrder}
-          stressors={stressors}
-          readOnly={archived}
-          onDone={markDone}
-          onNotRelevant={markNotRelevant}
-        />
-      </section>
-
       {/* Kontynuuj / resume — lub stan ukończony (ST-1), lub zarchiwizowany */}
       {completed && !archived ? (
         <RunCompleted onArchive={() => archiveRun(run.id)} />
@@ -245,6 +226,25 @@ export function RunDetails() {
         <Button variant="destructive" className="sm:col-span-2" onClick={() => setConfirmDelete(true)}>
           Delete run
         </Button>
+      </section>
+
+      {/* Tasks — lista zadań z prawdziwym stanem + akcje z listy (ADR 0035/0037). */}
+      {/* R2-3: zarchiwizowany Run = lista read-only (mutacje w „ukończonym" Runie niepożądane). */}
+      <section aria-label="Run tasks" className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium">Tasks</h3>
+          {archived && (
+            <span className="text-xs text-muted-foreground">Read-only — unarchive to edit</span>
+          )}
+        </div>
+        <RunTaskList
+          tasks={tasks}
+          taskOrder={taskOrder}
+          stressors={stressors}
+          readOnly={archived}
+          onDone={markDone}
+          onNotRelevant={markNotRelevant}
+        />
       </section>
 
       <p className="text-xs text-muted-foreground">
