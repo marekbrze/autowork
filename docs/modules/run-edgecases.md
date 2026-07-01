@@ -140,3 +140,65 @@ Każdy wiersz wskazuje `file:line` gdzie luka żyje — `proto-harden` (lub desi
 | R2-6 | ❌ Odroczone — polish (degraduje grzecznie do defaultu). |
 
 **Zamknięte: 4 (R2-1, R2-2, R2-3, R2-4) · Odroczone: 2 (polish).**
+
+---
+
+## Re-audit: per-Run funnel isolation (proto-edgecases, 2026-07-01)
+
+**Zakres**: koncept **aktywnego Runa** (`activeRunId`) + per-Run własność danych lejka (feature `per-run-funnel-isolation`, ADR 0044; spec w `run.md` po proto-detail, ADR 0045). To **audit pre-implementation** — feature **jeszcze niezbudowany** (residual step 0 + `proto-lofi` przed nami), więc „Where" wskazuje strefę kodu, która **musi** obsłużyć dany przypadek (istniejący plik + planowane nowe lokacje z `docs/changes/per-run-funnel-isolation.md`), a „Behavior today" = przewidywane zachowanie po naiwnej implementacji bez guardów. Decyzje UX już potwierdzone z userem: brak aktywnego → Dashboard · delete aktywnego → brak aktywnego · draft w brain dumpie przy switchu → nie persystuje · archive aktywnego → czyści aktywnego.
+
+**Ten feature ROZWIĄZUJE odroczone CM-1 / CM-2 / CM-3** z oryginalnego audytu (statystyki / `lastReachedStep` / źródło review spięte z realnymi danymi lejka — wymagały `runId`, czego dostarcza ten feature). Poniżej nowe luki, których wprowadza.
+
+### Coverage (feature)
+- **Spec capture'owana** (`run.md` §Edge Cases, dodane w proto-detail): brak aktywnego Runa → Dashboard · switch mid-funnel (draft ulotny) · wiele aktywnych runów z własnym lejkiem.
+- **Już obsłużone w kodzie**: brak — feature niezbudowany.
+- **Nowe luki**: 14 · 🔴 2 · 🟡 9 · 🟢 3.
+
+### Inventory (feature)
+
+| # | Sev | Category | Edge case | Behavior (po naiwnej impl.) | Suggested behavior | Where |
+|---|-----|----------|-----------|-----------------------------|--------------------|-------|
+| PR-1 | 🔴 | Navigation / flow | Brak guardu „aktywnego Runa" na trasach lejka | Wejście w `/capture`/`/decompose`/`/process`/`/focus` bez `activeRunId` (świeża apka po deep-linku, albo aktywny właśnie usunięto/zarchiwizowano) → lejek scope'uje po `null`/starym id → pusty lub mylny ekran, brak drogi naprzód | Guard tras lejka: brak ważnego `activeRunId` → **przekieruj na Dashboard** (decyzja usera). Waliduj, że id istnieje i `state==='in_progress'` (PR-3) | `App.tsx` trasy `/capture`…`/focus` (brak guardu); `useActiveRun` (nowy) |
+| PR-2 | 🔴 | Action outcomes / data | `deleteRun` bez kaskady = osierocone dane + niedotrzymana obietnica „terminalnego usunięcia" | `deleteRun` (`use-runs.ts:77`) dziś usuwa tylko rekord Runa. Po izolacji stresory/taski/nextActions/reasons/doneVisions/focus-data tego Runa **zostają** w storach → user myśli, że usunął Run na stałe, a dane drewnieją w localStorage (rosnąca objętość, ryzyko leaku przy błędnym filtrze) | Kaskadowe usuwanie **wszystkich** store'ów lejka tego Runa z **centralnej listy** (nie zapomnij o nowym storze w przyszłości); jeśli któryś zapis zawiedzie → toast retry (bez cichej utraty) | `use-runs.ts:77` (`deleteRun`); lista kaskady (nowa) |
+| PR-3 | 🟡 | State / data | Stary `activeRunId` wskazuje na usunięty/zarchiwizowany Run | Po Delete/Archive aktywnego wskaźnik (jeśli nie wyczyszczony) trzyma nieistniejące/stare id → lejek scope'uje po nim → pusto lub praca nad zarchiwizowanym Runem | Waliduj `activeRunId` przy każdym odczycie (istnieje && `in_progress`); PR-1 redirect łapie resztę. Clear przy Delete/Archive aktywnego (zgodne z decyzją usera) | `useActiveRun` (nowy); `use-runs.ts:77` (delete), `:59` (archive) |
+| PR-4 | 🟡 | Forms / unsaved | Switch Runa w trakcie wpisywania brain-dumpa gubi draft | `Continue` innego Runa podmienia dane; niezapisany tekst w polu capture (Enter) przepada bez słowa (decyzja: draft ulotny, `BrainDump.tsx:23` `useState`) | Zaakceptowane (decyzja usera). Opcjonalnie: lekki hint jeśli draft niepusty przy switchu; pole ulotne = spójne z dzisiaj | `BrainDump.tsx:23` (`draft`) |
+| PR-5 | 🟡 | Cross-module / state | Zapauzowana sesja focus musi wznawiać per-Run | `Continue` Runa A musi wznowić **sesję A**, nie globalną/B. Jeśli `focus:session` (`FocusView.tsx:72`) nie zostanie scope'owane per-Run → switch Runów wznawia złą (globalną) kolejkę | Scope'uj `focus:session` per-Run; `useLiveRuns` czyta snapshot aktywnego Runa (`use-live-runs.ts:33`) | `FocusView.tsx:72`; `use-live-runs.ts:33,44` |
+| PR-6 | 🟡 | Data / migration | Migracja nieidempotentna / podwójne uruchomienie | Jednorazowe przypisanie `runId` do starych globalnych danych musi być idempotentne (nie re-stampować co ładowanie, nie tworzyć drugiego „first run"); nie może się uruchomić po `loadScenario`, które czyści storage | Flag „zmigrowano" (albo `runId` już obecny = sygnał); migracja tylko gdy stare klucze istnieją bez `runId` | logika migracji (nowa); `loader.ts` (wzajemne wykluczanie ze scenario-load) |
+| PR-7 | 🟡 | Data / migration | Migracja łączy wszystkie stare dane w JEDEN Run | User z wieloma „przejazdami" zleonymi w globalnym storze nie może ich rozdzielić — wszystkie lądują w najnowszym/seed-Runie | Jednorazowy notice („przenieśliśmy Twoje dane do Runa X"); uczciwe ograniczenie, nie do naprawy bez heurystyki | logika migracji (nowa) |
+| PR-8 | 🟡 | Data / stats | Taski bez `runId` (sieroty / częściowy zapis) są niewidoczne w statystykach | Po migracji wszystkie taski mają `runId`, ale przyszła sierota (bug, częściowy zapis) spada z `deriveRunStats` wszystkich Runów — liczby cicho się nie zgadzają | Grupuj po `runId` w `useLiveRuns`; opcjonalnie: alert/sierocnik dla tasków bez `runId` | `use-live-runs.ts:49` (mapowanie globalnych stats na wszystkie → per-Run) |
+| PR-9 | 🟡 | Cross-module | `lastReachedStep` re-derive musi karmić się danymi TEGO Runa | `deriveLastReachedStep` (`stats.ts:65`) bierze `FunnelSignals`; jeśli nakarmione globalnymi liczbami → zły krok resume (stary CM-2 powraca). Po izolacji sygnały muszą być per-Run | `useLiveRuns` (`use-live-runs.ts:37`) buduje `FunnelSignals` z danych aktywnego Runa; to **zamyka CM-2** | `stats.ts:65`; `use-live-runs.ts:37-47` |
+| PR-10 | 🟡 | Visual / data | Chip aktywnego Runa w nagłówku przy braku aktywnego / długiej nazwie | Slot chipa (`AppShell.tsx:41`) dziś pusty; po impl. musi degradować gdy brak aktywnego (ukryty vs pusty chip — nie mylić) i nie wprowadzać w błąd; w MVP display-only (klik = Later) | Ukryj chip gdy brak `activeRunId`; `truncate` długiej nazwy; display-only (switch przez Dashboard) | `AppShell.tsx:41` (slot zarezerwowany, nieprzypięty) |
+| PR-11 | 🟡 | State transitions | Un-archive nie powinien aktywować Runa | `unarchiveRun` (`use-runs.ts:67`) przywraca do listy aktywnych; niech nie ustawia `activeRunId` (aktywacja = Continue). Verify że archiwizacja aktywnego czyści wskaźnik (PR-3) | Un-archive = tylko powrót na listę; aktywacja wyłącznie przez Create/Continue | `use-runs.ts:67` (unarchive), `:59` (archive) |
+| PR-12 | 🟡 | Data / referential | DoneVision / Reasons mogą leakować między Runami | `DoneVisionMap` keyed po `stressorId` (`use-done-visions.ts:13`), `Reason[]` (`use-reasons.ts:9`); jeśli nie scope'owane po aktywnym Runie → wizje/powody z innych Runów mogą się wyświetlić w `decompose` | Hooki filtrują po `activeRunId` (lub po zestawie stressorów tego Runa); id globalnie unikalne chroni przed kolizją, nie przed leakiem | `use-done-visions.ts:13`; `use-reasons.ts:9` |
+| PR-13 | 🟡 | Prototype-specific | Awaria zapisu `activeRunId` (quota) milczy | Jeśli `useLocalStorage('run:active', …)` zawiedzie → aktywny nieustawiony, lejek pokazuje pusto/mylnie bez feedbacku | Re-use wzorca `writeError`+retry (jak inne hooki); toast, stan UI = niezapisany | `useActiveRun` (nowy); `use-local-storage.ts` (status już jest) |
+| PR-14 | 🟢 | Data states | Wiele Runów → globalne tablice rosną (Design B) | Każdy Run dokłada do globalnych kluczy; przy wielu Runach localStorage rośnie → quota | Akceptowalne dla prototypu; Design A (key-per-run) byłby czystszy; paginacja/purge = Later | storage volume (Design B, ADR 0044) |
+| PR-15 | 🟢 | Visual | Długa nazwa aktywnego Runa w chipie nagłówka | Długa nazwa rozsadza wąski slot chipa | `truncate` + `title` (hover), jak `RunCard` (DS-2) | `AppShell.tsx:41` |
+| PR-16 | 🟢 | Data / referential | `TaskOrder` per-Run ze starymi id tasków | Ręczny porządek per-Run (`focus:taskOrder`) może trzymać id usuniętych tasków — istniejące zachowanie, teraz per-Run; verify brak cross-Run wpływu | Degrade grzecznie (ignoruj nieistniejące id, jak dziś) | `focus:taskOrder` per-Run (ADR 0036/0044) |
+
+### Kategorie sprawdzone bez nowych luk (feature)
+- **State machine `activeRunId`**: to wskaźnik (set/clear), nie automat stanów — przejścia = Create/Continue (set), Delete/Archive aktywnego (clear). Brak niepoprawnych przejść do zablokowania.
+- **Walidacja `runId` na encjach**: id generowane globalnie-unikalnie (`generateId`) → brak kolizji między Runami (leak PR-12 to kwestia filtrowania, nie kolizji).
+- **Referential `stressorId`/`nextActionId`**: globalnie unikalne → join wewnątrz Runa poprawny; cross-Run join nie zachodzi (scope po `runId`).
+- **Roles/permissions, offline, `alert()`**: jak w bazowym audycie — n/a / OK.
+
+### Priority (feature)
+1. **🔴 PR-1** — guard „brak aktywnego Runa" na trasach lejka (dead-end / mylny ekran). Pierwszy do wdrożenia; bez tego izolacja tworzy puste ekrany przy każdym wejściu bez aktywacji.
+2. **🔴 PR-2** — kaskadowe usuwanie danych lejka w `deleteRun` (niedotrzymana obietnica „terminalnego usunięcia" + rosnące sieroty).
+3. **PR-3 / PR-5 / PR-9** — integralność active-run: walidacja wskaźnika, per-Run wznowienie sesji, per-Run re-derive kroku (razem zamykają stare CM-2/CM-3).
+4. **PR-6 / PR-7 / PR-8** — migracja (idempotentność, uczciwe ograniczenie scalania, sieroty w statystykach).
+5. **PR-12** — leak DoneVision/Reasons między Runami.
+6. **PR-10 / PR-11 / PR-13** — UX wskaźnika (chip, un-archive nie aktywuje, awaria zapisu active).
+7. **PR-4** — (zaakceptowane) ulotny draft przy switchu.
+8. (🟢 polish: PR-14, PR-15, PR-16).
+
+### Hand-off
+Większość tych luk to **guardy i integralność warstwy danych**, nie stany UI — więc trafiają głównie do **residual (direct-edits, krok 0 planu)** i `proto-lofi`, a nie do `proto-harden`. Kolejność:
+- **PR-1, PR-2, PR-3, PR-5, PR-8, PR-9, PR-11, PR-12** → **residual / `proto-lofi`** (fundament warstwy danych + wiring): guard tras, kaskada delete, walidacja wskaźnika, per-Run sesja/stats/re-derive, scope DoneVision/Reasons, semantyka un-archive. To implementacyjne, nie stany.
+- **PR-6, PR-7** → **residual (migracja)** + `proto-harden` (notice/toast migracji, PR-7).
+- **PR-10, PR-13, PR-15** → `proto-lofi` / `proto-polish` (chip w nagłówku: degradacja braku aktywnego, awaria zapisu, truncate).
+- **PR-4, PR-14, PR-16** → świadome kompromisy / `proto-polish`.
+
+> Feature **rozwiązuje odroczone CM-1/CM-2/CM-3** (statystyki / `lastReachedStep` / review spięte z danymi lejka) — po wdrożeniu residual + lofi zdejmij z nich flagę „odłożone" w sekcji *Resolution* bazowego audytu i odznacz caption „Statystyki poglądowe" na `RunStatTiles`.
+
+### Resolution
+*Pending* — feature niezbudowany. Odśwież tę sekcję po wdrożeniu residual (krok 0) + `proto-lofi`/`proto-harden`.
