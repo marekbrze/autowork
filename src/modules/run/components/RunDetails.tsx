@@ -8,7 +8,7 @@ import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { StorageStatusToast } from '@/modules/capture/components/StorageStatusToast';
 import { useLocalStorage } from '@/shared/hooks/use-local-storage';
 import { useStressors } from '@/modules/capture/hooks/use-stressors';
-import { useTasks } from '@/modules/decompose/hooks/use-tasks';
+import { DismissUndoToast } from '@/modules/focus/components/FocusStates';
 
 import { useLiveRuns } from '../hooks/use-live-runs';
 import { isRunCompleted, STEP_LABEL, STEP_ROUTE } from '../types/run';
@@ -22,15 +22,36 @@ import { RunCompleted } from './RunStates';
  */
 export function RunDetails() {
   const { runId } = useParams<{ runId: string }>();
-  // Statystyki / krok resume wyprowadzane na żywo z lejka (use-live-runs.ts).
-  const { getRun, renameRun, archiveRun, unarchiveRun, deleteRun, storage } = useLiveRuns();
-  // Sekcja „Tasks" (ADR 0035/0037): run czyta taski cross-module (decompose) i po raz pierwszy
-  // mutuje ich stan (Done / Not relevant). Współdzielony `TaskOrder` z focus sortuje listę (ADR 0036).
-  const { tasks, updateTask, storage: taskStorage } = useTasks();
+  // Statystyki / krok resume / mutatory tasków — wszystko z jednej instancji `useTasks`
+  // wewnątrz `useLiveRuns`, żeby kafelki i Continue przeliczały się na żywo po akcjach z listy
+  // (ADR 0035, R2-1: dwie osobne instancje nie synchronizują się w tej samej karcie).
+  // Współdzielony `TaskOrder` z focus sortuje listę (ADR 0036).
+  const {
+    getRun,
+    renameRun,
+    archiveRun,
+    unarchiveRun,
+    deleteRun,
+    storage,
+    tasks,
+    updateTask,
+    taskStorage,
+  } = useLiveRuns();
   const { stressors } = useStressors();
   const [taskOrder] = useLocalStorage<string[]>('focus:taskOrder', []);
+  // R2-2: undo dla Dismiss z listy (ADR 0017). Done = implicit feedback (migracja do grupy Done).
+  const [dismissUndo, setDismissUndo] = useState<{ id: string; text: string } | null>(null);
   const markDone = (id: string) => updateTask(id, { state: 'completed' });
-  const markNotRelevant = (id: string) => updateTask(id, { state: 'dismissed' });
+  const markNotRelevant = (id: string) => {
+    const t = tasks.find((x) => x.id === id);
+    if (!updateTask(id, { state: 'dismissed' })) return; // honest persistence — przy awarii nie pokazuj undo
+    setDismissUndo({ id, text: t?.text ?? '' });
+  };
+  const undoDismiss = () => {
+    if (!dismissUndo) return;
+    updateTask(dismissUndo.id, { state: 'pending' });
+    setDismissUndo(null);
+  };
   const navigate = useNavigate();
 
   const run = runId ? getRun(runId) : undefined;
@@ -147,13 +168,20 @@ export function RunDetails() {
         <RunStatTiles run={run} />
       </section>
 
-      {/* Tasks — lista zadań z prawdziwym stanem + akcje z listy (ADR 0035/0037) */}
+      {/* Tasks — lista zadań z prawdziwym stanem + akcje z listy (ADR 0035/0037). */}
+      {/* R2-3: zarchiwizowany Run = lista read-only (mutacje w „ukończonym" Runie niepożądane). */}
       <section aria-label="Run tasks" className="space-y-2">
-        <h3 className="text-sm font-medium">Tasks</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium">Tasks</h3>
+          {archived && (
+            <span className="text-xs text-muted-foreground">Read-only — unarchive to edit</span>
+          )}
+        </div>
         <RunTaskList
           tasks={tasks}
           taskOrder={taskOrder}
           stressors={stressors}
+          readOnly={archived}
           onDone={markDone}
           onNotRelevant={markNotRelevant}
         />
@@ -234,6 +262,9 @@ export function RunDetails() {
         onConfirm={handleDelete}
         onCancel={() => setConfirmDelete(false)}
       />
+
+      {/* R2-2: undo Dismiss z listy (ADR 0017; ten sam komponent co w focus). */}
+      {dismissUndo && <DismissUndoToast text={dismissUndo.text} onUndo={undoDismiss} />}
     </div>
   );
 }

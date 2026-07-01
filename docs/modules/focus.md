@@ -85,7 +85,7 @@ Po Starcie pierwsze zadanie z kolejki w porządku `TaskOrder` (default = najbard
 - **Taski dodane po nadaniu `TaskOrder`**: doklejane wg defaultu (rank stresora) na końcu (→ `edgecases`).
 - **`TaskOrder` wskazuje usunięte taski**: prune przy odczycie (→ `edgecases`).
 - **`TaskOrder` wskazuje taski spoza bieżącego filtru**: ukryte na liście, ale pozycje zachowane w globalnym porządku; przełożenie pod-filtrem rekonfiguruje globalny `TaskOrder` (→ `edgecases`).
-- **Reset kolejności** — potwierdzenie albo natychmiast + undo (do rozstrzygnięcia w `harden`).
+- **Reset kolejności** — `ConfirmDialog` przed wyczyszczeniem `TaskOrder` (harden, F2-1).
 - **Skip czyści się przy starcie nowej sesji** (`FocusView.start` → `returnSkippedToPool`), nie przy wyjściu. Znany, osobny **bug kursora przy Resume** (sesja pokazuje np. 3. z 3, bo skipnięte „wiszą" za kursorem) — diagnoza w `docs/changes/skip-removes-task-from-pool.md` (ADR 0034), trasowane do `proto-bug`; **poza tym featurem**.
 
 Pełny audyt i status każdej luki: `docs/modules/focus-edgecases.md` (po `proto-harden`: ✅ wdrożone, ❌ odłożone z racją). Nowe przypadki `TaskOrder` czekają na `proto-edgecases`.

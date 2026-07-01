@@ -65,6 +65,8 @@ export function FocusView() {
   const [running, setRunning] = useState(true);
   const [dismissUndo, setDismissUndo] = useState<{ taskId: string; text: string } | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
+  // F2-1: potwierdzenie „Reset to default" (destruktywne — trwale czyści ręczny TaskOrder).
+  const [confirmReset, setConfirmReset] = useState(false);
 
   // Snapshot przerwanej sesji — best-effort (utrata = brak wznowienia, nie utrata danych).
   const [snapshot, setSnapshot, removeSnapshot] = useLocalStorage<SessionSnapshot | null>('focus:session', null);
@@ -231,7 +233,11 @@ export function FocusView() {
     const rest = taskOrder.filter((id) => !matchedSet.has(id));
     setTaskOrder([...newMatchedIds, ...rest]); // honest persistence: przy awarii stan się nie psuje
   };
-  const resetOrder = () => removeTaskOrder();
+  const resetOrder = () => setConfirmReset(true); // F2-1: potwierdzenie przed wyczyszczeniem
+  const doResetOrder = () => {
+    removeTaskOrder();
+    setConfirmReset(false);
+  };
 
   /** Wznów przerwaną sesję z persystowanego snapshotu (#2). */
   const resumeSession = () => {
@@ -499,6 +505,16 @@ export function FocusView() {
         confirmLabel="Delete finished"
         onConfirm={clearCompleted}
         onCancel={() => setConfirmClear(false)}
+      />
+
+      {/* F2-1: potwierdzenie resetu kolejki (destruktywne — utrata ręcznego porządku). */}
+      <ConfirmDialog
+        open={confirmReset}
+        title="Reset task order?"
+        description="Your custom order will be cleared — tasks return to the default (most stressful first). This can't be undone."
+        confirmLabel="Reset to default"
+        onConfirm={doResetOrder}
+        onCancel={() => setConfirmReset(false)}
       />
     </div>
   );

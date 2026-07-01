@@ -58,3 +58,6 @@ export const Empty: Story = { args: { tasks: [] } };
 export const ManualOrder: Story = {
   args: { tasks, taskOrder: ['2', '1'] },
 };
+
+/** Zarchiwizowany Run — lista read-only, bez akcji Done / Not relevant (R2-3). */
+export const ReadOnly: Story = { args: { tasks, readOnly: true } };

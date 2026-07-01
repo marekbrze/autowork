@@ -14,6 +14,8 @@ interface RunTaskListProps {
   /** Współdzielony ręczny porządek z focus (`focus:taskOrder`); default = rank stresora (ADR 0036). */
   taskOrder: string[];
   stressors: Stressor[];
+  /** Read-only (np. zarchiwizowany Run) — ukrywa akcje Done / Not relevant (R2-3). */
+  readOnly?: boolean;
   onDone: (id: string) => void;
   onNotRelevant: (id: string) => void;
 }
@@ -39,7 +41,7 @@ function groupOf(state: Task['state']): Group {
  * mutuje stany tasków cross-module przez `updateTask` z `decompose`). Lo-fi — rytm/plakietki
  * do dopracowania w `proto-design`/`proto-polish`.
  */
-export function RunTaskList({ tasks, taskOrder, stressors, onDone, onNotRelevant }: RunTaskListProps) {
+export function RunTaskList({ tasks, taskOrder, stressors, readOnly = false, onDone, onNotRelevant }: RunTaskListProps) {
   const stressorRank = useMemo(() => new Map(stressors.map((s, i) => [s.id, i])), [stressors]);
 
   const grouped = useMemo(() => {
@@ -84,7 +86,7 @@ export function RunTaskList({ tasks, taskOrder, stressors, onDone, onNotRelevant
                 >
                   <span className="flex-1 truncate">{t.text}</span>
                   <TaskBadges task={t} />
-                  {g === 'todo' ? (
+                  {g === 'todo' && !readOnly ? (
                     <span className="flex shrink-0 items-center gap-1">
                       <Button type="button" variant="outline" size="sm" onClick={() => onDone(t.id)}>
                         <Check className="size-3.5" /> Done

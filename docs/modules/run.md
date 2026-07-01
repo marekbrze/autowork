@@ -82,7 +82,9 @@ To odejście od wczesnej notki „MVP = jeden ukryty aktywny Run" (`MODULES.md`)
 - **Task bez atrybutów** (nieprocesowany): widoczny na liście z labelką „untagged" — nadal gotowy do oznaczenia (ADR 0013).
 - **Done na już-done** / **not-relevant na już-dismissed**: no-op / akcja zablokowana.
 - **Wpływ akcji na routing resume**: done/dismiss z listy zmienia `doneCount` → `deriveLastReachedStep` może przesunąć krok (np. wszystko done → celebration). Sprawdzić, że Continue / stan „ukończony" reagują na żywo (→ `edgecases`).
-- **Dismiss z listy**: confirm albo undo (do rozstrzygnięcia w `harden`; ADR 0017).
+- **Dismiss z listy**: undo (`DismissUndoToast`; harden, R2-2; ADR 0017).
+- **Akcje z listy na zarchiwizowanym Runie**: read-only — akcje Done/Not-relevant ukryte (harden, R2-3).
+- **Statystyki/Continue po akcjach z listy**: przeliczają się na żywo — jedna instancja `useTasks` w `useLiveRuns` (harden, R2-1; ADR 0035).
 - **Awaria odczytu/zapisu** (mutacja taska z listy): toast retry, bez cichej utraty (wzorzec `StorageStatusToast`, już w `RunDetails`).
 - **Task bez atrybutów**: nadal „gotowy" do focusa (ADR 0013) — po prostu nie wpadnie do filtrów wymagających danego atrybutu.
 - **Run ukończony** (100% done/dismissed): na Szczegółach sekcja „Przejazd ukończony" + CTA „Archiwizuj ten przejazd"; **bez auto-archive** (archiwizacja wyłącznie ręczna).

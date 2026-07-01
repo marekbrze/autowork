@@ -104,3 +104,17 @@ Pozostałe (🟢) to polish — do ewentualnego wdrożenia razem z powyższymi l
 - **F2-1** → `proto-harden` (confirm/undo dla reset).
 - **F2-2** → decyzja designu w `proto-harden` (dokument vs rebuild-on-resume).
 - **F2-3…F2-7** → `proto-polish` / osobny pass.
+
+### Resolution (proto-harden, 2026-07-01)
+
+| # | Status | Gdzie teraz |
+|---|--------|-------------|
+| F2-1 | ✅ | `FocusView.tsx` (`resetOrder` → `setConfirmReset`; `doResetOrder`) + `ConfirmDialog` „Reset task order?" |
+| F2-2 | ❌ Odroczone — decyzja designu poza harden: zmienia happy-path resume (snapshot queue vs live `TaskOrder`). Do rozstrzygnięcia osobno (dokument vs rebuild-on-resume). |
+| F2-3 | ❌ Odroczone — polish (DnD na touch). |
+| F2-4 | ❌ Odroczone — polish (kontrolki reorder przy n=1). |
+| F2-5 | ❌ Odroczone — polish (prune nieistniejących ID; harmless). |
+| F2-6 | ❌ Odroczone — polish (`aria-live` po reorder). |
+| F2-7 | ❌ Odroczone — polish (długa lista / scroll). |
+
+**Zamknięte: 1 (F2-1) · Odroczone: 6 (F2-2 = decyzja designu + 5 polish).**

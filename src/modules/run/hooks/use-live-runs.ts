@@ -18,12 +18,18 @@ import { useRuns } from './use-runs';
  *
  * Multi-run (prototype): dane lejka są globalne, więc każdy Run pokazuje ten sam żywy
  * progres — akceptowalne dla jednego aktywnego Runa naraz; per-Run odłożone (ADR 0020).
+ *
+ * Wystawia też mutatory tasków (`updateTask`/`deleteTask`/`taskStorage`) ze **swojej**
+ * instancji `useTasks` — dzięki temu komponent (np. `RunDetails`) mutuje taski przez
+ * tę samą instancję, z której wyprowadzane są statystyki, więc kafelki/Continue
+ * przeliczają się na żywo (ADR 0035, R2-1). Dwie osobne instancje `useTasks` w jednym
+ * komponencie nie synchronizują się w tej samej karcie (`storage` event = cross-tab).
  */
 export function useLiveRuns() {
   const runsApi = useRuns();
   const { stressors } = useStressors();
   const { nextActions } = useNextActions();
-  const { tasks } = useTasks();
+  const { tasks, updateTask, deleteTask, storage: taskStorage } = useTasks();
   const [snapshot] = useLocalStorage<SessionSnapshot | null>('focus:session', null);
 
   const stats = useMemo(() => deriveRunStats(tasks), [tasks]);
@@ -48,5 +54,5 @@ export function useLiveRuns() {
   // Nadpisujemy getRun, by zwracało Run ze scalonymi (żywymi) polami.
   const getRun = useCallback((id: string): Run | undefined => runs.find((r) => r.id === id), [runs]);
 
-  return { ...runsApi, runs, getRun };
+  return { ...runsApi, runs, getRun, tasks, updateTask, deleteTask, taskStorage };
 }

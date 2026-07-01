@@ -127,3 +127,16 @@ Każdy wiersz wskazuje `file:line` gdzie luka żyje — `proto-harden` (lub desi
 - **R2-2 / R2-4** → `proto-harden` (undo/confirm + toast).
 - **R2-3** → `proto-harden` (gate `archived`).
 - **R2-5 / R2-6** → `proto-polish`.
+
+### Resolution (proto-harden, 2026-07-01)
+
+| # | Status | Gdzie teraz |
+|---|--------|-------------|
+| R2-1 | ✅ | `use-live-runs.ts` (wystawia `tasks`/`updateTask`/`deleteTask`/`taskStorage` ze swojej instancji `useTasks`); `RunDetails.tsx` (jedna instancja przez `useLiveRuns` — kafelki/Continue przeliczają się live po akcjach z listy) |
+| R2-2 | ✅ | `RunDetails.tsx` (`markNotRelevant` + `dismissUndo`/`undoDismiss` + `DismissUndoToast`; ADR 0017) |
+| R2-3 | ✅ | `RunTaskList.tsx` (`readOnly` ukrywa akcje) + `RunDetails.tsx` (`readOnly={archived}` + hint) |
+| R2-4 | ✅ | Honest persistence (`if (!updateTask) return` w `markNotRelevant`); Done = implicit feedback (migracja do grupy Done). Toast sukcesu → polish. |
+| R2-5 | ❌ Odroczone — polish (długa lista / scroll). |
+| R2-6 | ❌ Odroczone — polish (degraduje grzecznie do defaultu). |
+
+**Zamknięte: 4 (R2-1, R2-2, R2-3, R2-4) · Odroczone: 2 (polish).**
