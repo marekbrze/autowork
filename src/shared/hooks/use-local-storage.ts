@@ -59,8 +59,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     setReadError(r.failed);
     pendingRef.current = null;
     setWriteError(false);
-    // initialValue celowo poza deps — reinit TYLKO przy zmianie key
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // initialValue celowo poza deps — reinit TYLKO przy zmianie key.
   }, [key]);
 
   const persist = useCallback(
