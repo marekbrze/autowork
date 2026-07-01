@@ -65,3 +65,42 @@ Najwyższy priorytet do zaimplementowania w `proto-harden`:
 Pozostałe (🟢) to polish — do ewentualnego wdrożenia razem z powyższymi lub osobno.
 
 > ✅ Zrealizowane w `proto-harden` (patrz tabela wyżej). Największa usunięta kruchtość: **#1** — handlery akcji wołały `advance()` niezależnie od wyniku zapisu, więc przy pełnym/wyłączonym LocalStorage UI szedł dalej (Done→następny), a stan się nie zapisał → po reloadzie task wracał jako `pending` (cicha utrata).
+
+---
+
+## Re-audit: session-queue-order feature (proto-edgecases, 2026-07-01)
+
+**Zakres**: nowe powierzchnie feature'u ADR 0035 w `focus` — lista dopasowanych (`SessionTaskList`) + ręczny `TaskOrder` (+ interakcja z resume/kolejką). Powierzchnie sprzed feature'u obsłużone wyżej i w harden — nie dubluję.
+
+### Coverage (feature)
+- **Spec już capture'owana** (`focus.md` §Edge Cases, dodane w proto-detail): lista 1-elementowa · taski dodane po `TaskOrder` (doklejane na końcu wg defaultu) · `TaskOrder` wskazuje usunięte taski (prune) · `TaskOrder` wskazuje taski poza filtrem (pozycje zachowane) · awaria zapisu `TaskOrder` (toast) · reset (confirm/undo → harden).
+- **Już obsłużone w kodzie**:
+  - taski dodane po `TaskOrder` → doklejane wg defaultu (`FocusView.tsx` `orderKey` = MAX dla nieobecnych w `TaskOrder`).
+  - awaria zapisu `TaskOrder` → toast (`FocusView.tsx` `storageView` włącza `taskOrderStorage`).
+  - reset czyści `TaskOrder` (`removeTaskOrder`); „Reset to default" widoczny tylko przy aktywnym porządku ręcznym.
+  - taski poza bieżącym filtrem → niewidoczne na liście, pozycje w `TaskOrder` zachowane (`reorderMatched`).
+- **Nowe luki**: 7 · 🔴 0 · 🟡 2 · 🟢 5.
+
+### Inventory (feature)
+
+| # | Sev | Category | Edge case | Behavior today | Suggested behavior | Where |
+|---|-----|----------|-----------|----------------|--------------------|-------|
+| F2-1 | 🟡 | Action outcomes | „Reset to default" bez confirm/undo | Jedno kliknięcie trwale czyści `TaskOrder` (`removeTaskOrder`); utrata ręcznego porządku bez drogi powrotu | `ConfirmDialog` albo undo-toast (wzorzec `ClearCompleted`) | `FocusView.tsx` (`resetOrder`), `SessionFilter.tsx` (przycisk Reset) |
+| F2-2 | 🟡 | Navigation/state | Resume ignoruje live `TaskOrder` | `resumeSession` przywraca `snapshot.queue` (zamrożone przy Starcie); przełożenie filtra PO pauzie nie wpływa na wznawianą sesję | Dokumentuj (resume = kontynuacja jak było) ALBO przebuduj kolejkę z bieżącego `TaskOrder` przy resume | `FocusView.tsx` (`resumeSession`) |
+| F2-3 | 🟢 | Data/a11y | Drag nie działa na touch | HTML5 DnD nie wspiera touch; uchwyt wygląda na przeciągalny, ale na mobilnym działają tylko ↑↓ | Ukryj/zablokuj uchwyt na touch (lub nota „drag na desktopie"); ↑↓ pokrywają mobilne | `SessionTaskList.tsx` (uchwyt GripVertical) |
+| F2-4 | 🟢 | Data states | Lista 1-elementowa: martwe kontrolki | n=1: ↑↓ zablokowane, drag = no-op; uchwyt/DnD wiszą bezcelowo | Ukryj kontrolki reorder gdy n===1 | `SessionTaskList.tsx` |
+| F2-5 | 🟢 | Data states | Stale/usunięte ID gromadzą się w `focus:taskOrder` | ID usuniętych tasków zostają w `TaskOrder` (harmless — wypadają z `attributed`; prune tylko przy reorderze) | Prune nieistniejących ID przy odczycie/zapisie | `FocusView.tsx` (`matchedTasks`/`reorderMatched`) |
+| F2-6 | 🟢 | Loading/a11y | Brak ogłoszenia SR po przełożeniu | ↑↓/drag przesuwa wiersz bez komunikatu dla czytnika ekranu | Region `aria-live` ogłaszający „przeniesiono na pozycję N z M" | `SessionTaskList.tsx` |
+| F2-7 | 🟢 | Data states | Długa lista dopasowanych grzebie „Start" | Wiele dopasowań → wysoki `<ol>` spycha „Start" w dół; brak max-height/scroll | Cap wysokości + scroll (lub collapsible) | `SessionFilter.tsx` (blok listy) |
+
+*Cross-module znane (ADR 0020): `TaskOrder` jest globalny — przełożenie w jednym Runie wpływa na wszystkie. Udokumentowane w `focus.md`/`run.md`.*
+
+### Priority (feature)
+1. **F2-1** — reset bez undo (utracony porządek; łatwy fix confirm/undo).
+2. **F2-2** — resume vs live `TaskOrder` (decyzja designu: dokumentować vs przebudować przy resume).
+3. (🟢 polish: F2-3…F2-7).
+
+### Hand-off
+- **F2-1** → `proto-harden` (confirm/undo dla reset).
+- **F2-2** → decyzja designu w `proto-harden` (dokument vs rebuild-on-resume).
+- **F2-3…F2-7** → `proto-polish` / osobny pass.

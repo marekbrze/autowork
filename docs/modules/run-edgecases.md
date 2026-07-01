@@ -86,3 +86,44 @@ Każdy wiersz wskazuje `file:line` gdzie luka żyje — `proto-harden` (lub desi
 - **NF-1** — link „nie znaleziono" w ReviewRun → `/run`: poprawne (run nie istnieje → lista jest właściwym celem).
 
 > CM-1/2/3 to jedyne luki strukturalne — reszta odłożonych to świadomie zaakceptowane kompromisy polish/zakres, nie znalezione później błędy.
+
+---
+
+## Re-audit: run-task-list feature (proto-edgecases, 2026-07-01)
+
+**Zakres**: nowe powierzchnie feature'u ADR 0035 w `run` — sekcja „Tasks" (`RunTaskList`) + akcje z listy (Done / Not relevant) + cross-module mutacja tasków. Powierzchnie sprzed feature'u obsłużone wyżej i w harden — nie dubluję.
+
+### Coverage (feature)
+- **Spec już capture'owana** (`run.md` §Edge Cases, dodane w proto-detail): pusta sekcja „Tasks" · task bez atrybutów („untagged") · done-na-done (no-op) · wpływ akcji na routing resume · dismiss z listy (confirm/undo → harden) · awaria mutacji (toast).
+- **Już obsłużone w kodzie**:
+  - empty list → „No tasks yet — start with a brain dump." (`RunTaskList.tsx`).
+  - task bez atrybutów → badge „untagged" (`RunTaskList.tsx`).
+  - done/dismiss z listy → task migruje do właściwej grupy na żywo (`updateTask`, instancja A).
+  - awaria zapisu mutacji → `taskStorage` wpięty w `StorageStatusToast` (`RunDetails.tsx`).
+- **Nowe luki**: 6 · 🔴 1 · 🟡 3 · 🟢 2.
+
+### Inventory (feature)
+
+| # | Sev | Category | Edge case | Behavior today | Suggested behavior | Where |
+|---|-----|----------|-----------|----------------|--------------------|-------|
+| R2-1 | 🔴 | Cross-module/state | Statystyki + Continue NIE odświeżają się po akcjach z listy | `RunDetails` ma **dwie instancje `useTasks()`**: własną (mutacje) i wewnątrz `useLiveRuns` (statystyki). `useLocalStorage` nie synchronizuje instancji w tej samej karcie (event `storage` = cross-tab tylko) → po `markDone`/`markNotRelevant` `RunTaskList` się odświeża (instancja A), ale `RunStatTiles`/Continue czytają instancję B (stale) do refresha. Łamie obietnicę „live stats" (ADR 0035) | Wystaw `updateTask`/`deleteTask`/`storage` z `useLiveRuns` (już woła `useTasks`) i użyj jednej instancji w `RunDetails` → statystyki przeliczają się live; ALBO dodaj same-tab sync do `useLocalStorage` | `use-live-runs.ts:26` (tylko `tasks` destrukturyzowane), `RunDetails.tsx` (własny `useTasks()`) |
+| R2-2 | 🟡 | Action outcomes | Dismiss z listy bez undo i bez confirm | `markNotRelevant` natychmiast → `dismissed`, bez drogi powrotu z listy (brak reopenu) i bez undo — niespójne z ADR 0017 (Dismiss ma undo) i focusem (`DismissUndoToast`) | Undo-toast (jak focus) albo `ConfirmDialog` | `RunDetails.tsx` (`markNotRelevant`), `RunTaskList.tsx` |
+| R2-3 | 🟡 | State transitions | Akcje z listy aktywne na zarchiwizowanym Runie | `RunDetails` zarchiwizowanego Runa nadal pokazuje listę z aktywnymi Done/Not-relevant; mutacja tasków w „ukończonym" Runie dotyka globalnych danych | Gate'uj/zablokuj akcje listy gdy `run.state === 'archived'` (lub ostrzeż) | `RunDetails.tsx` (sekcja Tasks bez checku `archived`), `RunTaskList.tsx` |
+| R2-4 | 🟡 | Action outcomes | Brak feedbacku po Done z listy | Task migruje grupy (implicit), brak toasta; z Done nie ma reopenu z listy (Later), więc klik jest ostateczny bez potwierdzenia | Toast (zwłaszcza undo dla Not relevant — patrz R2-2) | `RunDetails.tsx` (`markDone`) |
+| R2-5 | 🟢 | Data states | Długa lista tasków rozciąga sekcję | Wiele tasków → sekcja „Tasks" długa, brak scrolla/paginacji | Cap wysokości + scroll wewnątrz sekcji | `RunTaskList.tsx` |
+| R2-6 | 🟢 | Errors | Uszkodzony `focus:taskOrder` w run = milczący fallback | `RunDetails` czyta `focus:taskOrder` read-only; zły JSON → `[]` (sort po ranku stresora), `readError` niewidoczne w run (degraduje grzecznie) | Opcjonalnie surfaj `readError` (degradacja i tak OK) | `RunDetails.tsx` (`useLocalStorage('focus:taskOrder')`) |
+
+*Mid-session external mutation (akcja z listy na task będący bieżącym w pauzowanej sesji focus): obsługiwane grzecznie przez rekonsyliację `FocusView.firstPendingFrom` (przewija do następnego pending). Niska uwaga.*
+
+### Priority (feature)
+1. **🔴 R2-1** — statystyki/Continue stale po akcjach z listy (regresja wprowadzona przez feature; obietnica ADR 0035 złamana na głównej interakcji). Fix mały i jasny (jedna instancja `useTasks` przez `useLiveRuns`).
+2. **R2-2** — dismiss z listy bez undo/confirm (ADR 0017).
+3. **R2-3** — akcje na zarchiwizowanym Runie.
+4. **R2-4** — feedback/undo po Done.
+5. (🟢 polish: R2-5, R2-6).
+
+### Hand-off
+- **R2-1** → **direct-edit / harden (priorytet)**: wystaw mutatory z `useLiveRuns` (lub same-tab sync w `useLocalStorage`) — bez tego sekcja Tasks kłamie w statystykach.
+- **R2-2 / R2-4** → `proto-harden` (undo/confirm + toast).
+- **R2-3** → `proto-harden` (gate `archived`).
+- **R2-5 / R2-6** → `proto-polish`.
