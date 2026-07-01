@@ -202,3 +202,54 @@ Większość tych luk to **guardy i integralność warstwy danych**, nie stany U
 
 ### Resolution
 *Pending* — feature niezbudowany. Odśwież tę sekcję po wdrożeniu residual (krok 0) + `proto-lofi`/`proto-harden`.
+
+---
+
+## Feature audit: clickable funnel steps + Run Details actions on top (ADR 0047/0048)
+
+Scope: **NOWE** przypadki brzegowe wprowadzone przez feature (klikalny stepper, guard wyjścia z aktywnej sesji, reorder akcji na Szczegółach). Reszta modułu — patrz audyt bazowy + per-run-isolation powyżej. Ekrany lejka były projektowane pod dotarcie z **guidowanego flow** (który gwarantuje warunki wstępne); teraz są osiągalne **bezpośrednio przez stepper** — to główna nowa powierzchnia ryzyka.
+
+### Coverage (feature)
+- **Już obsłużone w kodzie** (pozytywny wynik — ekrany lejka degradują grzecznie przy skoku z pustym lejkiem):
+  - BrainDump empty — `BrainDump.tsx:156` („List is empty. Dump your first stressor…").
+  - Ranking 0 stresorów — `Ranking.tsx:59` („No stressors to order…").
+  - Decompose 0 stresorów — `DecomposeView.tsx:70` („No stressors to break down…").
+  - Process 0 / nic-do-procesowania — `ProcessView.tsx:411` (`nothingToDo` → „All set — no tasks left to process" + CTA).
+  - Focus 0 opisanych / 0 dopasowanych — `SessionFilter.tsx:115,156`; Start disabled gdy `matchCount === 0` (`:84`).
+  - RunTaskList empty (lista na Szczegółach, teraz na dole) — `RunTaskList.tsx:65` („No tasks yet…").
+  - Guard wyjścia z aktywnej sesji (ConfirmDialog) — `FocusView.tsx:411` (`onBeforeNavigate`) + dialog `:539`.
+- **Nowe luki znalezione**: 6.
+- **By severity**: 🔴 0 · 🟡 2 · 🟢 4.
+
+> Brak 🔴 — feature jest funkcjonalnie kompletny; ekrany lejka obsługują skoki z pustym lejkiem. Największa fragmentaryczność to **affordance** (klikalne kroki wyglądają na disabled) oraz **niespójność guardu** (tylko stepper pyta przed wyjściem z sesji).
+
+### Inventory (feature)
+
+| # | Sev | Category | Edge case | Behavior today | Suggested behavior | Where |
+|---|-----|----------|-----------|----------------|--------------------|-------|
+| CS-1 | 🟡 | Navigation / consistency | Wyjście z aktywnej sesji focus pyta TYLKO przez stepper; back przeglądarki / link Dashboard / reload — nie | Guard działa wyłącznie na klik stepper'a (`onBeforeNavigate`); back/reload/link wychodzą milcząco. Sesja i tak przetrwa (snapshot per-Run), więc to **nie** utrata danych — lecz niespójność: stepper pyta, back nie | Decyzja: zaakceptować i udokumentować (guard = tylko stepper), ALBO rozszerzyć guard na inne drogi (blokada nawigacji / `beforeunload`). MVP: zaakceptować + odnotować | `FocusView.tsx:411` (guard tylko na stepper) |
+| CS-2 | 🟡 | Navigation / affordance | Klikalne „przyszłe" kroki stepper'a wyglądają na wyłączone (muted), a są klikalne | `!isActive && !isDone` → `text-muted-foreground/60`; dopiero hover zmienia na foreground. Dla persony ADHD „wygląda zablokowane, ale działa" = mylące affordance | Restyle (`design`/`polish`): klikalne kroki nie powinny wyglądać na disabled w spoczynku — wyraźny sygnał interaktywności (akcent/outline zamiast muted) | `FunnelStepper.tsx:51` (muted dla `!isActive && !isDone`) |
+| CS-3 | 🟢 | State / guard | Guard może over-triggernąć w stanie safeguard (sesja, ale task zniknął) | `screen === 'session' && running` — jeśli `running` jeszcze true w stanie `session && !currentTask` (task usunięty z innej karty), dialog pyta o wyjście, gdy nie ma aktywnego taska. Rzadkie, wyjście i tak nieszkodliwe | Dobić guard na obecność taska: `screen === 'session' && currentTask && running` | `FocusView.tsx:413` (warunek guardu) |
+| CS-4 | 🟢 | Data states / copy | „All set — no tasks left to process" mylące przy dosłownie 0 tasków | Komunikat implikuje przetworzone taski; przy pustym lejku (skok capture→process) niedokładne, choć CTA „Continue to focus" daje drogę | Rozróżnić copy: 0 tasków vs wszystkie-opisane (np. „No tasks to process yet — create some in Breakdown") | `ProcessView.tsx:411` |
+| CS-5 | 🟢 | Data states | Ranking przy dokładnie 1 stresorze: degenerowany | Brak Pairing (`≥2`), list 1-elementowy, ↑↓ oba `disabled`. Funkcjonalne (Dalej enabled przy 1), ale dziwne — teraz osiągalne bezpośrednio stepperem | Akceptowalne (1 stresor = poprawny, trywialny przypadek); ew. ukryć Pairing/strzałki przy 1 | `Ranking.tsx:41` (`:110/:121` disabled) |
+| CS-6 | 🟢 | Navigation / a11y | Stepper dodaje 5 tab-stopów przed treścią na każdym ekranie lejka | Klawiatura: 5 linków stepper'a tabuje się przed główną treścią ekranu | Dopuszczalne; rozważyć „skip to content" jeśli tab-order uciążliwy (→ `polish`) | `FunnelStepper.tsx:31` (render w każdym ekranie) |
+
+### Kategorie sprawdzone bez luk (feature)
+- **Skok do kroku z niespełnionymi warunkami (główna nowa powierzchnia)**: wszystkie 5 ekranów lejka degraduje do empty-state'a / CTA — BrainDump, Ranking (0), Decompose, Process (`nothingToDo`), Focus (0 opisanych / 0 dopasowanych). ✅ Brak blank-screena, brak dead-endu.
+- **Klik w bieżący krok**: Link do samego siebie = no-op (brak nowego wpisu historii / re-rendera). ✅
+- **Persystencja sesji po „Leave"**: snapshot zapisywany efektem (`FocusView.tsx:191`) przed nawigacją; powrót → `SessionResumeBanner`. ✅
+- **Reorder akcji na Szczegółach**: stany archived (read-only lista + Unarchive nad nią) i completed (`RunCompleted` CTA nad listą) spójne; pusta lista tasków ma empty-state (`RunTaskList.tsx:65`) i jest teraz na dole. ✅
+- **Guard braku aktywnego Runa**: trasy lejka chronione `RequireActiveRun`; stepper renderuje się dopiero po przejściu guardu. ✅
+- **Storage failure przy nawigacji stepperem**: nawigacja nie zapisuje — brak nowej ścieżki awarii zapisu. ✅
+
+### Priority (feature)
+1. **🟡 CS-2** — affordance klikalnych „przyszłych" kroków (muted = wygląda disabled). Najwyższy user-impact z nowych; dla persony ADHD mylące. → `proto-design`/`proto-polish`.
+2. **🟡 CS-1** — guard sesji tylko na stepperze (niespójność z back/reload). Decyzja: zaakceptować + udokumentować, albo rozszerzyć. → `proto-harden` (jeśli rozszerzać) / świadomy kompromis.
+3. **🟢 CS-3 / CS-4 / CS-5 / CS-6** — polish / copy / rzadkie stany. → `proto-polish` lub świadome odłożenie.
+
+### Hand-off (feature)
+- **CS-2 → `proto-design`/`proto-polish`** (affordance stepper'a — to design, nie stan).
+- **CS-1 → `proto-harden`** (decyzja + ew. rozszerzenie guardu na inne drogi) LUB świadomy kompromis (odnotować w specu: guard = tylko stepper).
+- **CS-3 → `proto-harden`** (dobić warunek guardu na `currentTask`) — drobne, razem z CS-1.
+- **CS-4 / CS-5 / CS-6 → `proto-polish`** (copy / degenerowany stan / a11y) lub odłożyć.
+- Brak 🔴 i brak luk wymagających `proto-lofi` (żadnych nowych ekranów) — feature jest funkcjonalnie kompletny; reszta to affordance/polish.
