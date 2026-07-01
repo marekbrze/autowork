@@ -5,9 +5,10 @@ import { PartyPopper } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { BatteryIcon } from '@/modules/process/components/BatteryIcon';
-import type { Context, Energy } from '@/modules/decompose/types/task';
+import type { Context, Energy, Task } from '@/modules/decompose/types/task';
 
 import { CONTEXT_LABELS, CONTEXT_ORDER, ENERGY_LABELS, ENERGY_ORDER, type FilterSelection } from '../types/focus';
+import { SessionTaskList } from './SessionTaskList';
 
 interface SessionFilterProps {
   selection: FilterSelection;
@@ -19,6 +20,13 @@ interface SessionFilterProps {
   /** Atrybuowane taski już rozwiązane (done/skipped/dismissed) — do rozdzielenia
    * empty-state (#4): „nic nie opisano" vs „wszystko zrobione". */
   resolvedAttributed: number;
+  /** Dopasowane taski w porządku `TaskOrder` (lista do przełożenia). Opcjonalne: brak = ukryta. */
+  matchedTasks?: Task[];
+  /** Nowa kolejność ID po ↑↓/drag → rodzic persystuje `TaskOrder` (ADR 0036). */
+  onReorder?: (ids: string[]) => void;
+  /** Czy aktywny ręczny porządek (pokazuje „Reset to default"). */
+  hasManualOrder?: boolean;
+  onResetOrder?: () => void;
   onStart: () => void;
 }
 
@@ -33,6 +41,10 @@ export function SessionFilter({
   matchCount,
   totalAttributed,
   resolvedAttributed,
+  matchedTasks = [],
+  onReorder,
+  hasManualOrder = false,
+  onResetOrder,
   onStart,
 }: SessionFilterProps) {
   const isAllContexts = selection.contexts.length === CONTEXT_ORDER.length;
@@ -149,6 +161,23 @@ export function SessionFilter({
               </span>
             )}
           </div>
+
+          {matchedTasks.length > 0 && onReorder && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium">Matched tasks</h3>
+                {hasManualOrder && onResetOrder && (
+                  <Button type="button" variant="ghost" size="sm" onClick={onResetOrder}>
+                    Reset to default
+                  </Button>
+                )}
+              </div>
+              <SessionTaskList tasks={matchedTasks} onReorder={onReorder} />
+              <p className="text-xs text-muted-foreground">
+                Drag or use ↑↓ to set the order — it carries into the session and the run task list.
+              </p>
+            </div>
+          )}
 
           <Button type="button" size="lg" disabled={!canStart} onClick={onStart}>
             Start

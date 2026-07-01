@@ -69,6 +69,12 @@ export function FocusView() {
   // Snapshot przerwanej sesji — best-effort (utrata = brak wznowienia, nie utrata danych).
   const [snapshot, setSnapshot, removeSnapshot] = useLocalStorage<SessionSnapshot | null>('focus:session', null);
 
+  // Ręczny porządek kolejki (`focus:taskOrder`) — jeden współdzielony model kolejności
+  // zadań (ADR 0036): default (pusty) = rank stresora; przełożenie w filtrze nadpisuje.
+  // Ten sam porządek sortuje listę dopasowanych tu, kolejkę sesji i listę na run.
+  const [taskOrder, setTaskOrder, removeTaskOrder, taskOrderStorage] = useLocalStorage<string[]>('focus:taskOrder', []);
+  const hasManualOrder = taskOrder.length > 0;
+
   // Pozycja stresora w tablicy = jego rank (najbardziej stresujący = 0).
   const stressorRank = useMemo(() => new Map(stressors.map((s, i) => [s.id, i])), [stressors]);
 
@@ -110,13 +116,25 @@ export function FocusView() {
     [persistedSelection],
   );
 
-  const matchCount = useMemo(
-    () =>
-      attributed.filter(
-        (t) => selection.contexts.includes(t.context!) && selection.energies.includes(t.energy!),
-      ).length,
-    [attributed, selection],
-  );
+  // Dopasowane taski w porządku `TaskOrder` (default = rank stresora). Ten sam porządek trafia
+  // na listę w filtrze, do kolejki sesji (Start) i na listę na run (ADR 0036).
+  const matchedTasks = useMemo(() => {
+    const orderIndex = (id: string) => {
+      const i = taskOrder.indexOf(id);
+      return i === -1 ? Number.MAX_SAFE_INTEGER : i;
+    };
+    return attributed
+      .filter((t) => selection.contexts.includes(t.context!) && selection.energies.includes(t.energy!))
+      .sort((a, b) => {
+        const oa = orderIndex(a.id);
+        const ob = orderIndex(b.id);
+        if (oa !== ob) return oa - ob;
+        const ra = stressorRank.get(a.stressorId) ?? 99;
+        const rb = stressorRank.get(b.stressorId) ?? 99;
+        return ra !== rb ? ra - rb : a.createdAt.localeCompare(b.createdAt);
+      });
+  }, [attributed, selection, taskOrder, stressorRank]);
+  const matchCount = matchedTasks.length;
 
   /**
    * Rekonsyliacja (#5): pierwszy indeks ≥ `start`, pod którym task istnieje i jest
@@ -198,9 +216,7 @@ export function FocusView() {
     // `pending` (spec focus.md §Skip: „wraca jako pending przy następnej sesji"). Tu, a nie
     // przy wyjściu/nawigacji — dzięki temu skip nie zależy od tego, którą drogą wracasz.
     returnSkippedToPool();
-    const matched = attributed
-      .filter((t) => selection.contexts.includes(t.context!) && selection.energies.includes(t.energy!))
-      .map((t) => t.id);
+    const matched = matchedTasks.map((t) => t.id); // porządek `TaskOrder` (ADR 0036)
     if (matched.length === 0) return;
     setQueue(matched);
     setCursor(0);
@@ -208,6 +224,14 @@ export function FocusView() {
     setDismissUndo(null);
     setScreen('session');
   };
+
+  /** Zapisz nową kolejność dopasowanych do `TaskOrder` (pozycje poza filtrem zachowane). */
+  const reorderMatched = (newMatchedIds: string[]) => {
+    const matchedSet = new Set(newMatchedIds);
+    const rest = taskOrder.filter((id) => !matchedSet.has(id));
+    setTaskOrder([...newMatchedIds, ...rest]); // honest persistence: przy awarii stan się nie psuje
+  };
+  const resetOrder = () => removeTaskOrder();
 
   /** Wznów przerwaną sesję z persystowanego snapshotu (#2). */
   const resumeSession = () => {
@@ -342,19 +366,21 @@ export function FocusView() {
   // Status persystencji agregowany po pięciu storach, od których ekran zależy.
   // (Snapshot `focus:session` celowo POMIĘTY — jego awaria ≠ awaria danych Task.)
   const storageView = {
-    writeError: taskStorage.writeError,
+    writeError: taskStorage.writeError || taskOrderStorage.writeError,
     readError:
       taskStorage.readError ||
       stressorStorage.readError ||
       nextActionStorage.readError ||
       reasonStorage.readError ||
-      visionStorage.readError,
+      visionStorage.readError ||
+      taskOrderStorage.readError,
     retry: () => {
       taskStorage.retry();
       stressorStorage.retry();
       nextActionStorage.retry();
       reasonStorage.retry();
       visionStorage.retry();
+      taskOrderStorage.retry();
     },
     dismissErr: () => {
       taskStorage.dismiss();
@@ -362,6 +388,7 @@ export function FocusView() {
       nextActionStorage.dismiss();
       reasonStorage.dismiss();
       visionStorage.dismiss();
+      taskOrderStorage.dismiss();
     },
   };
 
@@ -390,6 +417,10 @@ export function FocusView() {
             matchCount={matchCount}
             totalAttributed={attributed.length}
             resolvedAttributed={resolvedAttributed}
+            matchedTasks={matchedTasks}
+            onReorder={reorderMatched}
+            hasManualOrder={hasManualOrder}
+            onResetOrder={resetOrder}
             onStart={start}
           />
         </>

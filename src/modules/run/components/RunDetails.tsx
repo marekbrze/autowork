@@ -6,10 +6,14 @@ import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { StorageStatusToast } from '@/modules/capture/components/StorageStatusToast';
+import { useLocalStorage } from '@/shared/hooks/use-local-storage';
+import { useStressors } from '@/modules/capture/hooks/use-stressors';
+import { useTasks } from '@/modules/decompose/hooks/use-tasks';
 
 import { useLiveRuns } from '../hooks/use-live-runs';
 import { isRunCompleted, STEP_LABEL, STEP_ROUTE } from '../types/run';
 import { RunStatTiles } from './RunStatTiles';
+import { RunTaskList } from './RunTaskList';
 import { RunCompleted } from './RunStates';
 
 /**
@@ -20,6 +24,13 @@ export function RunDetails() {
   const { runId } = useParams<{ runId: string }>();
   // Statystyki / krok resume wyprowadzane na żywo z lejka (use-live-runs.ts).
   const { getRun, renameRun, archiveRun, unarchiveRun, deleteRun, storage } = useLiveRuns();
+  // Sekcja „Tasks" (ADR 0035/0037): run czyta taski cross-module (decompose) i po raz pierwszy
+  // mutuje ich stan (Done / Not relevant). Współdzielony `TaskOrder` z focus sortuje listę (ADR 0036).
+  const { tasks, updateTask, storage: taskStorage } = useTasks();
+  const { stressors } = useStressors();
+  const [taskOrder] = useLocalStorage<string[]>('focus:taskOrder', []);
+  const markDone = (id: string) => updateTask(id, { state: 'completed' });
+  const markNotRelevant = (id: string) => updateTask(id, { state: 'dismissed' });
   const navigate = useNavigate();
 
   const run = runId ? getRun(runId) : undefined;
@@ -136,6 +147,18 @@ export function RunDetails() {
         <RunStatTiles run={run} />
       </section>
 
+      {/* Tasks — lista zadań z prawdziwym stanem + akcje z listy (ADR 0035/0037) */}
+      <section aria-label="Run tasks" className="space-y-2">
+        <h3 className="text-sm font-medium">Tasks</h3>
+        <RunTaskList
+          tasks={tasks}
+          taskOrder={taskOrder}
+          stressors={stressors}
+          onDone={markDone}
+          onNotRelevant={markNotRelevant}
+        />
+      </section>
+
       {/* Kontynuuj / resume — lub stan ukończony (ST-1), lub zarchiwizowany */}
       {completed && !archived ? (
         <RunCompleted onArchive={() => archiveRun(run.id)} />
@@ -190,11 +213,17 @@ export function RunDetails() {
       </p>
 
       <StorageStatusToast
-        writeError={storage.writeError}
-        readError={storage.readError}
-        onRetry={storage.retry}
-        onDismiss={storage.dismiss}
-        entityLabel="runs"
+        writeError={storage.writeError || taskStorage.writeError}
+        readError={storage.readError || taskStorage.readError}
+        onRetry={() => {
+          storage.retry();
+          taskStorage.retry();
+        }}
+        onDismiss={() => {
+          storage.dismiss();
+          taskStorage.dismiss();
+        }}
+        entityLabel={taskStorage.readError || taskStorage.writeError ? 'tasks' : 'runs'}
       />
 
       <ConfirmDialog
