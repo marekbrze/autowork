@@ -46,6 +46,7 @@ Terms and concepts specific to this project. Used across all project skills to m
 | Archiwizacja | `Archive` / `archived` | Stan Runa: schowany z aktywnych na dashboardzie, ale zostaje w archiwum/historii (statystyki + porównanie widoczne, możliwy do rozarchiwizowania). Ręczny, odwracalny. ADR 0021. | "zakończ", "ukryj" |
 | Rozarchiwizowanie | `Un-archive` | Przywrócenie zarchiwizowanego Runa do aktywnych (można znów Kontynuować). ADR 0021. | "przywróć" |
 | Krok lejka | `FunnelStep` | Poziom osiągnięty w lejku (brain dump → ranking → decompose → process → focus → celebracja); trzymany na Runie jako `lastReachedStep`, steruje routingiem Kontynuuj. | "etap", "faza" |
+| Klikalny stepper lejka | `FunnelStepper` | Pasek 5 kroków lejka (Stresory › Ranking › Akcje › Procesowanie › Focus) na ekranach funnel — **klikalna nawigacja** po krokach aktywnego Runa (swobodny skok; bieżący = no-op; wyjście z aktywnej sesji focus → ConfirmDialog, sesja pauzuje i przetrwa do wznowienia). Supersede „prowadzony lejek bez breadcrumbs" (ADR 0001); ADR 0048. | "breadcrumbs", "menu kroków" |
 
 ## Moduły projektowe (code namespaces)
 

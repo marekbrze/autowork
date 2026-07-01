@@ -9,6 +9,8 @@ To odejście od wczesnej notki „MVP = jeden ukryty aktywny Run" (`MODULES.md`)
 
 **Każdy Run ma swój własny lejek.** Stresory, next-actiony, zadania, powody, done-visions, a także zapauzowana sesja focus i ręczny porządek kolejki (`TaskOrder`) należą do konkretnego Runa — tworząc nowy Run, zaczynasz od pustego brain dumpa, nie od danych poprzedniego przejazdu. Realizuje to relację *hosts* z `MODULES.md` (kroki Core żyją wewnątrz Runa), wcześniej tylko intencję. Steruje tym **aktywny Run** (`activeRunId`) — Run, którego lejka widać w `capture`/`decompose`/`process`/`focus`; ustawiany przy **Create** i **Continue** (switch przez Dashboard). (Feature `per-run-funnel-isolation`, ADR 0044.)
 
+**Lejek Runa jest swobodnie nawigowalny, a akcje na Szczegółach nad listą.** Kroki lejka (Stresory › Ranking › Akcje › Procesowanie › Focus) na ekranach funnel są **klikalnym stepperem** — user skacze do dowolnego kroku aktywnego Runa, nie tylko przyciskiem „Dalej". To odwraca wczesną decyzję „prowadzony lejek bez breadcrumbs" (ADR 0001 / UI-STRATEGY) — supersede przez ADR 0048. Wszystkie kroki są klikalne (bez lockowania), bieżący = no-op; wyjście z aktywnej sesji focus wymaga potwierdzenia (sesja pauzuje i przetrwa do wznowienia). **Na Szczegółach Runa wszystkie akcje (Continue, Review, Archive, Delete) siedzą nad listą tasków** — lista jest najdłuższą sekcją, więc akcje nie lądują na samym dole. (Feature `clickable-run-steps-and-details-actions-on-top`, ADR 0047/0048.)
+
 ## User Flows
 
 ### Create Run (start fresh)
@@ -28,11 +30,19 @@ To odejście od wczesnej notki „MVP = jeden ukryty aktywny Run" (`MODULES.md`)
    - wszystko done → **Szczegóły** w stanie „Run ukończony".
 3. User wznawia pracę bez ręcznego wybierania kroku — apka prowadzi.
 
+### Nawigacja po krokach Runa (klikalny stepper)
+1. User na dowolnym ekranie lejka (Stresory / Ranking / Akcje / Procesowanie / Focus) widzi na górze klikalny stepper 5 kroków (już wyświetlany, teraz klikalny).
+2. Klika dowolny krok → apka nawiguje na trasę tego kroku (`STEP_ROUTE`) dla **aktywnego Runa**.
+3. **Bieżący krok**: klik = no-op (user zostaje).
+4. **Wyjście z aktywnej sesji focus** (task pod timerem, timer leci): klik innego kroku → **ConfirmDialog** „Masz aktywną sesję — wyjść?". **Confirm** → sesja się pauzuje (snapshot per-Run przetrwa, wznawialna przez `SessionResumeBanner`), user ląduje na wybranym kroku. **Cancel** → zostaje w sesji.
+5. **Skok do kroku z niespełnionymi warunkami** (np. Focus bez tasków, Ranking przy <2 stresorach) → ekran degraduje do swojego empty-state'a (patrz edge cases).
+6. Skok **nie aktualizuje `lastReachedStep`** ani nie zmienia routing „Kontynuuj" (Continue nadal wyprowadzany z danych lejka, nie z ostatniego skoku) — to bezpośredni skok, nie „postęp".
+
 ### View Details / Stats (Szczegóły)
 1. User klika **Szczegóły** na karcie Runa.
 2. Widzi ekran statystyk: **czas spędzony** (łączny z focusa — suma `timerElapsed`), **wykonane** (`completed + dismissed`), **zostało** (remaining), **progress %**.
-3. Poniżej **sekcja „Tasks"** — lista wszystkich zadań z prawdziwym stanem (patrz flow „Praca z listą zadań").
-4. Dostępne akcje: Kontynuuj, Rename, Review, Archive/Un-archive, Delete.
+3. **Nad listą tasków — blok akcji**: **Continue** (lub stan „ukończony") + **Review / Archive (lub Un-archive) / Delete**. (Rename inline w nagłówku, zawsze u góry.)
+4. **Poniżej sekcja „Tasks"** — lista wszystkich zadań z prawdziwym stanem (patrz flow „Praca z listą zadań"); na dole strony, więc akcje nie wymagają scrolla.
 
 ### Praca z listą zadań (ze Szczegółów)
 1. User na Szczegółach widzi sekcję **„Tasks"** (pod kaflami statystyk, nad blokiem Continue): wszystkie taski pogrupowane stanem — **To do** (`pending`/`skipped`/`active`), **Done** (`completed`), **Not relevant** (`dismissed`); wewnątrz grupy sortowane po `TaskOrder` (default = rank stresora).
@@ -58,7 +68,7 @@ To odejście od wczesnej notki „MVP = jeden ukryty aktywny Run" (`MODULES.md`)
 1. User klika **Delete** → Run usuwany na stałe (z historii/archiwum też) **razem z całym jego lejkiem** (stresory, next-actiony, zadania, powody, done-visions, dane focus — kaskadowo). Jedyna operacja terminalna. Jeśli to był aktywny Run — **aktywny zostaje wyczyszczony**, user wraca na Dashboard.
 
 ## Screens (rough)
-- **Run Details (Szczegóły)**: statystyki na wierzchu (czas spędzony, wykonane, zostało, progress %) + nazwa Runa (edytowalna) + stan (aktywny / ukończony) + pasek progresu; **sekcja „Tasks"** (lista zadań pogrupowana stanem: To do / Done / Not relevant; sort wewnątrz grupy po `TaskOrder`; wiersz = tekst + plakietka stanu + akcje done/not-relevant); akcje Kontynuuj / Rename / Review / Archive (lub Un-archive, gdy zarchiwizowany) / Delete. Gdy wszystko done — stan „ukończony" / celebracyjny.
+- **Run Details (Szczegóły)**: statystyki na wierzchu (czas spędzony, wykonane, zostało, progress %) + nazwa Runa (edytowalna inline) + stan (aktywny / ukończony) + pasek progresu; **blok akcji nad listą: Continue (lub stan „ukończony" / celebracyjny) + Review / Archive (lub Un-archive, gdy zarchiwizowany) / Delete**; **sekcja „Tasks" na dole** (lista zadań pogrupowana stanem: To do / Done / Not relevant; sort wewnątrz grupy po `TaskOrder`; wiersz = tekst + plakietka stanu + akcje done/not-relevant). Gdy wszystko done — stan „ukończony" / celebracyjny (CTA nad listą).
 - **Archived Runs (historia)**: na dashboardzie; lista zarchiwizowanych runów z ich statystykami, do porównania i czerpania motywacji; akcja Un-archive.
 - **Dashboard run card** (właściciel: `dashboard`): karta aktywnego Runa z mini-statystykami i dwiema akcjami — **Kontynuuj** + **Szczegóły**.
 
@@ -68,6 +78,7 @@ To odejście od wczesnej notki „MVP = jeden ukryty aktywny Run" (`MODULES.md`)
 |--------|-------------|--------|-------|
 | Create Run | Nowy przejazd lejka z dashboardu; nazwa = data/godzina. | `Run` | `capture` tworzy Run implicite; **ustawia aktywny Run (`activeRunId`), pusty lejek**. ADR 0020, 0044. |
 | Continue (resume) | Smart-routing do najdalszego kroku z pracą. | `Run` | Karta na dashboardzie; **ustawia aktywny Run**; atrybuty nie bramkują (ADR 0013). ADR 0022, 0044. |
+| Navigate to funnel step | Skok do dowolnego kroku aktywnego Runa przez klikalny stepper (Stresory / Ranking / Akcje / Procesowanie / Focus). | `Run` (`FunnelStep`) | Bieżący = no-op; wyjście z aktywnej sesji focus → ConfirmDialog (pauza + persyst snapshot, wznawialny). Nie zmienia `lastReachedStep` (Continue nadal wg danych). Supersede ADR 0001; ADR 0048. |
 | View Details / Stats | Ekran statystyk + zarządzanie. | `Run` | Czas spędzony = suma focusa; wykonane = `completed + dismissed`. |
 | View run task list | Zobacz wszystkie taski z prawdziwym stanem na Szczegółach (pogrupowane, sortowane po `TaskOrder`). | `Task` | `run` czyta taski cross-module (store `decompose`); ADR 0036/0037. |
 | Mark task done (from details) | `pending`/`skipped`/`active` → `completed` z listy. | `Task` | `run` mutuje stan taska (pierwszy raz, ADR 0037); liczy do progresem. |
@@ -98,6 +109,11 @@ To odejście od wczesnej notki „MVP = jeden ukryty aktywny Run" (`MODULES.md`)
 - **Walidacja rename**: pusta nazwa (lub same spacje) blokuje „Zapisz" + inline komunikat (`aria-invalid`); `maxLength` 60.
 - **Bulk-usuwanie w Review**: „Usuń przeterminowane" wymaga potwierdzenia (`ConfirmDialog`).
 - **Statystyki poglądowe**: `stats` (`totalTasks`/`doneCount`/`dismissedCount`/`timeSpentSec`) oraz `lastReachedStep` są **wyprowadzane na żywo** z danych lejka **danego Runa** (`src/modules/run/stats.ts`, `use-live-runs.ts`) — każda karta Runa pokazuje **swój** progres i krok resume; po akcjach done/dismiss z listy przeliczają się same. (Feature `per-run-funnel-isolation`, ADR 0044 — dane lejka scope'owane per-Run; wcześniej globalne, diagnoza `docs/changes/runs-share-funnel-data.md` / ADR 0043. `reviewItems` nadal mockiem.)
+- **Skok do kroku z niespełnionymi warunkami** (klikalny stepper): Focus bez tasków / Ranking przy <2 stresorach / Decompose bez stresorów / Process bez tasków → ekran degraduje do swojego empty-state'a (→ `edgecases` diagnoza, czy stany są wystarczające).
+- **Wyjście z aktywnej sesji focus przez stepper**: ConfirmDialog; confirm = pauza + persyst `focus:session` snapshot (wznów przez `SessionResumeBanner`); cancel = zostajemy. Skok wstecz (np. Focus → Decompose) w trakcie sesji — ten sam mechanizm.
+- **Skok nie aktualizuje `lastReachedStep`**: Continue nadal smart-routuje wg danych lejka, nie wg ostatniego skoku usera.
+- **Bieżący krok w stepperze**: klik = no-op.
+- **Spójność IA po reorderze akcji na Szczegółach**: stan archived (lista read-only, akcje nad nią spójne — Unarchive dostępny); stan completed (`RunCompleted` / celebracja CTA nad listą).
 
 Pełny audyt i status każdej luki: `docs/modules/run-edgecases.md` (po `proto-harden`: ✅ 6 wdrożonych, ❌ 10 odłożonych z racją). Nowe przypadki listy tasków czekają na `proto-edgecases`.
 
@@ -108,3 +124,4 @@ Pełny audyt i status każdej luki: `docs/modules/run-edgecases.md` (po `proto-h
 - **decompose (zapis)**: moduł `run` po raz pierwszy **mutuje stany tasków** przez `updateTask` (`decompose/hooks/use-tasks.ts`) — cross-module write (ADR 0037).
 - **focus**: wynik sesji (completed/dismissed, czas) aktualizuje statystyki Runa (`timeSpent`, `progress`); zapauzowana sesja jest celem routing przy Kontynuuj.
 - **dashboard**: launcher — lista aktywnych runów (karta = Kontynuuj + Szczegóły) + ekran archiwum/historii; uruchamia akcje `run`.
+- **shared `FunnelStepper` (klikalny)**: pasek kroków renderowany na ekranach Core; nawiguje po trasach `STEP_ROUTE` (model w `run`); wyjście z aktywnej sesji focus → pauza + `focus:session` snapshot (współdziela infra z resume). ADR 0048.

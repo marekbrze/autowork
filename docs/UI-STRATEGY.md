@@ -7,7 +7,7 @@ Decyzje strukturalne shella (z wywiadu `proto-highlevelui`). Kwestie wizualne (k
 
 ## Navigation
 - **Type**: Top bar (pozioma nawigacja na górze).
-- **Structure**: **Flow-oriented** — top bar eksponuje tylko `Dashboard` (+ chip aktywnego Runa). Kroki lejka (Stresory → Next actions → Procesowanie → Focus) **nie są** wolnymi linkami; prowadzi ich Run przez akcję „Dalej" i stepper postępu wewnątrz trasy runa. Stepper i routing kroków buduje `proto-lofi`.
+- **Structure**: **Flow-oriented** — top bar eksponuje tylko `Dashboard` (+ chip aktywnego Runa). Kroki lejka (Stresory → Next actions → Procesowanie → Focus) są **klikalnym stepperem** — user swobodnie nawiguje po krokach aktywnego Runa (supersede wczesnego „nie są wolnymi linkami", ADR 0048). Nadal też prowadzone przyciskiem „Dalej" i stepperem postępu wewnątrz trasy runa. Stepper buduje `proto-lofi`.
 
 ## Home page
 **Dashboard** (`/`). Placeholder: progres aktywnego Runa + ostatnie runy + główne CTA „Zacznij nowy Run" (→ `/capture`). `proto-lofi` podmienia na rzeczywiste dane ze scenariuszy.
@@ -27,7 +27,7 @@ Labele display po polsku (język apki); nazwy kodowe ang. (z `MODULES.md`). Przy
 
 ## Content layout
 - **Container**: Contained — `max-w-6xl` (~1150px), wycentrowany.
-- **Breadcrumbs**: **Nie** — lejek jest płaski/prowadzony; brak głębokiej nawigacji list→detail na tym etapie.
+- **Breadcrumbs**: **Tak** — klikalny stepper lejka (swobodna nawigacja po krokach aktywnego Runa); supersede ADR 0001 / wczesnego „Nie" (ADR 0048).
 
 ## Shared elements
 - **Header**: Tak — top bar: nazwa „Autowork" (→ home) + link `Dashboard` + prawy slot na chip aktywnego Runa (realny stan podłącza `proto-lofi`).
