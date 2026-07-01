@@ -80,7 +80,7 @@ export function FocusTaskScreen({
   const CtxIcon = task.context ? CONTEXT_ICON[task.context] : null;
 
   return (
-    <div className="space-y-5">
+    <div className="animate-pop space-y-5">
       {/* górny pasek: Back / Pause / Exit */}
       <div className="flex items-center justify-between">
         <Button type="button" variant="ghost" size="sm" disabled={!canGoBack} onClick={onBack}>
@@ -117,8 +117,8 @@ export function FocusTaskScreen({
       )}
 
       {/* tytuł zadania + badge atrybutów + pozycja */}
-      <div className="space-y-2">
-        <h2 className="break-words text-2xl font-semibold tracking-tight">{task.text}</h2>
+      <div className="space-y-2.5">
+        <h2 className="break-words text-2xl font-extrabold tracking-tight sm:text-3xl">{task.text}</h2>
         <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
           {task.context && CtxIcon && (
             <Badge>
@@ -156,21 +156,26 @@ export function FocusTaskScreen({
 
       {/* dwie kolumny: motywacja | timer + akcje */}
       <div className="grid gap-5 lg:grid-cols-2">
-        <div className="rounded-lg border p-4">
+        <div className="rounded-xl border bg-card p-5">
           <MotivationPanel doneVision={doneVision} reasons={reasons} />
         </div>
 
-        <div className="flex flex-col items-center gap-5 rounded-lg border p-6">
+        <div className="flex flex-col items-center gap-6 rounded-xl border bg-card p-6">
           <FocusTimer elapsedSeconds={elapsedSeconds} thresholdMinutes={task.estimatedTime} paused={!running} />
           <div className="grid w-full grid-cols-2 gap-2">
-            <Button type="button" variant="outline" onClick={onSkip}>
+            <Button type="button" variant="outline" className="h-10" onClick={onSkip}>
               Skip
             </Button>
-            <Button type="button" variant="ghost" onClick={onDismiss}>
+            <Button type="button" variant="ghost" className="h-10" onClick={onDismiss}>
               Not relevant
             </Button>
           </div>
-          <Button type="button" size="lg" className="w-full" onClick={onDone}>
+          <Button
+            type="button"
+            size="lg"
+            className="h-12 w-full rounded-full text-base font-bold active:scale-[0.97] transition-transform"
+            onClick={onDone}
+          >
             <Check /> Done
           </Button>
         </div>
@@ -181,7 +186,7 @@ export function FocusTaskScreen({
 
 function Badge({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border bg-background px-2 py-0.5 text-xs">
+    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
       {children}
     </span>
   );

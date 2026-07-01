@@ -434,6 +434,7 @@ export function FocusView() {
 
       {screen === 'session' && currentTask && (
         <FocusTaskScreen
+          key={currentTask.id}
           task={currentTask}
           stressor={currentStressor ?? undefined}
           nextAction={currentNextAction ?? undefined}

@@ -28,7 +28,7 @@ export function FunnelStepper({ current }: { current: FunnelStage }) {
             key={s.key}
             aria-current={isActive ? 'step' : undefined}
             className={cn(
-              'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+              'rounded-full px-2.5 py-1 text-xs font-semibold transition-colors',
               isActive && 'bg-primary text-primary-foreground',
               isDone && 'text-foreground',
               !isActive && !isDone && 'text-muted-foreground/60',

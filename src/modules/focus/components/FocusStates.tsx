@@ -46,7 +46,7 @@ interface SessionResumeBannerProps {
  */
 export function SessionResumeBanner({ position, total, onResume, onAbandon }: SessionResumeBannerProps) {
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-muted/30 px-4 py-3">
+    <div className="flex flex-wrap items-center gap-3 rounded-xl border border-brand-400/40 bg-brand-300/30 px-4 py-3">
       <Play className="size-4 shrink-0 text-muted-foreground" aria-hidden />
       <p className="min-w-0 flex-1 text-sm">
         You have a paused session <span className="font-semibold tabular-nums">{position}/{total}</span> — resume from the

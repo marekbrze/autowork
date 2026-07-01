@@ -25,24 +25,25 @@ export function FocusTimer({ elapsedSeconds, thresholdMinutes, paused }: FocusTi
         aria-live="off"
         aria-label={`Elapsed ${formatClock(elapsedSeconds)}${thresholdMinutes ? ` of ${thresholdMinutes} min` : ''}${
           overThreshold ? ', over estimate' : ''
-        }`}
+        }${paused ? ', paused' : ''}`}
         className={cn(
-          'font-semibold tabular-nums tracking-tight text-6xl',
-          overThreshold ? 'text-destructive' : 'text-foreground',
+          'font-extrabold tabular-nums tracking-tight text-7xl sm:text-8xl transition-colors',
+          overThreshold ? 'text-overtime' : 'text-foreground',
+          paused && 'opacity-60',
         )}
       >
         {formatClock(elapsedSeconds)}
       </div>
-      <div className="mt-1 text-sm tabular-nums text-muted-foreground">
+      <div className="mt-2 text-sm font-semibold tabular-nums text-muted-foreground">
         {thresholdMinutes != null ? (
           <>
-            target: {thresholdMinutes} min
-            {overThreshold && <span className="text-destructive"> · over</span>}
+            target {thresholdMinutes} min
+            {overThreshold && <span className="text-overtime"> · over</span>}
           </>
         ) : (
           <span className="text-muted-foreground/70">no time estimate</span>
         )}
-        {paused && <span className="ml-1">· paused</span>}
+        {paused && <span className="ml-1 text-muted-foreground">· paused</span>}
       </div>
     </div>
   );

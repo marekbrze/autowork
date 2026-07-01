@@ -87,7 +87,7 @@ export function SessionFilter({
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold tracking-tight">Focus session</h2>
+        <h2 className="text-2xl font-extrabold tracking-tight">Focus session</h2>
         <p className="text-sm text-muted-foreground">
           Pick what to work on right now — context(s) and energy. The filter shows what you can actually do.
         </p>
@@ -120,7 +120,7 @@ export function SessionFilter({
       ) : (
         <>
           <fieldset className="space-y-2">
-            <legend className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Context</legend>
+            <legend className="text-sm font-bold text-foreground">Context</legend>
             <div className="flex flex-wrap items-center gap-2">
               <Chip selected={isAllContexts} onClick={toggleAllContexts}>
                 All
@@ -135,7 +135,7 @@ export function SessionFilter({
           </fieldset>
 
           <fieldset className="space-y-2">
-            <legend className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Energy</legend>
+            <legend className="text-sm font-bold text-foreground">Energy</legend>
             <div className="flex flex-wrap items-center gap-2">
               <Chip selected={isAllEnergies} onClick={toggleAllEnergies}>
                 All
@@ -179,7 +179,13 @@ export function SessionFilter({
             </div>
           )}
 
-          <Button type="button" size="lg" disabled={!canStart} onClick={onStart}>
+          <Button
+            type="button"
+            size="lg"
+            disabled={!canStart}
+            className="h-12 rounded-full px-8 text-base font-bold active:scale-[0.97] transition-transform"
+            onClick={onStart}
+          >
             Start
           </Button>
         </>
@@ -195,7 +201,7 @@ function Chip({ selected, onClick, children }: { selected: boolean; onClick: () 
       aria-pressed={selected}
       onClick={onClick}
       className={cn(
-        'inline-flex items-center rounded-full border px-3 py-1.5 text-sm font-medium transition-colors',
+        'inline-flex items-center rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors',
         'focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
         selected ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background hover:bg-muted',
       )}

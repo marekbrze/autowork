@@ -1,6 +1,7 @@
 import { Check, Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 import { formatClock } from '../types/focus';
 
@@ -25,23 +26,40 @@ interface SessionSummaryProps {
  * Ekran podsumowania (krok 7 — celebracja). Zrobione taski + łączny czas +
  * „Nieaktualne" w osobnej sekcji + „Usuń skończone" (czyści completed i
  * dismissed — ADR 0017). Prezentacyjny.
+ *
+ * DESIGN: moment sygnaturowy — przy ≥1 zrobionym tasku pixel „LEVEL UP!" na
+ * zielonym arcade-banerze + animacja `celebrate` (reduced-motion → instant).
  */
 export function SessionSummary({ completed, dismissed, totalSeconds, onClearCompleted, onNewSession }: SessionSummaryProps) {
   const hasResolved = completed.length > 0 || dismissed.length > 0;
+  const celebrate = completed.length > 0;
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-dashed p-8 text-center">
-        {completed.length > 0 && (
-          <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <Check />
-          </div>
+      <div
+        className={cn(
+          'rounded-2xl border p-8 text-center',
+          celebrate ? 'animate-celebrate border-brand-300 bg-card shadow-sm' : 'border-dashed',
         )}
-        <h2 className="text-xl font-semibold tracking-tight">
-          {completed.length > 0 ? 'Session complete' : 'End of session'}
+      >
+        {celebrate && (
+          <>
+            <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-brand-700 text-primary-foreground ring-4 ring-brand-300/60">
+              <Check className="size-8" />
+            </div>
+            <span
+              className="inline-block rounded-lg bg-brand-700 px-4 py-2 font-pixel leading-none text-primary-foreground"
+              style={{ fontSize: 'clamp(1rem, 6vw, 1.5rem)' }}
+            >
+              LEVEL UP!
+            </span>
+          </>
+        )}
+        <h2 className="mt-4 text-2xl font-extrabold tracking-tight">
+          {celebrate ? 'Session complete' : 'End of session'}
         </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {completed.length > 0 ? (
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          {celebrate ? (
             <>
               You did <strong className="text-foreground tabular-nums">{completed.length}</strong>{' '}
               {pluralTask(completed.length)} · time{' '}
@@ -57,16 +75,14 @@ export function SessionSummary({ completed, dismissed, totalSeconds, onClearComp
 
       {completed.length > 0 && (
         <section className="space-y-2">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Done ({completed.length})
-          </h3>
-          <ul className="divide-y rounded-lg border">
+          <h3 className="text-sm font-bold text-foreground">Done ({completed.length})</h3>
+          <ul className="divide-y rounded-xl border bg-card">
             {completed.map((t) => (
-              <li key={t.id} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+              <li key={t.id} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm">
                 <span className="min-w-0 truncate" title={t.text}>
                   {t.text}
                 </span>
-                <span className="shrink-0 tabular-nums text-muted-foreground">{formatClock(t.seconds)}</span>
+                <span className="shrink-0 font-semibold tabular-nums text-muted-foreground">{formatClock(t.seconds)}</span>
               </li>
             ))}
           </ul>
@@ -75,12 +91,10 @@ export function SessionSummary({ completed, dismissed, totalSeconds, onClearComp
 
       {dismissed.length > 0 && (
         <section className="space-y-2">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Not relevant ({dismissed.length})
-          </h3>
-          <ul className="divide-y rounded-lg border">
+          <h3 className="text-sm font-bold text-foreground">Not relevant ({dismissed.length})</h3>
+          <ul className="divide-y rounded-xl border bg-card">
             {dismissed.map((t) => (
-              <li key={t.id} className="px-3 py-2 text-sm text-muted-foreground line-through">
+              <li key={t.id} className="px-3 py-2.5 text-sm text-muted-foreground line-through">
                 {t.text}
               </li>
             ))}
@@ -89,7 +103,7 @@ export function SessionSummary({ completed, dismissed, totalSeconds, onClearComp
       )}
 
       {hasResolved && (
-        <Button type="button" variant="destructive" onClick={onClearCompleted}>
+        <Button type="button" variant="destructive" className="h-11" onClick={onClearCompleted}>
           <Trash2 /> Delete finished
         </Button>
       )}

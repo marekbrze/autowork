@@ -70,7 +70,7 @@ export function SessionTaskList({ tasks, onReorder }: SessionTaskListProps) {
             handleDrop(i);
           }}
           className={cn(
-            'flex items-center gap-2 rounded-md border bg-card p-2 text-sm transition-colors',
+            'flex items-center gap-2 rounded-lg border bg-card p-2.5 text-sm transition-colors hover:bg-muted/40',
             dragIndex === i && 'opacity-40',
             overIndex === i && dragIndex !== null && dragIndex !== i && 'border-primary ring-2 ring-primary/30',
           )}
@@ -131,7 +131,7 @@ function TaskBadges({ task }: { task: Task }) {
 
 function Badge({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border bg-background px-2 py-0.5 text-xs text-muted-foreground">
+    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2 py-0.5 text-xs font-semibold text-muted-foreground">
       {children}
     </span>
   );
