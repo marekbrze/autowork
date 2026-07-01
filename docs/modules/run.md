@@ -7,16 +7,18 @@ To odejście od wczesnej notki „MVP = jeden ukryty aktywny Run" (`MODULES.md`)
 
 **Run to też namacalna lista zadań, nie tylko agregaty.** Na Szczegółach widzisz wszystkie taski z prawdziwym stanem (do zrobienia / zrobione / nieaktualne) i możesz **działać z listy** — oznaczyć done albo oflagować nieaktualne — bez wchodzenia w sesję. To pierwszy moment, gdy moduł `run` **mutuje stany tasków** (cross-module write: `run` → store z `decompose`, ADR 0037). Lista jest pogrupowana stanem i posortowana wewnątrz grupy po **tym samym `TaskOrder`** co kolejka focus (ADR 0036). (Feature `session-queue-order-and-run-task-list`, ADR 0035.)
 
+**Każdy Run ma swój własny lejek.** Stresory, next-actiony, zadania, powody, done-visions, a także zapauzowana sesja focus i ręczny porządek kolejki (`TaskOrder`) należą do konkretnego Runa — tworząc nowy Run, zaczynasz od pustego brain dumpa, nie od danych poprzedniego przejazdu. Realizuje to relację *hosts* z `MODULES.md` (kroki Core żyją wewnątrz Runa), wcześniej tylko intencję. Steruje tym **aktywny Run** (`activeRunId`) — Run, którego lejka widać w `capture`/`decompose`/`process`/`focus`; ustawiany przy **Create** i **Continue** (switch przez Dashboard). (Feature `per-run-funnel-isolation`, ADR 0044.)
+
 ## User Flows
 
 ### Create Run (start fresh)
 1. User na dashboardzie klika „nowy Run" / „start fresh".
-2. Aplikacja tworzy Run (nazwa = data/godzina, stan `in_progress`, `lastReachedStep = brain dump`, `progress = 0`).
-3. User ląduje w `capture` (brain dump) — pierwszy krok lejka. (`capture` tworzy Run implicite.)
+2. Aplikacja tworzy Run (nazwa = data/godzina, stan `in_progress`, `lastReachedStep = brain dump`, `progress = 0`), **ustawia go jako aktywny** (`activeRunId`) i prowadzi do brain dumpa.
+3. User ląduje w `capture` (brain dump) — **pusty lejek tego Runa** (każdy Run ma własne dane; nie dziedziczy po poprzednim), pierwszy krok lejka. (`capture` tworzy Run implicite.)
 
 ### Continue (resume)
-1. User na karcie Runa (aktywne na dashboardzie) klika **Kontynuuj**.
-2. Smart-routing do najdalszego kroku lejka z pracą do zrobienia (`lastReachedStep` + stan danych):
+1. User na karcie Runa (aktywne na dashboardzie) klika **Kontynuuj**. Run staje się **aktywnym** (`activeRunId`) — jego lejek widać w ekranach funnel.
+2. Smart-routing do najdalszego kroku lejka **tego Runa** z pracą do zrobienia (`lastReachedStep` + stan danych):
    - trwa zapauzowana sesja focus → **wznów tę sesję** (timer od zapisanej pozycji);
    - są ≥1 task → **focus** (filtr sesji / start) — atrybuty nie bramkują (ADR 0013);
    - brak tasków, ale są nieprocesowane zadania/NextActiony → **process**;
@@ -48,12 +50,12 @@ To odejście od wczesnej notki „MVP = jeden ukryty aktywny Run" (`MODULES.md`)
 1. User na Szczegółach → Rename → edytuje nazwę (domyślnie data/godzina).
 
 ### Archive / Un-archive
-1. User na Szczegółach klika **Archive** → Run znika z aktywnych, ląduje w **archiwum (historia)** na dashboardzie.
+1. User na Szczegółach klika **Archive** → Run znika z aktywnych, ląduje w **archiwum (historia)** na dashboardzie. Jeśli to był aktywny Run — **aktywny zostaje wyczyszczony** i user wraca na Dashboard (archiwizacja = „skończone z tym Runem”).
 2. Statystyki i porównanie w archiwum nadal widoczne.
 3. Z archiwum można **Un-archive** → Run wraca do aktywnych, można go znów Kontynuować. Odwracalne (ADR 0021).
 
 ### Delete Run
-1. User klika **Delete** → Run usuwany na stałe (z historii/archiwum też). Jedyna operacja terminalna.
+1. User klika **Delete** → Run usuwany na stałe (z historii/archiwum też) **razem z całym jego lejkiem** (stresory, next-actiony, zadania, powody, done-visions, dane focus — kaskadowo). Jedyna operacja terminalna. Jeśli to był aktywny Run — **aktywny zostaje wyczyszczony**, user wraca na Dashboard.
 
 ## Screens (rough)
 - **Run Details (Szczegóły)**: statystyki na wierzchu (czas spędzony, wykonane, zostało, progress %) + nazwa Runa (edytowalna) + stan (aktywny / ukończony) + pasek progresu; **sekcja „Tasks"** (lista zadań pogrupowana stanem: To do / Done / Not relevant; sort wewnątrz grupy po `TaskOrder`; wiersz = tekst + plakietka stanu + akcje done/not-relevant); akcje Kontynuuj / Rename / Review / Archive (lub Un-archive, gdy zarchiwizowany) / Delete. Gdy wszystko done — stan „ukończony" / celebracyjny.
@@ -64,8 +66,8 @@ To odejście od wczesnej notki „MVP = jeden ukryty aktywny Run" (`MODULES.md`)
 
 | Action | Description | Entity | Notes |
 |--------|-------------|--------|-------|
-| Create Run | Nowy przejazd lejka z dashboardu; nazwa = data/godzina. | `Run` | `capture` tworzy Run implicite. ADR 0020. |
-| Continue (resume) | Smart-routing do najdalszego kroku z pracą. | `Run` | Karta na dashboardzie; atrybuty nie bramkują (ADR 0013). ADR 0022. |
+| Create Run | Nowy przejazd lejka z dashboardu; nazwa = data/godzina. | `Run` | `capture` tworzy Run implicite; **ustawia aktywny Run (`activeRunId`), pusty lejek**. ADR 0020, 0044. |
+| Continue (resume) | Smart-routing do najdalszego kroku z pracą. | `Run` | Karta na dashboardzie; **ustawia aktywny Run**; atrybuty nie bramkują (ADR 0013). ADR 0022, 0044. |
 | View Details / Stats | Ekran statystyk + zarządzanie. | `Run` | Czas spędzony = suma focusa; wykonane = `completed + dismissed`. |
 | View run task list | Zobacz wszystkie taski z prawdziwym stanem na Szczegółach (pogrupowane, sortowane po `TaskOrder`). | `Task` | `run` czyta taski cross-module (store `decompose`); ADR 0036/0037. |
 | Mark task done (from details) | `pending`/`skipped`/`active` → `completed` z listy. | `Task` | `run` mutuje stan taska (pierwszy raz, ADR 0037); liczy do progresem. |
@@ -74,7 +76,7 @@ To odejście od wczesnej notki „MVP = jeden ukryty aktywny Run" (`MODULES.md`)
 | Review | Przegląd: relevant vs stale. | `Run` (`Stressor`/`Task`) | **Tylko ręcznie**; nie przy resume. ADR 0023. |
 | Archive Run | Schowanie do archiwum (historia). | `Run` | Ręcznie; odwracalne. ADR 0021. |
 | Un-archive Run | Przywrócenie do aktywnych. | `Run` | Z archiwum. ADR 0021. |
-| Delete Run | Usunięcie na stałe. | `Run` | Jedyna operacja terminalna. |
+| Delete Run | Usunięcie na stałe. | `Run` | Jedyna operacja terminalna; **kaskadowo z danymi lejka**; czyści aktywnego. ADR 0044. |
 
 ## Edge Cases
 - **Pusty Run** (brak stresorów): Kontynuuj → brain dump.
@@ -89,11 +91,13 @@ To odejście od wczesnej notki „MVP = jeden ukryty aktywny Run" (`MODULES.md`)
 - **Task bez atrybutów**: nadal „gotowy" do focusa (ADR 0013) — po prostu nie wpadnie do filtrów wymagających danego atrybutu.
 - **Run ukończony** (100% done/dismissed): na Szczegółach sekcja „Przejazd ukończony" + CTA „Archiwizuj ten przejazd"; **bez auto-archive** (archiwizacja wyłącznie ręczna).
 - **Resume zapauzowanej sesji**: timer wznawia od zapisanej pozycji (`timerElapsed`), nie od 0.
-- **Wiele aktywnych runów naraz**: każdy ma własny `lastReachedStep` i statystyki; Kontynuuj kieruje per-Run.
+- **Wiele aktywnych runów naraz**: każdy ma własny `lastReachedStep`, statystyki **i własny lejek** (stresory/zadania/…); Kontynuuj ustawia go aktywnym i kieruje per-Run.
+- **Brak aktywnego Runa na ekranie lejka** (aktywny usunięto/zarchiwizowano, lub wejście bezpośrednim linkiem w `/capture` gdy żaden nieaktywny): przekierowanie na **Dashboard** — lejek wymaga aktywnego Runa; user wybiera Kontynuuj lub tworzy nowy.
+- **Switch aktywnego Runa w trakcie lejka**: Continue innego Runa podmienia dane lejka na ten Run; **niezapisany draft** (np. tekst w polu brain dumpa przed Enterem) **nie persystuje** — zapisują się tylko zatwierdzone stresory (pole wejściowe ulotne).
 - **Błąd odczytu storage** (uszkodzony `run:runs`): stan błędu (`RunReadError`) zamiast mylnego empty-state; odśwież jako droga naprawy.
 - **Walidacja rename**: pusta nazwa (lub same spacje) blokuje „Zapisz" + inline komunikat (`aria-invalid`); `maxLength` 60.
 - **Bulk-usuwanie w Review**: „Usuń przeterminowane" wymaga potwierdzenia (`ConfirmDialog`).
-- **Statystyki poglądowe**: w prototypie `stats` (`totalTasks`/`doneCount`/`dismissedCount`/`timeSpentSec`) oraz `lastReachedStep` są **wyprowadzane na żywo** z globalnych danych lejka (`src/modules/run/stats.ts`, `use-live-runs.ts`) — karty pokazują realny progres i krok resume; po akcjach done/dismiss z listy przeliczają się same. Dane lejka są globalne (bez `runId`), więc wszystkie Runy dzielą ten sam zestaw; mockiem pozostają `reviewItems`. Odłożone do fazy per-Run (ADR 0020): scope'owanie danych lejka po `runId`. Zob. diagnozę `docs/changes/dashboard-run-stats-disconnected.md`.
+- **Statystyki poglądowe**: `stats` (`totalTasks`/`doneCount`/`dismissedCount`/`timeSpentSec`) oraz `lastReachedStep` są **wyprowadzane na żywo** z danych lejka **danego Runa** (`src/modules/run/stats.ts`, `use-live-runs.ts`) — każda karta Runa pokazuje **swój** progres i krok resume; po akcjach done/dismiss z listy przeliczają się same. (Feature `per-run-funnel-isolation`, ADR 0044 — dane lejka scope'owane per-Run; wcześniej globalne, diagnoza `docs/changes/runs-share-funnel-data.md` / ADR 0043. `reviewItems` nadal mockiem.)
 
 Pełny audyt i status każdej luki: `docs/modules/run-edgecases.md` (po `proto-harden`: ✅ 6 wdrożonych, ❌ 10 odłożonych z racją). Nowe przypadki listy tasków czekają na `proto-edgecases`.
 

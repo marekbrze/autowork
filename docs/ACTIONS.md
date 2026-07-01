@@ -11,15 +11,15 @@ Kompletna lista akcji, jakie user może wykonać — pogrupowana po encji. Forma
 
 | Action | Description | Role | Notes |
 |--------|-------------|------|-------|
-| Create Run | Rozpocznij nowy przejazd lejka („start fresh") z dashboardu. | User | `capture` tworzy Run implicite (nazwa = data/godzina); zaczyna od brain dump. Run = widoczny obiekt ze statystykami (ADR 0020). |
+| Create Run | Rozpocznij nowy przejazd lejka („start fresh") z dashboardu. | User | `capture` tworzy Run implicite (nazwa = data/godzina); zaczyna od brain dump. Run staje się **aktywnym** (`activeRunId`) — jego lejek widać w ekranach funnel; nowy Run ma **pusty lejek** (każdy Run własne dane). Run = widoczny obiekt ze statystykami (ADR 0020, 0044). |
 | View Dashboard | Otwórz launcher: dominujący ostatnio-pracowany run (progres na pierwszym planie) + mniejsze aktywne runy + wejście do archiwum. | User | Ekran wejściowy apki. Właściciel: moduł `dashboard`. ~~Porównanie runów~~ wyrzucone z MVP (ADR 0027). |
-| Continue (resume) | Wróć do Runa tam, gdzie skończyłeś — smart-routing do najdalszego kroku z pracą. | User | Z karty Runa na dashboardzie. Routing: zapauzowana sesja → wznów • ≥1 task → focus • brak → process/decompose/ranking/brain dump • wszystko done → szczegóły. Atrybuty nie bramkują (ADR 0013). ADR 0022. |
+| Continue (resume) | Wróć do Runa tam, gdzie skończyłeś — smart-routing do najdalszego kroku z pracą. | User | Z karty Runa na dashboardzie. **Ustawia aktywny Run** (jego lejek od teraz widać). Routing: zapauzowana sesja → wznów • ≥1 task → focus • brak → process/decompose/ranking/brain dump • wszystko done → szczegóły. Atrybuty nie bramkują (ADR 0013). ADR 0022, 0044. |
 | View Details / Stats | Otwórz ekran statystyk Runa: czas spędzony (suma focusa), wykonane (`completed + dismissed`), zostało, progress %. | User | Ekran zarządzania Runem („Szczegóły"). |
 | Rename Run | Nadaj / edytuj opcjonalną nazwę. | User | Domyślnie = data/godzina; ze Szczegółów. |
 | Review | Przejdź przez stresory / taski i zdecyduj: nadal obowiązuje (relevant) vs do usunięcia (stale). | User | **Tylko ręcznie** ze Szczegółów — nie uruchamiane automatycznie przy resume. ADR 0023. |
 | Archive Run | Schowaj Run z aktywnych do archiwum (historia). | User | Ręcznie ze Szczegółów; odwracalne (Un-archive). ADR 0021. |
 | Un-archive Run | Przywróć zarchiwizowany Run do aktywnych (można Kontynuować). | User | Ręcznie z archiwum. ADR 0021. |
-| Delete Run | Usuń cały run na stałe (z historii/archiwum też). | User | Jedyna operacja terminalna. |
+| Delete Run | Usuń cały run na stałe (z historii/archiwum też). | User | Jedyna operacja terminalna. **Kaskadowo** z całym lejkiem (stresory, zadania, next-actiony, powody, done-visions, dane focus); jeśli usunięto aktywnego — aktywny wyczyszczony, user na Dashboardzie. ADR 0044. |
 
 ### Stressor
 
