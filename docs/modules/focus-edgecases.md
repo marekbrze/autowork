@@ -160,3 +160,16 @@ Pozostałe (🟢) to polish — do ewentualnego wdrożenia razem z powyższymi l
 - **FT-6** → odroczone (plan ADR 0053 „Later").
 
 > **Uwaga:** ten feature **nie wprowadza nowych stanów UI** (empty/error/loading) — fallbacki degradują po cichu. `proto-harden` nie ma tu klasycznej roboty; realna zmiana to FT-1/FT-2 (logika), więc raczej residual direct-edit niż pełny harden. Re-run `proto-edgecases` po wdrożeniu FT-1, by odświeżyć baseline.
+
+### Resolution (direct edit, 2026-07-02)
+
+| # | Status | Gdzie teraz |
+|---|--------|-------------|
+| FT-1 | ✅ | `use-focus-timer.ts` — nowy parametr `taskKey`; reset key'owany na `[taskKey]` (id taska) zamiast `[initialElapsed]`, `initialElapsed` czytany z closure; przekazanie `taskKey: currentTask?.id ?? null` w `FocusView.tsx`. Eliminuje self-broadcast i cross-tab cofnięcie timera. |
+| FT-2 | ✅ | `use-focus-timer.ts` `compute()` — `Math.max(baseRef.current, next)` (clamp od dołu na cofnięcie zegara). |
+| FT-3 | ⏳ Do weryfikacji | ręcznie po `proto-deploy` (czy `timer-tick.worker-*.js` ładuje się spod `/autowork/assets/`). |
+| FT-4 | ❌ Odroczone | intencjonalne — `timerElapsed` best-effort (toast i tak pokazuje `writeError`). |
+| FT-5 | ❌ Odroczone | ograniczenie współdzielonego per-Run storage'u; łagodzone przez FT-1. |
+| FT-6 | ❌ Odroczone | affordance keep-alive = nowa powierzchnia (plan ADR 0053 „Later"). |
+
+**Zamknięte: 2 (FT-1, FT-2) · Odroczone: 3 (FT-4/FT-5/FT-6) · Do weryfikacji: 1 (FT-3).** Weryfikacja: `tsc` + `vite build` + `eslint` zielone.

@@ -215,6 +215,7 @@ export function FocusView() {
   };
   const { elapsed, flush } = useFocusTimer({
     initialElapsed: currentTask?.timerElapsed ?? 0,
+    taskKey: currentTask?.id ?? null,
     running: screen === 'session' && running,
     onPersist: persistElapsed,
   });

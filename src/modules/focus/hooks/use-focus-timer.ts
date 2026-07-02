@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 interface UseFocusTimerArgs {
   /** Sekundy już policzone (persystowane na tasku) — start/wznowienie stąd. */
   initialElapsed: number;
+  /** Id bieżącego taska — reset licznika TYLKO przy jego zmianie (FT-1). */
+  taskKey: string | null;
   /** Czy licznik tyka. */
   running: boolean;
   /** Persystuj elapsed na tasku. Wołane throttled (co ~5s) + przy unmount. */
@@ -36,7 +38,7 @@ const wakeLockSupported = typeof navigator !== 'undefined' && 'wakeLock' in navi
  * `onPersist` wołane throttled (co ~5 s); przy przejściach stanów (Done/Skip/Dismiss/
  * Exit) wołać ręcznie `flush()`. Flushuje też przy unmount.
  */
-export function useFocusTimer({ initialElapsed, running, onPersist }: UseFocusTimerArgs) {
+export function useFocusTimer({ initialElapsed, taskKey, running, onPersist }: UseFocusTimerArgs) {
   const [elapsed, setElapsed] = useState(initialElapsed);
   const onPersistRef = useRef(onPersist);
   onPersistRef.current = onPersist;
@@ -56,7 +58,10 @@ export function useFocusTimer({ initialElapsed, running, onPersist }: UseFocusTi
   /** Bieżący elapsed policzony ze znacznika czasu (zawsze poprawny, bez dryftu). */
   const compute = useCallback(() => {
     if (resumedAtRef.current == null) return baseRef.current;
-    return baseRef.current + Math.floor((Date.now() - resumedAtRef.current) / 1000);
+    // FT-2: clamp od dołu — cofnięcie zegara systemowego (NTP / user) przy ukrytej
+    // karcie nie może sprawić, by timer odliczał poniżej zamrożonego `baseRef`.
+    const next = baseRef.current + Math.floor((Date.now() - resumedAtRef.current) / 1000);
+    return Math.max(baseRef.current, next);
   }, []);
 
   /** Throttled flush — persystuj co ~5 s (wołane z każdego ticku i resyncu). */
@@ -140,14 +145,18 @@ export function useFocusTimer({ initialElapsed, running, onPersist }: UseFocusTi
     }
   }, []);
 
-  // Reset przy zmianie bieżącego taska (nowy `initialElapsed` / wznowienie).
-  // `running` czytamy przez ref, by nie resetować przy każdej zmianie `running`.
+  // FT-1: reset TYLKO przy zmianie bieżącego taska (`taskKey` = id), a nie przy każdej
+  // zmianie `initialElapsed` — ten update'uje się co flush (self-broadcast) oraz cross-tab
+  // (`storage`), co key'ując na wartości powodowało cofnięcie timera w multi-tab. Dlatego
+  // `initialElapsed` czytamy z closure (wartość z renderu zmiany taska) i celowo NIE ma go
+  // w deps — to właśnie eliminuje re-fire na flush.
   useEffect(() => {
     baseRef.current = initialElapsed;
     lastFlushRef.current = initialElapsed;
     resumedAtRef.current = runningRef.current ? Date.now() : null;
     setElapsed(initialElapsed);
-  }, [initialElapsed]);
+    // `initialElapsed` celowo poza deps — patrz komentarz nad efektem (FT-1).
+  }, [taskKey]);
 
   // Start/stop tykania + Wake Locka przy przejściach `running`.
   useEffect(() => {
