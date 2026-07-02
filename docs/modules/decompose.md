@@ -9,6 +9,8 @@ Obie połowy modułu używają **tego samego wzorca — prompt pokazany, user wy
 
 `decompose` nie tylko produkuje taski — **magazynuje też paliwo motywacyjne**, które wraca na ekranie `focus`, gdy user stoi przed trudnym zadaniem („pamiętaj, po co to robisz").
 
+`decompose` jest też miejscem, w którym widać **postęp pracy** nad stresorem: taski już załatwione (`completed` / `dismissed` — ustawione w `focus` lub z listy `run`) są na liście akcji **widoczne jako załatwione** (read-only), a next-action w całości załatwiony zostaje wizualnie wyciszony. Powrót do `decompose` po sesji nie udaje więc, że nic się nie stało (ADR 0057).
+
 ## User Flows
 
 ### Per-stresor (powtarza się dla każdego, w kolejności rankingu)
@@ -29,6 +31,7 @@ Obie połowy modułu używają **tego samego wzorca — prompt pokazany, user wy
 
 ## Screens (rough)
 - **Widok pojedynczego stresora**: stresor wyeksponowany na środku; pod nim **blok WHY** — lista powodów z oznaczeniem walencji (pozytywna/negatywna), pole na wizję efektu (tekst + emoji) oraz „pomiń"; niżej **blok HOW** — pole dodawania next-actionów (Enter) z listą dodanych, a pod każdym prompt „Jak to możesz rozbić?" z wynikowymi taskami; przycisk **„Dalej"** (disabled bez ≥1 next-action) + wskaźnik postępu (który stresor z N).
+- **Status tasków w bloku HOW (read-only, ADR 0057)**: przy każdym tasku pod next-actionem **znacznik stanu**, gdy jest `completed` (✓) lub `dismissed` (⊘ + etykieta „not relevant", muted — neutralnie, **nie** na czerwono); przy next-actionie **licznik postępu** `X/N done` (gdzie done = `completed` + `dismissed`, spójnie z `Run.progress`), pokazywany gdy ≥1 task załatwiony; next-action, którego **wszystkie** taski są załatwione → strike-through + muted (de-emphasis), ale nadal w pełni edytowalny (edycja / rozbicie / usuwanie). Stany `skipped` / `active` w MVP niewidoczne (render neutralnie).
 
 ## Actions
 
@@ -41,6 +44,7 @@ Obie połowy modułu używają **tego samego wzorca — prompt pokazany, user wy
 | Decompose into Tasks | Pod next-actionem: odpowiedz na prompt „Jak to możesz rozbić?" → mniejsze taski. | Task | Prompt + skip; skip = 1 task. |
 | Edit / Delete NextAction | Zmień tekst / usuń. | NextAction | |
 | Proceed („Dalej") | Następny stresor; po ostatnim → `process`. | — | Per stresor: ≥1 next-action. |
+| View task status (read-only) | Znacznik stanu taska pod next-actionem (`completed` ✓ / `dismissed` ⊘ „not relevant"); licznik `X/N done`; w pełni załatwiony next-action — wyciszony. | Task | **Tylko odczyt** — stan mutują `focus` (Done/Dismiss) i `run` (Mark done/not-relevant); `decompose` go tylko pokazuje. ADR 0057. |
 
 ## Edge Cases
 - **Brak pomysłu na next-action („nie wiem, jak to ruszyć")**: realny stan dla overwhelmed/ADHD usera — ale moduł **wymaga ≥1 next-action**, żeby iść dalej. App prowadzi promptami („Jak to możesz rozbić?" + przykłady aktywnych akcji: „zadzwoń do…", „wyślij…", „wpłać…"), żeby wyjść z zablokowania, zamiast zmuszać do wymyślania na pusto.
@@ -53,10 +57,18 @@ Obie połowy modułu używają **tego samego wzorca — prompt pokazany, user wy
 - **Usuwanie next-actionu (z jego taskami) / powodu** *(po `proto-harden`)*: dialog potwierdzenia (AlertDialog-style), nie undo — decyzja designu odmienna niż `capture`/ADR 0004.
 - **Edycja next-actionu do pustego** *(po `proto-harden`)*: pusty draft anuluje edycję (zostawia oryginał), nie usuwa po cichu — usuwanie to osobna jawna akcja.
 - **Ponowne rozbicie tego samego next-actionu** *(po `proto-harden`)*: taski o niezmiennym tekście zachowują identyczność (id + ewentualne atrybuty), więc powrót do `decompose` po `process`/`focus` nie zmaże przypisanych `context`/`energy`/`estimatedTime`.
+- **Next-action bez tasków**: brak licznika postępu (`0/0` by myliło) — zostaje etykieta „to break down".
+- **Mix stanów pod next-actionem** (np. 1 done, 1 pending): licznik `1/2 done`, brak de-emphasis (de-emphasis tylko gdy **wszystkie** taski załatwione).
+- **Ponowne rozbicie next-actionu z done taskami** *(po `proto-harden`)*: `replaceTasksForNextAction` diff-po-tekście zachowuje `state` taskom o niezmiennym tekście → ich znacznik przetrwa; usunięty tekst = usunięty task (stan znika razem z nim); ten sam tekst dodany ponownie = świeży `pending`. De-emphasis i licznik liczą się live, więc same się korygują.
+- **Task bez `state` (stare/zmigrowane dane) lub nieznany stan**: renderowany neutralnie (jak `pending`) — guard, nie wywala.
+- **`dismissed` ≠ `completed`**: odrębny glyph + etykieta, ale **oba spokojne** — irrelevant NIE na czerwono (DESIGN.md: anti-ref „harsh red alarm").
+- **a11y stanu**: stan przekazywany przez glyph + tekst (np. `aria-label="…: done"` / „…: not relevant"), nie tylko kolorem/przekreśleniem.
+- **W pełni załatwiony next-action nadal edytowalny**: read-only dotyczy **stanu** tasków, nie CRUD next-actionu — edycja tekstu, rozbicie, usuwanie działają jak zwykle.
 
 ## Integration Points
 - **`capture`**: wejście — pobiera uporządkowane (zrankowane) stresory.
 - **`process`**: wyjście — przekazuje taski (z kontekstem next-action/stresor) do opisania atrybutami (Context / Energy / EstimatedTime).
 - **`focus`**: **konsument materiału motywacyjnego** (Reasons + DoneVision) — świeci go np. przy trudnym tasku jako „pamiętaj, po co to robisz". `decompose` ładuje baterię, którą `focus` zużywa.
+- **`focus` / `run` → `decompose` (odczyt stanu)**: `completed` / `dismissed` ustawiane w `focus` (Done/Dismiss) i z listy `run` (Mark done/not-relevant) są teraz **widoczne** w bloku HOW `decompose` jako read-only znaczniki + licznik postępu (ADR 0057). Ten sam współdzielony byt `Task` — `decompose` tylko czyta `state`.
 - **`run`**: żyje wewnątrz aktywnego Runa; stepper postępu (ADR 0001) prowadzi przez stresory.
 - **App shell (ADR 0001)**: etap renderuje się w `AppShell`; brak wolnych linków nawigacji — prowadzenie, nie menu.
