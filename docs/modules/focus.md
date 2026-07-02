@@ -5,6 +5,10 @@ Serce aplikacji — payoff całego lejka. Po przefiltrowaniu zadań user wchodzi
 
 Timer liczy **w górę od 0:00**; oszacowany czas (`EstimatedTime` z `process`) to **próg**, po którego przekroczeniu licznik robi się **czerwony** (model B, ADR 0016 — zmiana z odliczania w dół). Stonowana energia zamiast presji tykającego odliczania; dla persony ADHD/overwhelmed licznik „jak długo już robię" jest łagodniejszy niż „czas ucieka".
 
+**Timer działa w tle i zawsze jest poprawny.** Mechanizm timestamp-based (liczy czas wall-clock, nie ticki) — nawet gdy Edge usypia nieaktywną kartę (Sleeping Tabs) lub dławi `setInterval`, po powrocie timer snapuje do właściwego czasu bez dryftu. Tick napędzany z **Web Workera** (żyje w tle), a **Wake Lock** trzyma ekran/kartę przy życiu, gdy jest widoczna (feature `focus-timer-background-keepalive-and-tab-title`, ADR 0053).
+
+**Czas timera w title karty.** Podczas aktywnej sesji (task pod timerem, running lub paused) `document.title` pokazuje live elapsed — `12:34 — Autowork` (+ `· paused` w pauzie, `· over` po przekroczeniu oszacowania). Poza sesją / w podsumowaniu = normalny title. Dzięki temu user rzutem oka na pasek Edge'a widzi czas bez wracania na kartę, a tykający Worker aktualizuje title także w tle.
+
 Kolejność w sesji = domyślnie **po randku stresora** (najbardziej stresujący → pierwsze), więc user zaczyna od tego, co najbardziej ciąży.
 
 **Ręczna kolejność = elastyczność, nie nudge.** Na ekranie filtra user widzi **listę dopasowanych zadań** i może ją **przełożyć** (drag / ↑↓) — żeby zgrupować powiązane zadania obok siebie albo ustawić sekwencję (jedno musi być wcześniej, bo z niego wynika drugie). To czysta agencja: nie sugerujemy „łatwe najpierw" ani „najgorsze najpierw", tylko oddajemy panowanie. Domyślnie kolejność = rank stresora (jak wyżej); ręczny porządek to **nadpisanie**. `TaskOrder` to **jeden współdzielony model** — ten sam porządek widać na liście filtra, w kolejce sesji po Starcie i na liście zadań Szczegółów Runa (ADR 0036). Reset do defaultu dostępny. (Feature `session-queue-order-and-run-task-list`, ADR 0035.)
@@ -64,7 +68,7 @@ Po Starcie pierwsze zadanie z kolejki w porządku `TaskOrder` (default = najbard
 | Skip → `skipped` | Odłóż; wraca jako `pending` przy następnej sesji. | Task | Temporary — różne od Dismiss. |
 | Dismiss → `dismissed` | Oznacz jako nieaktualne (straciło sens). | Task | Status (ADR 0017); nie wraca, undo, liczy do progresem, osobna sekcja w summary. |
 | Back (reopen previous) | Cofnij do poprzedniego zadania. | Task | Bieżący → `pending`. |
-| Timer Start / Pause / Resume | Licz w górę od 0; pauza/wznowienie z zapamiętanej pozycji. | Timer | Model B (ADR 0016); próg = oszacowanie → czerwono. |
+| Timer Start / Pause / Resume | Licz w górę od 0; pauza/wznowienie z zapamiętanej pozycji. | Timer | Model B (ADR 0016); próg = oszacowanie → czerwono. Tło: timestamp-based, zawsze poprawny po powrocie; tick z Web Workera, Wake Lock trzyma ekran, a `document.title` pokazuje live elapsed (ADR 0053). |
 | Exit (early) | Zakończ wcześniej; bieżący task zostaje `active`. | FocusSession | Wznowienie od tego samego taska. |
 | View Summary | Auto-po wyczerpaniu zestawu (lub po Exit). | SessionSummary | Done + łączny czas + Nieaktualne (osobna sekcja). |
 | ClearCompleted | Usuń `completed` + `dismissed`. | Task | Moment celebracji. |
@@ -76,6 +80,7 @@ Po Starcie pierwsze zadanie z kolejki w porządku `TaskOrder` (default = najbard
 - **Awaria zapisu (LocalStorage pełne/wyłączone)**: akcja (Done/Skip/Dismiss/Back/Clear/Reorder/Reset) **nie wykonuje się** przy nieudanym zapisie — user zostaje na tasku / układ się nie psuje, `StorageStatusToast` z retry (żadna cicha utrata; wzorzec z `ProcessView`).
 - **Awaria odczytu**: uszkodzony odczyt → stan błędu („Nie udało się wczytać zadań" + Odśwież) zamiast mylnego empty-state listy.
 - **Zmiana stanu mid-session (inna karta)**: task rozwiązany „za plecami" nie zostaje pokazany jako bieżący — rekonsyliacja przewija do następnego `pending` w kolejce (albo kończy sesję).
+- **Karta w tle / uśpiona karta (Edge Sleeping Tabs)**: timer jest **zawsze poprawny** po powrocie — model timestamp-based (wall-clock, nie ticki) snapuje do właściwego czasu nawet, gdy Edge uspi kartę i żaden tick nie odpali. Tick w tle napędza **Web Worker** (aktualizuje też `document.title`), a **Wake Lock** trzyma ekran przy życiu, gdy karta widoczna. Pełna guarancja przeciw usypianiu po bardzo długim czasie jest poza zasięgiem JS — resync zawsze poprawia wartość (ADR 0053).
 - **Overtime (timer > oszacowanie)**: tylko wizualnie czerwony (motywacja i tak zawsze widoczna — brak dodatkowego triggera).
 - **Sesja 1-zadaniowa**: Done → od razu podsumowanie.
 - **Undo Dismiss**: cofnięcie `dismissed` → wraca jako `pending` (jak undo usuwania stresora, ADR 0004). Działa **też z ekranu podsumowania** (toast undo żyje na poziomie `FocusView`, przeżywa skok do summary przy dismiss ostatniego taska).

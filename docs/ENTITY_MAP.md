@@ -130,7 +130,7 @@ erDiagram
 **Belongs to**: Run.
 
 ### Timer
-**Description**: Licznik dla aktywnego taska — **liczy w górę od 0:00** (model B, ADR 0016); `EstimatedTime` to próg, po którego przekroczeniu licznik renderuje się na czerwono. **Pamięta pozycję** — po pauzie/wznawianiu kontynuuje tam, gdzie stanął (stan licznika trzymany per Task: `timerElapsed`).
+**Description**: Licznik dla aktywnego taska — **liczy w górę od 0:00** (model B, ADR 0016); `EstimatedTime` to próg, po którego przekroczeniu licznik renderuje się na czerwono. **Pamięta pozycję** — po pauzie/wznawianiu kontynuuje tam, gdzie stanął (stan licznika trzymany per Task: `timerElapsed`). **Mechanizm timestamp-based** (wall-clock, nie ticki) — zawsze poprawny po powrocie z tła/uśpionej karty (Edge); tick w tle napędza Web Worker, ekran trzyma Wake Lock, a `document.title` pokazuje live elapsed podczas sesji (ADR 0053).
 **Instances per FocusSession**: Jeden (UI); stan per Task.
 **Ownership**: FocusSession.
 **Lifecycle**: Tworzony z sesją; wartość persystowana; wznawiany.

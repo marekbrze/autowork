@@ -87,6 +87,7 @@ Kompletna lista akcji, jakie user może wykonać — pogrupowana po encji. Forma
 | Start | Rozpocznij liczenie w górę od 0 dla aktywnego taska. | User | Model B (ADR 0016). |
 | Pause / Resume | Pamiętaj pozycję; wznow z zapisanej wartości. | User | Stan per Task (`timerElapsed`). |
 | (counts past estimate) | Po przekroczeniu `EstimatedTime` leci dalej w górę; render czerwony (`overtime`). | System | Model B (ADR 0016). |
+| (stays accurate in background) | Timer pozostaje poprawny, gdy karta jest w tle / uśpiona (Edge Sleeping Tabs); po powrocie snapuje do właściwego czasu. Tick w tle napędza Web Worker; Wake Lock trzyma ekran, gdy karta widoczna; `document.title` pokazuje live elapsed. | System | Timestamp-based, nie ticki (ADR 0053). |
 
 ### SessionSummary
 
