@@ -118,3 +118,45 @@ Pozostałe (🟢) to polish — do ewentualnego wdrożenia razem z powyższymi l
 | F2-7 | ❌ Odroczone — polish (długa lista / scroll). |
 
 **Zamknięte: 1 (F2-1) · Odroczone: 6 (F2-2 = decyzja designu + 5 polish).**
+
+---
+
+## Re-audit: timer background keep-alive + tab title feature (proto-edgecases, 2026-07-02)
+
+**Zakres**: nowe zachowania z ADR 0053/0054 w `focus` — timer **timestamp-based** (zawsze poprawny po powrocie z tła/uśpionej karty), tykający **Web Workerem** (fallback `setInterval`), **Wake Lock** trzymający ekran przy życiu, resync na `visibilitychange`, oraz **czas timera w `document.title`**. Powierzchnie sprzed feature'u audits-owane i zahardenowane wyżej — nie dubluję.
+
+### Coverage (feature)
+- **Spec już capture'owana** (`focus.md` §Edge Cases, dodane w proto-detail ADR 0054): „Karta w tle / uśpiona karta (Edge Sleeping Tabs)" + dopiski do istniejących „Wczesne wyjście…" i „Zmiana stanu mid-session".
+- **Już obsłużone w kodzie**:
+  - timer poprawny po powrocie z uśpionej karty → timestamp + resync `use-focus-timer.ts:178-188`.
+  - pauza w tle / resume w tle → `resumedAtRef` null gdy pauza, `onTick`/visibility early-return `use-focus-timer.ts:79-80, 180-181`.
+  - brak Workera / brak Wake Lock → cicha degradacja (fallback / skip) `use-focus-timer.ts:101-104, 128`.
+  - title wraca do bazowego poza sesją / w summary / przy unmount → `use-focus-tab-title.ts:28-30, 34-36`.
+  - flush przy Done/Skip/Dismiss/Exit (również z pauzy — `compute()` zwraca zamrożony `baseRef`) → `use-focus-timer.ts:196-201`, `FocusView.tsx:281,289,296,341`.
+- **Nowe luki**: 6 · 🔴 0 · 🟡 1 · 🟢 5.
+
+### Inventory (feature)
+
+| # | Sev | Category | Edge case | Behavior today | Suggested behavior | Where |
+|---|-----|----------|-----------|----------------|--------------------|-------|
+| FT-1 | 🟡 | State transitions / cross-tab | Reset timera key'owany na **wartość** `initialElapsed`, nie na tożsamość taska | Efekt resetu bazuje na `[initialElapsed]` (`:143-150`). `initialElapsed = currentTask?.timerElapsed ?? 0` (`FocusView.tsx:217`) zmienia się co ~5 s — każdy flush `timerElapsed` updatuje task → `currentTask.timerElapsed` → `initialElapsed` → efekt się odpala. W **single-tab** wartość jest zachowana (flush zawsze na granicy całych sekund → reset jest no-opem), ale w **multi-tab tej samej sesji** flush z karty A pisze `timerElapsed` do współdzielonego storage'u → karta B dostaje `storage` event → jej `initialElapsed` skacze → timer w B **cofa się** do wartości z A. | Dodać parametr `taskKey` (id taska); reset `baseRef`/`resumedAtRef`/`lastFlushRef` **tylko** przy zmianie `taskKey`, a `initialElapsed` czytać w tym momencie. Eliminuje też self-broadcast. | `use-focus-timer.ts:143-150`; przekazanie `taskKey` w `FocusView.tsx:216-220` |
+| FT-2 | 🟢 | Data states | Zmiana zegara systemowego (NTP / user) przy ukrytej karcie | `compute()` liczy `Date.now() - resumedAtRef`; cofnięcie zegara daje ujemny delta → timer mogłby odliczać w dół poniżej `baseRef`. | Clamp `Math.max(baseRef.current, …)` w `compute()` (lub `performance.now()` — ale `Date.now()` jest celowe, bo przeżywa uśpienie karty). | `use-focus-timer.ts:57-59` |
+| FT-3 | 🟢 | Errors / loading | Worker 404 w prod (base path `/autowork/`) | `onerror` → fallback `setInterval` (pokryte), ale niezweryfikowane na GitHub Pages po deploymencie. | Zweryfikować ręcznie po `proto-deploy` (czy `timer-tick.worker-*.js` ładuje się spod `/autowork/assets/`). | `use-focus-timer.ts:101-104` |
+| FT-4 | 🟢 | Prototype-specific | Timer persist ignoruje wynik zapisu | `persistElapsed` woła `updateTask` i ignoruje boolean — przy pełnym/wyłączonym LocalStorage `timerElapsed` się nie persystuje (sesja liczy poprawnie w pamięci, ale po reloadzie wraca ostatni flush). | Intencjonalne — `timerElapsed` jest best-effort (inaczej niż stany Done/Skip, które bramkują zapis). `StorageStatusToast` i tak pokazuje `writeError`. Udokumentowane, nie luka do naprawy. | `FocusView.tsx:213-215` |
+| FT-5 | 🟢 | Cross-module / lifecycle | Dwie karty tego samego Runu wznawiają tę samą sesję | Snapshot `focus:session` + `timerElapsed` są per-Run (ADR 0044); dwie karty na `/focus` mogą wznowić tę samą kolejkę → walczą o snapshot i (FT-1) o `timerElapsed`. | Głównie łagodzone przez FT-1 (`taskKey`). Pełna izolacja per-tab (lock sesji) poza zakresem — udokumentowane ograniczenie współdzielonego storage'u. | `FocusView.tsx:81` (snapshot), `use-focus-timer.ts:143-150` |
+| FT-6 | 🟢 | (non-gap, zapisane) | Brak in-app wskaźnika statusu keep-alive / Wake Lock | Niewidoczny z założenia. | Zgodnie z planem feature'u (ADR 0053 „Later") — ewentualny affordance to nowa powierzchnia (`design`+`polish`), nie obsługa ścieżki błędnej. Zapisane, by nie re-flagować. | — |
+
+*Kategorie czyste (sprawdzone, brak luk w tym feature): Forms & input (brak formularzy) · Navigation/dead-ends (title restore obsłużone, `use-focus-tab-title.ts:28-30, 34-36`) · Errors (brak `alert()`; awaria Workera/Wake Lock degraduje po cichu) · Accessibility (zmiana title nie ogłaszana — spójne z `aria-live="off"` ekranowego timera).*
+
+### Priority (feature)
+1. **FT-1 — `taskKey` reset**: jedyna realna luka robustness. W single-tab łagodna (no-op), w multi-tab tej samej sesji realny cofnięcie timera. Mała zmiana API + wywołanie w `FocusView`.
+2. (🟢 FT-2 clamp jednowierszowy · FT-3 weryfikacja po deploymencie · FT-4/FT-5 udokumentowane ograniczenia · FT-6 odroczone z założenia.)
+
+### Hand-off
+- **FT-1** → drobny fix logiczny (residual direct-edit lub `proto-harden`): `taskKey` parametr + reset tylko przy zmianie taska.
+- **FT-2** → jednowierszowy clamp w `compute()` (do wdrożenia razem z FT-1).
+- **FT-3** → weryfikacja ręczna po `proto-deploy`.
+- **FT-4 / FT-5** → udokumentowane ograniczenia (best-effort persistence / współdzielony per-Run storage) — bez akcji.
+- **FT-6** → odroczone (plan ADR 0053 „Later").
+
+> **Uwaga:** ten feature **nie wprowadza nowych stanów UI** (empty/error/loading) — fallbacki degradują po cichu. `proto-harden` nie ma tu klasycznej roboty; realna zmiana to FT-1/FT-2 (logika), więc raczej residual direct-edit niż pełny harden. Re-run `proto-edgecases` po wdrożeniu FT-1, by odświeżyć baseline.
