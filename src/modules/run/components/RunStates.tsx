@@ -1,4 +1,4 @@
-import { AlertTriangle, Archive, RotateCw } from 'lucide-react';
+import { AlertTriangle, Archive, CheckCircle2, RotateCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 
@@ -48,16 +48,21 @@ interface RunCompletedProps {
 export function RunCompleted({ onArchive }: RunCompletedProps) {
   return (
     <section
-      className="space-y-3 rounded-lg border bg-muted/30 p-4"
+      // Earned celebration moment (DESIGN.md motion #1): brand-green wash + scale-in.
+      // Pixel face stays reserved for `focus`; here Nunito extrabold carries the joy.
+      className="animate-celebrate space-y-4 rounded-xl border border-brand-400/50 bg-brand-300/60 p-6"
       aria-label="Run complete"
     >
-      <div>
-        <h3 className="font-semibold">Run complete</h3>
-        <p className="text-sm text-muted-foreground">
-          All tasks in this run are done. Archive it to keep it in your history.
-        </p>
+      <div className="flex items-center gap-3">
+        <CheckCircle2 className="size-10 shrink-0 text-brand-700" aria-hidden />
+        <div className="space-y-0.5">
+          <h3 className="text-xl font-extrabold tracking-tight text-brand-700">Run complete</h3>
+          <p className="text-sm text-muted-foreground">
+            Every task in this run is done. Archive it to keep the win in your history.
+          </p>
+        </div>
       </div>
-      <Button type="button" onClick={onArchive}>
+      <Button type="button" size="lg" onClick={onArchive}>
         <Archive /> Archive this run
       </Button>
     </section>

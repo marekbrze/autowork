@@ -290,7 +290,7 @@ function StateBadge({ archived, completed }: { archived: boolean; completed: boo
     );
   if (completed)
     return (
-      <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+      <span className="rounded-full bg-brand-300 px-2.5 py-0.5 text-xs font-medium text-brand-700">
         Completed
       </span>
     );

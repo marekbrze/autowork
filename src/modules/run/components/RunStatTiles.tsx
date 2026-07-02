@@ -1,4 +1,4 @@
-import { formatDuration, isRunCompleted, runProgress, runRemaining } from '../types/run';
+import { formatDuration, runProgress, runRemaining } from '../types/run';
 import type { Run } from '../types/run';
 
 interface RunStatTilesProps {
@@ -12,7 +12,6 @@ interface RunStatTilesProps {
 export function RunStatTiles({ run }: RunStatTilesProps) {
   const progress = runProgress(run);
   const remaining = runRemaining(run);
-  const completed = isRunCompleted(run);
 
   return (
     <div className="space-y-3">
@@ -35,7 +34,7 @@ export function RunStatTiles({ run }: RunStatTilesProps) {
         aria-label={`Progress: ${progress}%`}
       >
         <div
-          className={`h-full rounded-full transition-all ${completed ? 'bg-emerald-500' : 'bg-primary'}`}
+          className="h-full rounded-full bg-primary transition-all"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -59,7 +58,7 @@ export function RunStatTiles({ run }: RunStatTilesProps) {
 function Tile({ value, label }: { value: string; label: string }) {
   return (
     <div className="rounded-lg border bg-card p-4 text-center">
-      <div className="text-2xl font-semibold tracking-tight tabular-nums">{value}</div>
+      <div className="text-2xl font-bold tracking-tight tabular-nums">{value}</div>
       <div className="mt-1 text-xs text-muted-foreground">{label}</div>
     </div>
   );
