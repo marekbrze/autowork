@@ -16,10 +16,12 @@ import { useTasks } from '@/modules/decompose/hooks/use-tasks';
 import type { Task } from '@/modules/decompose/types/task';
 
 import { useFocusTimer } from '../hooks/use-focus-timer';
+import { useFocusTabTitle } from '../hooks/use-focus-tab-title';
 import {
   CONTEXT_ORDER,
   EMPTY_FILTER,
   ENERGY_ORDER,
+  formatClock,
   type FilterSelection,
   type FocusScreen,
   type SessionSnapshot,
@@ -215,6 +217,14 @@ export function FocusView() {
     initialElapsed: currentTask?.timerElapsed ?? 0,
     running: screen === 'session' && running,
     onPersist: persistElapsed,
+  });
+
+  // ADR 0053: czas timera w title karty (live elapsed + `· paused` / `· over`).
+  useFocusTabTitle({
+    active: screen === 'session' && !!currentTask,
+    clock: formatClock(elapsed),
+    paused: screen === 'session' && !running,
+    over: currentTask?.estimatedTime != null && elapsed > currentTask.estimatedTime * 60,
   });
 
   // --- nawigacja / akcje ---
