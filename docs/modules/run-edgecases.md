@@ -253,3 +253,9 @@ Scope: **NOWE** przypadki brzegowe wprowadzone przez feature (klikalny stepper, 
 - **CS-3 → `proto-harden`** (dobić warunek guardu na `currentTask`) — drobne, razem z CS-1.
 - **CS-4 / CS-5 / CS-6 → `proto-polish`** (copy / degenerowany stan / a11y) lub odłożyć.
 - Brak 🔴 i brak luk wymagających `proto-lofi` (żadnych nowych ekranów) — feature jest funkcjonalnie kompletny; reszta to affordance/polish.
+
+### Resolution (feature)
+- **CS-3 ✅** — guard wymaga teraz obecności taska (gated na `currentTask`): `screen === 'session' && currentTask && running` (`FocusView.tsx:413`). Over-trigger w stanie safeguard (sesja, task zniknął) wyeliminowany.
+- **CS-1 ✅ (zaakceptowane + udokumentowane)** — guard sesji zostaje **stepper-only**; inne drogi (back/reload/linki w nagłówku) wychodzą milcząco, ale bezpiecznie (snapshot `focus:session` persystuje per-Run niezależnie od drogi → bez utraty danych, wznawialne). Udokumentowane w `run.md` (Edge Cases). Rozszerzenie na wszystkie drogi odłożone (fragile, MVP-nieuzasadnione).
+- **CS-2 ✅** — wdrożone w `proto-polish` (ADR 0050: affordance klikalnego stepper'a).
+- **CS-4 / CS-5 / CS-6 ❌ (odłożone)** — copy w module `process` / degenerowany stan rankinga (1 stresor) / a11y tab-stopów. Świadome — → ew. `proto-polish`, nie blokują.

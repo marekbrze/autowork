@@ -409,8 +409,9 @@ export function FocusView() {
       <FunnelStepper
         current="focus"
         onBeforeNavigate={(_stage, route) => {
-          // Aktywna sesja (timer leci) → zapytaj przed wyjściem (ADR 0048).
-          if (screen === 'session' && running) {
+          // Aktywna sesja (task pod timerem, timer leci) → zapytaj przed wyjściem (ADR 0048).
+          // `currentTask` gates out the rare safeguard state (sesja, ale task zniknął) — CS-3.
+          if (screen === 'session' && currentTask && running) {
             setLeaveTarget(route);
             return false;
           }
