@@ -45,10 +45,16 @@ export function FunnelStepper({ current, onBeforeNavigate }: FunnelStepperProps)
               if (onBeforeNavigate && !onBeforeNavigate(s.key, s.route)) e.preventDefault();
             }}
             className={cn(
-              'rounded-full px-2.5 py-1 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
-              isActive && 'bg-primary text-primary-foreground',
-              isDone && 'text-foreground',
-              !isActive && !isDone && 'text-muted-foreground/60 hover:text-foreground',
+              'rounded-full px-2.5 py-1 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px',
+              // Affordance aligned to system nav/chip pattern (NavLink ghost, SessionFilter Chip):
+              // non-active steps are full-opacity text + hover:bg-muted — clearly interactive, never
+              // the washed-out muted/60 that reads as disabled. Active = strong brand-green marker.
+              isActive
+                ? 'bg-primary text-primary-foreground'
+                : cn(
+                    'hover:bg-muted',
+                    isDone ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+                  ),
             )}
           >
             {s.label}
