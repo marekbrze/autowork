@@ -31,7 +31,7 @@ function run(over: Partial<Run> = {}): Run {
     name: 'Run · Jul 1, 5:15 PM',
     state: 'in_progress',
     lastReachedStep: 'focus',
-    stats: { timeSpentSec: 0, doneCount: 0, dismissedCount: 0, totalTasks: 0 },
+    stats: { timeSpentSec: 0, doneCount: 0, dismissedCount: 0, totalTasks: 0, estimatedTotalMin: 0, estimatedRemainingMin: 0 },
     reviewItems: [],
     createdAt: TS,
     updatedAt: TS,

@@ -17,13 +17,16 @@ import type { FunnelStep, RunStats } from './types/run';
 /**
  * Liczy statystyki Runa z tasków. Mianownik = wszystkie taski; licznik (done) =
  * `completed` + `dismissed` (ADR 0017); `skipped` NIE liczy się (wraca w kolejnej sesji).
- * Czas = suma `timerElapsed` po zrobionych taskach.
+ * Czas = suma `timerElapsed` po zrobionych taskach. Łączny/pozostały szacunek = suma
+ * `EstimatedTime` (po wyestymowanych); remaining = nie-zrobione, spójne z `doneCount` (ADR 0060).
  */
 export function deriveRunStats(tasks: Task[]): RunStats {
   const totalTasks = tasks.length;
   let doneCount = 0;
   let dismissedCount = 0;
   let timeSpentSec = 0;
+  let estimatedTotalMin = 0;
+  let estimatedRemainingMin = 0;
   for (const t of tasks) {
     if (t.state === 'completed') {
       doneCount += 1;
@@ -32,12 +35,22 @@ export function deriveRunStats(tasks: Task[]): RunStats {
       doneCount += 1;
       dismissedCount += 1;
     }
+    // `EstimatedTime` opcjonalne (nullable, przypinane w `process`); liczymy tylko wyestymowane.
+    // Remaining = stany ∉ completed/dismissed (pending/active/skipped — jeszcze do zrobienia).
+    if (t.estimatedTime != null) {
+      estimatedTotalMin += t.estimatedTime;
+      if (t.state !== 'completed' && t.state !== 'dismissed') {
+        estimatedRemainingMin += t.estimatedTime;
+      }
+    }
   }
   return {
     timeSpentSec: Math.round(timeSpentSec),
     doneCount,
     dismissedCount,
     totalTasks,
+    estimatedTotalMin,
+    estimatedRemainingMin,
   };
 }
 

@@ -145,6 +145,12 @@ export function FocusView() {
       });
   }, [attributed, selection, taskOrder, stressorRank]);
   const matchCount = matchedTasks.length;
+  // Łączny szacunek dopasowanych tasków (min) — pokazany w filtrze (ADR 0060). Matched zawsze
+  // mają `estimatedTime` (filtr `attributed` tego wymaga), więc >0 gdy matchCount>0.
+  const matchedEstimateMin = useMemo(
+    () => matchedTasks.reduce((sum, t) => sum + (t.estimatedTime ?? 0), 0),
+    [matchedTasks],
+  );
 
   /**
    * Rekonsyliacja (#5): pierwszy indeks ≥ `start`, pod którym task istnieje i jest
@@ -449,6 +455,7 @@ export function FocusView() {
             selection={selection}
             onSelectionChange={setSelection}
             matchCount={matchCount}
+            matchedEstimateMin={matchedEstimateMin}
             totalAttributed={attributed.length}
             resolvedAttributed={resolvedAttributed}
             matchedTasks={matchedTasks}

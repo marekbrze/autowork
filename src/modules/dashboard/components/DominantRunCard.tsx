@@ -11,6 +11,7 @@ import {
   runRemaining,
   STEP_LABEL,
 } from '@/modules/run/types/run';
+import { formatMinutes } from '@/shared/format';
 import type { Run } from '@/modules/run/types/run';
 
 interface DominantRunCardProps {
@@ -89,6 +90,11 @@ export function DominantRunCard({ run, onContinue, onStartNew, onArchive }: Domi
             {run.stats.totalTasks} done ·{' '}
             <span className="font-medium text-foreground">{remaining}</span> left ·{' '}
             {formatDuration(run.stats.timeSpentSec)} in focus
+            {run.stats.estimatedTotalMin > 0 && (
+              <>
+                {' '}· ~<span className="font-medium text-foreground">{formatMinutes(run.stats.estimatedTotalMin)}</span> estimated
+              </>
+            )}
           </p>
         )}
       </div>

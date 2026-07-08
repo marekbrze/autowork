@@ -29,6 +29,10 @@ export interface RunStats {
   dismissedCount: number;
   /** Łączna liczba tasków w Runie. */
   totalTasks: number;
+  /** Łączny czas szacunkowy (min) — suma `EstimatedTime` po wyestymowanych taskach (ADR 0060). */
+  estimatedTotalMin: number;
+  /** Pozostały czas szacunkowy (min) — suma po wyestymowanych, nie-zrobionych (∉ completed/dismissed; ADR 0060). */
+  estimatedRemainingMin: number;
 }
 
 /** Pozycja w ręcznym przeglądzie Runa (ADR 0023). */

@@ -13,7 +13,7 @@ const completedRun: Run = {
   name: 'Ukończony projekt',
   state: 'in_progress',
   lastReachedStep: 'celebration',
-  stats: { timeSpentSec: 5400, doneCount: 10, dismissedCount: 1, totalTasks: 10 },
+  stats: { timeSpentSec: 5400, doneCount: 10, dismissedCount: 1, totalTasks: 10, estimatedTotalMin: 300, estimatedRemainingMin: 0 },
   reviewItems: [],
   createdAt: '2026-06-20T09:00:00.000Z',
   updatedAt: '2026-06-29T10:00:00.000Z',

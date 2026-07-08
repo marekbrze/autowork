@@ -14,7 +14,7 @@ const matchedTasks: Task[] = [
 const meta: Meta<typeof SessionFilter> = {
   title: 'Focus/SessionFilter',
   component: SessionFilter,
-  args: { onSelectionChange: () => {}, onStart: () => {}, resolvedAttributed: 0 },
+  args: { onSelectionChange: () => {}, onStart: () => {}, resolvedAttributed: 0, matchedEstimateMin: 0 },
   // AllDone renderuje <Link to="/process"> — potrzebuje kontekstu routera.
   decorators: [
     (Story) => (
@@ -34,7 +34,7 @@ export const Empty: Story = {
 };
 
 export const WithMatches: Story = {
-  args: { selection: { contexts: ['Phone', 'Creative'], energies: [1, 2, 3] }, matchCount: 4, totalAttributed: 8 },
+  args: { selection: { contexts: ['Phone', 'Creative'], energies: [1, 2, 3] }, matchCount: 4, matchedEstimateMin: 120, totalAttributed: 8 },
 };
 
 export const NoMatches: Story = {
@@ -45,6 +45,7 @@ export const AllSelected: Story = {
   args: {
     selection: { contexts: ['Phone', 'Message', 'Creative', 'Errands', 'Home', 'City'], energies: [1, 2, 3] },
     matchCount: 8,
+    matchedEstimateMin: 240,
     totalAttributed: 8,
   },
 };
@@ -63,6 +64,7 @@ export const WithMatchedList: Story = {
   args: {
     selection: { contexts: ['Phone', 'Creative'], energies: [1, 2, 3] },
     matchCount: 3,
+    matchedEstimateMin: 65,
     totalAttributed: 8,
     resolvedAttributed: 0,
     matchedTasks,
@@ -77,6 +79,7 @@ export const WithManualOrder: Story = {
   args: {
     selection: { contexts: ['Phone', 'Creative'], energies: [1, 2, 3] },
     matchCount: 3,
+    matchedEstimateMin: 65,
     totalAttributed: 8,
     resolvedAttributed: 0,
     matchedTasks,

@@ -18,7 +18,7 @@ const archivedOnly: Run[] = [
     name: 'Wiosenne porządki',
     state: 'archived',
     lastReachedStep: 'celebration',
-    stats: { timeSpentSec: 7200, doneCount: 15, dismissedCount: 2, totalTasks: 15 },
+    stats: { timeSpentSec: 7200, doneCount: 15, dismissedCount: 2, totalTasks: 15, estimatedTotalMin: 450, estimatedRemainingMin: 0 },
     reviewItems: [],
     createdAt: '2026-04-02T10:00:00.000Z',
     updatedAt: '2026-04-05T16:00:00.000Z',

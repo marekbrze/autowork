@@ -4,6 +4,7 @@ import { PartyPopper } from 'lucide-react';
 
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { formatMinutes } from '@/shared/format';
 import { BatteryIcon } from '@/modules/process/components/BatteryIcon';
 import type { Context, Energy, Task } from '@/modules/decompose/types/task';
 
@@ -15,6 +16,8 @@ interface SessionFilterProps {
   onSelectionChange: (sel: FilterSelection) => void;
   /** Ile pending tasków z atrybutami pasuje do bieżącego filtra. */
   matchCount: number;
+  /** Łączny szacunek dopasowanych tasków (min) — do oceny długości sesji (ADR 0060). */
+  matchedEstimateMin: number;
   /** Wszystkie pending taski z atrybutami (do komunikatu „brak czego opisać"). */
   totalAttributed: number;
   /** Atrybuowane taski już rozwiązane (done/skipped/dismissed) — do rozdzielenia
@@ -39,6 +42,7 @@ export function SessionFilter({
   selection,
   onSelectionChange,
   matchCount,
+  matchedEstimateMin,
   totalAttributed,
   resolvedAttributed,
   matchedTasks = [],
@@ -157,7 +161,13 @@ export function SessionFilter({
               <span className="text-muted-foreground">No tasks match the filter — change your selection.</span>
             ) : (
               <span>
-                <span className="font-semibold tabular-nums">{matchCount}</span> {pluralTask(matchCount)} match the filter.
+                <span className="font-semibold tabular-nums">{matchCount}</span> {pluralTask(matchCount)} match the filter
+                {matchedEstimateMin > 0 ? (
+                  <>
+                    {' '}· ~<span className="font-semibold tabular-nums">{formatMinutes(matchedEstimateMin)}</span>
+                  </>
+                ) : null}
+                .
               </span>
             )}
           </div>

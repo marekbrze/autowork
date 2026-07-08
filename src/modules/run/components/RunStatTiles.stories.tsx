@@ -8,7 +8,7 @@ const base = (over: Partial<Run>): Run => ({
   name: 'Run',
   state: 'in_progress',
   lastReachedStep: 'focus',
-  stats: { timeSpentSec: 0, doneCount: 0, dismissedCount: 0, totalTasks: 0 },
+  stats: { timeSpentSec: 0, doneCount: 0, dismissedCount: 0, totalTasks: 0, estimatedTotalMin: 0, estimatedRemainingMin: 0 },
   reviewItems: [],
   createdAt: '2026-06-28T00:00:00.000Z',
   updatedAt: '2026-06-28T00:00:00.000Z',
@@ -35,7 +35,7 @@ export const InProgress: Story = {
   args: {
     run: base({
       name: 'Finanse i rata kredytu',
-      stats: { timeSpentSec: 2520, doneCount: 8, dismissedCount: 1, totalTasks: 12 },
+      stats: { timeSpentSec: 2520, doneCount: 8, dismissedCount: 1, totalTasks: 12, estimatedTotalMin: 360, estimatedRemainingMin: 90 },
     }),
   },
 };
@@ -44,7 +44,7 @@ export const Completed: Story = {
   args: {
     run: base({
       name: 'Wiosenne porządki',
-      stats: { timeSpentSec: 7200, doneCount: 15, dismissedCount: 2, totalTasks: 15 },
+      stats: { timeSpentSec: 7200, doneCount: 15, dismissedCount: 2, totalTasks: 15, estimatedTotalMin: 450, estimatedRemainingMin: 0 },
     }),
   },
 };
