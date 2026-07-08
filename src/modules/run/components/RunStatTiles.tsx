@@ -51,11 +51,13 @@ export function RunStatTiles({ run }: RunStatTilesProps) {
         <span className="font-medium text-foreground">{remaining}</span> left
       </p>
 
-      {/* Pozostały szacunek — ile pracy zostało (ADR 0060); tylko gdy są szacunki i coś zostało. */}
-      {totalEst > 0 && (
+      {/* Pozostały szacunek — ile pracy zostało (ADR 0060). Guard `remEst > 0` (ET-1): ukryj, gdy
+          nie ma już wyestymowanej pracy (Run ukończony / wszystkie wyestymowane done). Prefiks
+          „Estimated:" scope'uje linię (ET-2) — odróżnia od licznika tasków „N left" wyżej. */}
+      {totalEst > 0 && remEst > 0 && (
         <p className="text-sm text-muted-foreground tabular-nums">
-          ~<span className="font-medium text-foreground">{formatMinutes(remEst)}</span> left of ~
-          <span className="font-medium text-foreground">{formatMinutes(totalEst)}</span> estimated
+          Estimated: ~<span className="font-medium text-foreground">{formatMinutes(remEst)}</span> left of ~
+          <span className="font-medium text-foreground">{formatMinutes(totalEst)}</span>
         </p>
       )}
 

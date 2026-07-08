@@ -307,3 +307,13 @@ Scope: NOWE powierzchnie feature'u *run-estimated-time-totals* — agregat `esti
 - **ET-3 → `proto-polish`** (a11y „—" / klaryfikacja braku szacunków).
 
 > Brak 🔴 i brak luk wymagających `proto-lofi` — feature funkcjonalnie kompletny; reszta to coherence/polish display'u.
+
+### Resolution (proto-harden, 2026-07-08)
+
+| # | Status | Gdzie teraz |
+|---|--------|-------------|
+| ET-1 | ✅ | `RunStatTiles.tsx:55` — guard sub-linii dobity na `totalEst > 0 && remEst > 0`; ukończony Run (i „wszystkie wyestymowane done") nie renderuje już „~0m left". Widoczne w story `Run/RunStatTiles → Completed` (`remEst=0`). |
+| ET-2 | ✅ | `RunStatTiles.tsx:56` — sub-linia zyskała prefiks „Estimated:" (`Estimated: ~X left of ~Y`), scope'ując ją jako metrykę szacunkową i odróżniając od licznika tasków „N left" w linii rozbicia. Decyzja (default po AFK): przeformułowanie copy zamiast restrykcji display'u — info pozostaje, dwuznaczność zdjęta. |
+| ET-3 | ❌ Odroczone → `proto-polish` | a11y/klaryfikacja kafelka „—" (czytnik czyta „estimated dash"). Nie blokuje; tanie `aria-label`/`title` w passie polish. |
+
+**Zamknięte: 2 (ET-1, ET-2) · Odroczone: 1 (ET-3 → proto-polish).** Feature w pełni zahardenowany poza polish a11y kafelka.
