@@ -10,8 +10,8 @@ import type { FunnelStep, RunStats } from './types/run';
  * (`capture:stressors`, `decompose:tasks`, …); te funkcje agregują je do postaci,
  * jakiej oczekuje warstwa widoku Runa.
  *
- * Uwaga (prototype): dane lejka są globalne (bez `runId`), więc w prototypie wszystkie
- * Runy dzielą ten sam zestaw statystyk. Prawdziwe spięcie per-Run odłożone (ADR 0020).
+ * Uwaga: dane lejka są scope'owane per-Run (`runId`, ADR 0044) — `useLiveRuns` czyta
+ * store danego Runa, więc każda karta/Szczegóły pokazuje swój zestaw statystyk.
  */
 
 /**

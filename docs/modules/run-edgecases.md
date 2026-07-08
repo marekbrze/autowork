@@ -314,6 +314,8 @@ Scope: NOWE powierzchnie feature'u *run-estimated-time-totals* — agregat `esti
 |---|--------|-------------|
 | ET-1 | ✅ | `RunStatTiles.tsx:55` — guard sub-linii dobity na `totalEst > 0 && remEst > 0`; ukończony Run (i „wszystkie wyestymowane done") nie renderuje już „~0m left". Widoczne w story `Run/RunStatTiles → Completed` (`remEst=0`). |
 | ET-2 | ✅ | `RunStatTiles.tsx:56` — sub-linia zyskała prefiks „Estimated:" (`Estimated: ~X left of ~Y`), scope'ując ją jako metrykę szacunkową i odróżniając od licznika tasków „N left" w linii rozbicia. Decyzja (default po AFK): przeformułowanie copy zamiast restrykcji display'u — info pozostaje, dwuznaczność zdjęta. |
-| ET-3 | ❌ Odroczone → `proto-polish` | a11y/klaryfikacja kafelka „—" (czytnik czyta „estimated dash"). Nie blokuje; tanie `aria-label`/`title` w passie polish. |
+| ET-3 | ✅ (`proto-polish`) | `RunStatTiles.tsx:33` — kafl „estimated" zyskał `title="No time estimates yet"` w stanie „—" (hover tooltip + kontekst dla SR; `title={undefined}` przy wartości, więc tooltip pojawia się tylko tam, gdzie „—" jest ambiwalentne). |
 
-**Zamknięte: 2 (ET-1, ET-2) · Odroczone: 1 (ET-3 → proto-polish).** Feature w pełni zahardenowany poza polish a11y kafelka.
+**Zamknięte: 3 (ET-1, ET-2, ET-3).** Feature w pełni zahardenowany + wypolerowany.
+
+> *Bonus accuracy (`proto-polish`)*: usunięto mylną, stłą caption „Live stats … per-run breakdown comes later" w `RunStatTiles` (nieprawdziwa od ADR 0044 — re-audit per-run explicite o to prosił) oraz poprawiono stare komentarze „global/per-run-deferred (ADR 0020)" w `run/stats.ts`, `run/types/run.ts`, `RunTaskList.tsx`, `scenarios/data/run.ts`.

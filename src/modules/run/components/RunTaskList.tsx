@@ -9,7 +9,7 @@ import type { Stressor } from '@/modules/capture/types/stressor';
 import { CONTEXT_LABELS, ENERGY_LABELS } from '@/modules/focus/types/focus';
 
 interface RunTaskListProps {
-  /** Wszystkie taski lejka (globalne — ADR 0020). */
+  /** Taski tego Runa (scope'owane per-Run, ADR 0044). */
   tasks: Task[];
   /** Współdzielony ręczny porządek z focus (`focus:taskOrder`); default = rank stresora (ADR 0036). */
   taskOrder: string[];

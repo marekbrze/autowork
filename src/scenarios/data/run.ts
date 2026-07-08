@@ -1,8 +1,9 @@
 import type { Run } from '@/modules/run/types/run';
 
 /**
- * Mockowane Runy do scenariuszy. Statystyki są przechowywane (dane lejka są globalne
- * w prototypie — ADR 0020). realistyczne wartości, żeby testujący nie widział lorem ipsum.
+ * Mockowane Runy do scenariuszy. `stats` to ziarno (wartości poglądowe) — w apce
+ * `useLiveRuns` i tak re-deriwuje je na żywo z tasków danego Runa (ADR 0044). Realistyczne
+ * wartości, żeby testujący nie widział lorem ipsum.
  */
 
 /** Minimalny zestaw — jeden aktywny Run na start lejka. */

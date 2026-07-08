@@ -25,8 +25,13 @@ export function RunStatTiles({ run }: RunStatTilesProps) {
           label="done"
         />
         <Tile value={`${progress}%`} label="progress" />
-        {/* Łączny czas szacunkowy — rozmiar pracy (ADR 0060). Brak szacunków → „—". */}
-        <Tile value={totalEst > 0 ? formatMinutes(totalEst) : '—'} label="estimated" />
+        {/* Łączny czas szacunkowy — rozmiar pracy (ADR 0060). Brak szacunków → „—" + tooltip
+            wyjaśniający (ET-3 a11y/clarity; czytnik inaczej czyta „estimated dash"). */}
+        <Tile
+          value={totalEst > 0 ? formatMinutes(totalEst) : '—'}
+          label="estimated"
+          title={totalEst > 0 ? undefined : 'No time estimates yet'}
+        />
       </div>
 
       {/* Pasek progresem */}
@@ -60,19 +65,13 @@ export function RunStatTiles({ run }: RunStatTilesProps) {
           <span className="font-medium text-foreground">{formatMinutes(totalEst)}</span>
         </p>
       )}
-
-      {/* Statystyki liczone na żywo z tasków lejka (run/stats.ts). Prototype: dane globalne,
-          nie per-Run — pełne spięcie per-Run odłożone (ADR 0020). */}
-      <p className="text-xs text-muted-foreground/80">
-        Live stats from your tasks — per-run breakdown comes later.
-      </p>
     </div>
   );
 }
 
-function Tile({ value, label }: { value: string; label: string }) {
+function Tile({ value, label, title }: { value: string; label: string; title?: string }) {
   return (
-    <div className="rounded-lg border bg-card p-4 text-center">
+    <div className="rounded-lg border bg-card p-4 text-center" title={title}>
       <div className="text-2xl font-bold tracking-tight tabular-nums">{value}</div>
       <div className="mt-1 text-xs text-muted-foreground">{label}</div>
     </div>
