@@ -37,6 +37,8 @@ erDiagram
         string name "optional; default = timestamp"
         float progress "(completedTasks + dismissedTasks) / totalTasks"
         int timeSpent "cumulative focus time (sum of timerElapsed)"
+        int estimatedTotalMin "sum of EstimatedTime over estimated tasks (ADR 0060)"
+        int estimatedRemainingMin "sum of EstimatedTime over not-done estimated tasks (ADR 0060)"
         FunnelStep lastReachedStep "for resume routing"
         datetime lastActiveAt "last activity; drives dashboard ordering (ADR 0028)"
         RunState state "in_progress | archived"
@@ -69,6 +71,8 @@ erDiagram
   - `name`: string — opcjonalna; domyślnie data/godzina.
   - `progress`: float — `(completedTasks + dismissedTasks) / totalTasks`.
   - `timeSpent`: int — łączny czas z focusa (suma `timerElapsed` po taskach/sesjach).
+  - `estimatedTotalMin`: int — łączny **czas szacunkowy** (suma `EstimatedTime` po wyestymowanych taskach; rozmiar pracy w przejeździe). Wyprowadzany na żywo w `deriveRunStats`, nie persystowany (ADR 0060).
+  - `estimatedRemainingMin`: int — **pozostały** czas szacunkowy (suma `EstimatedTime` po wyestymowanych taskach o stanie ∉ `completed`/`dismissed`). Wyprowadzany na żywo (ADR 0060).
   - `lastReachedStep`: `FunnelStep` — najdalszy osiągnięty krok lejka; steruje routingiem Kontynuuj.
   - `lastActiveAt`: `datetime` — znacznik ostatniej aktywności w Runie (praca w lejku, Continue); steruje sortowaniem na dashboardzie i wyborem dominującej karty (ADR 0028).
 **Contains**: Stressory, FocusSessiony.
