@@ -259,3 +259,51 @@ Scope: **NOWE** przypadki brzegowe wprowadzone przez feature (klikalny stepper, 
 - **CS-1 ✅ (zaakceptowane + udokumentowane)** — guard sesji zostaje **stepper-only**; inne drogi (back/reload/linki w nagłówku) wychodzą milcząco, ale bezpiecznie (snapshot `focus:session` persystuje per-Run niezależnie od drogi → bez utraty danych, wznawialne). Udokumentowane w `run.md` (Edge Cases). Rozszerzenie na wszystkie drogi odłożone (fragile, MVP-nieuzasadnione).
 - **CS-2 ✅** — wdrożone w `proto-polish` (ADR 0050: affordance klikalnego stepper'a).
 - **CS-4 / CS-5 / CS-6 ❌ (odłożone)** — copy w module `process` / degenerowany stan rankinga (1 stresor) / a11y tab-stopów. Świadome — → ew. `proto-polish`, nie blokują.
+
+---
+
+## Feature audit: estimated-time totals (ADR 0059/0060/0061)
+
+Scope: NOWE powierzchnie feature'u *run-estimated-time-totals* — agregat `estimatedTotalMin`/`estimatedRemainingMin` w `deriveRunStats` (`run/stats.ts`) + 3 display'e: 4. kafel i sub-linia w `RunStatTiles` (Szczegóły), segment w `DominantRunCard` (dashboard), licznik czasu w `SessionFilter`/`FocusView` (focus). Reszta modułu — patrz audyty powyżej. Feature jest **read-only** (żadnych nowych akcji/zapisów — agregat wyprowadzany, nie persystowany), więc klasyczne luki (formularze, awarie zapisu, dead-endy) w większości nie mają zastosowania; audit skupia się na **coherence wyświetlania** i stanach braku/niepełnych szacunków.
+
+### Coverage (feature)
+- **Już obsłużone w kodzie**:
+  - Brak szacunków (`estimatedTotalMin === 0`): kafel „—" zamiast mylącego „0m" (`RunStatTiles.tsx:29`); segment na dominującej karcie pominięty (`DominantRunCard.tsx:93`); sub-linia remaining pominięta (`RunStatTiles.tsx:55`, guard `totalEst > 0`).
+  - Filtr focus: `matchedEstimateMin` >0 zawsze gdy `matchCount > 0` (matched taski mają `EstimatedTime` gwarantowane przez filtr `attributed` w `FocusView.tsx:94-106`); segment czasu pokazywany przy dopasowaniach (`SessionFilter.tsx:165`).
+  - Reaktywność: po Done/Dismiss z listy `deriveRunStats` przelicza `estimatedRemainingMin` na żywo (`RunDetails.tsx` — dziedziczy instancję `useTasks` z fixu R2-1).
+  - Stara persistowana data bez nowych pól: bezpieczna — `useLiveRuns`/`RunDetails` re-deriwują stats przed odczytem; `RunCard` (mini) czyta tylko stare pola (brak dostępu do niezdefiniowanych; `tsc` potwierdza).
+- **Nowe luki**: 3 · 🔴 0 · 🟡 2 · 🟢 1.
+
+> Brak 🔴 — feature read-only, bez utraty danych / dead-endów / alertów. Największa fragmentaryczność to **coherence dwóch liczników „left"** (liczba tasków vs minuty-po-subset) oraz **render „~0m left" na ukończonym Runie**.
+
+### Inventory (feature)
+
+| # | Sev | Category | Edge case | Behavior today | Suggested behavior | Where |
+|---|-----|----------|-----------|----------------|--------------------|-------|
+| ET-1 | 🟡 | Data states / coherence | Ukończony Run pokazuje „~0m left of ~Xh estimated" | Gdy wszystkie wyestymowane taski done/dismissed: `estimatedRemainingMin = 0` ale `totalEst > 0` → sub-linia renderuje `~0m left of ~1h 30m estimated` (`formatMinutes(0)` = „0m"). Renderuje się nad sekcją celebracji (ST-1) ukończonego Runa — dziwne | Dobić guard sub-linii na `totalEst > 0 && remEst > 0` (ukryj gdy nic nie zostało), ALBO rephrase na „~1h 30m estimated · all done" | `RunStatTiles.tsx:55` (guard tylko `totalEst > 0`) |
+| ET-2 | 🟡 | Data states / coherence | Dwa liczniki „left" znaczą co innego przy niepełnych szacunkach | Linia rozbicia: `{remaining}` (liczba WSZYSTKICH nie-zrobionych tasków, `runRemaining`). Sub-linia: `~{remEst}` (minuty, tylko po WYESTYMOWANYCH nie-zrobionych). Gdy są nie-zrobione taski bez `EstimatedTime` → rozjazd: np. „3 left · ~45m left of ~1h 45m estimated" — 45m obejmuje tylko 2 z 3 tasków, ale user może czytać jako całkowity czas pozostałych | Klaryfikacja copy sub-linii („~45m of estimated work left") LUB display remaining-minut tylko gdy wszystkie taski wyestymowane LUB dopisek „(of N tasks)" wyjaśniający subset | `RunStatTiles.tsx:51` (count „left") + `:55-59` (minuty „left") |
+| ET-3 | 🟢 | a11y / clarity | Kafel „—" przy braku szacunków niekomunikatywny | Label „estimated" + wartość „—" → czytnik ekranu czyta „estimated dash"; wzrokowo user może nie połączyć „—" z „jeszcze bez szacunków" | `aria-label`/`title` na kafel („No time estimates yet") i/lub tooltip. Spójne z DS-3 (świeży Run „0/0") | `RunStatTiles.tsx:29` |
+
+### Kategorie sprawdzone bez nowych luk (feature)
+- **Forms & input**: read-only — brak nowych pól (`EstimatedTime` wpisywane w `process`, tam zahardenowane).
+- **Action outcomes / destructive**: brak nowych akcji; Done/Dismiss z listy mają undo/honest-persistence (R2-2/R2-4); agregat reaguje reaktywnie.
+- **State transitions**: agregat bez własnego stanu; reaktywnie odzwierciedla `TaskState` (po Done/Dismiss `estimatedRemainingMin` spada; `skipped` liczy się jako remaining — spójne z `remaining` i grupą „To do").
+- **Errors**: brak nowych ścieżek; błędy odczytu storage obsłużone (LE-1 → `RunReadError`).
+- **Navigation / flow**: brak nowych ekranów/deep-linków.
+- **Prototype-specific (storage)**: brak nowych zapisów; awaria zapisu tasków nie psuje spójności (honest-persistence — stan się nie zmienia → stats stałe).
+- **Cross-module referential**: usunięcie/edycja `EstimatedTime`/taska → `deriveRunStats` przelicza reaktywnie; stara data bezpieczna (re-deriwacja przed odczytem).
+- **Loading/async**: `useLocalStorage` czyta synchronicznie → `deriveRunStats` ma realne taski przy pierwszym renderze; brak flasha „—".
+- **Semantyka `active`**: `active` liczy pełny szacunek jako remaining (nie odejmujemy `timerElapsed`); akceptowalne — `active` efemeryczny (ADR 0019), nie śledzimy częściowego zużycia.
+- **SessionFilter estimate**: ~czas to szacunek sesji (timer liczy w górę) — inherentne; display informacyjny, nie obietnica dokładnej długości. Bardzo duże zbiory (`formatMinutes` → „50h") obsługiwane, brak przepełnienia.
+
+### Priority (feature)
+1. **🟡 ET-1** — „~0m left" na ukończonym Runie (jarring display-bug na częstym stanie; trywialny fix — dobicie guardu). Najwyższy user-impact z nowych.
+2. **🟡 ET-2** — rozjazd dwóch „left" przy niepełnych szacunkach (coherence głównego ekranu statystyk). Wymaga krótkiej decyzji copy/zakresu (design).
+3. **🟢 ET-3** — a11y/klaryfikacja „—". → `proto-polish`.
+
+### Hand-off (feature)
+- **ET-1 → `proto-harden` (priorytet, direct-edit)**: dobicie guardu sub-linii na `remEst > 0` (albo rephrase „all done"). Trywialne, duży efekt czytelności ukończonego Runa.
+- **ET-2 → `proto-harden` + decyzja design**: coherence „left" — copy albo ograniczenie display'u (krótka decyzja z designerem).
+- **ET-3 → `proto-polish`** (a11y „—" / klaryfikacja braku szacunków).
+
+> Brak 🔴 i brak luk wymagających `proto-lofi` — feature funkcjonalnie kompletny; reszta to coherence/polish display'u.
