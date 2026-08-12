@@ -3,20 +3,20 @@
 **Status**: Accepted
 
 ## Context
-A feature request on the living system: user chce widzieć **łączny czas szacunkowy** zadań w Runie (sumę `EstimatedTime`) — **na dashboardzie** (motywacja/zobowiązanie przed wejściem w pracę) oraz **w filtrze sesji focus** (decyzja, na jak długi blok pracy się pisze, zanim kliknie Start). Wymagał impact scopingu przed implementacją.
+A feature request on the living system: the user wants to see the **total estimated time** of a Run's tasks (sum of `EstimatedTime`) — **on the dashboard** (motivation/commitment before starting work) and **in the focus session filter** (a decision on how long a work block they're signing up for before clicking Start). It needed impact scoping before implementation.
 
 ## Decision
 Zaplanowane w `docs/changes/run-estimated-time-totals.md`.
 
-- **Zasięg:** pasywny display nowego agregatu — **bez nowych akcji usera**. Agregat wyprowadzany na żywo z istniejącego `Task.estimatedTime`.
-- **Moduły:** rozszerza **3 istniejące** — `run` (właściciel agregatu: nowe pola `RunStats` + `deriveRunStats` + kafel w `RunStatTiles`), `dashboard` (segment w `DominantRunCard`), `focus` (licznik w `SessionFilter`).
-- **Nowy moduł:** nie.
-- **Cross-module:** niskiego ryzyka — nowa wartość przez istniejący `deriveRunStats`; `useLiveRuns` already rozdaje `stats` na karty/Szczegóły (nowe pola popłyną automatycznie), a focus liczy swój subset lokalnie. Brak nowej relacji między encjami.
-- **MVP:** total na dashboardzie + Szczegółach + filtrze focus; remaining jako sub-linia na Szczegółach. Odłożone: prominentna „remaining", mini-karty, archiwum, ramowanie szacunek-vs-realny.
-- **Routing:** `proto-detail run` (spec) → **residual direct-edits** (agregat + helper + 3 wyświetlenia) → `proto-edgecases run` → `proto-harden run` (stany braku szacunków) → opcjonalnie `proto-design`/`proto-polish`.
-- **Residual:** 6 edytów w 5 plikach (+ ew. nowy `src/shared/format.ts` z `formatMinutes`).
+- **Scope:** passive display of a new aggregate — **no new user actions**. The aggregate is derived live from the existing `Task.estimatedTime`.
+- **Modules:** extends **3 existing** — `run` (aggregate owner: new `RunStats` fields + `deriveRunStats` + a tile in `RunStatTiles`), `dashboard` (a segment in `DominantRunCard`), `focus` (a counter in `SessionFilter`).
+- **New module:** no.
+- **Cross-module:** low risk — a new value via the existing `deriveRunStats`; `useLiveRuns` already distributes `stats` to cards/Details (the new fields will flow automatically), and focus computes its subset locally. No new entity relation.
+- **MVP:** total on the dashboard + Details + focus filter; remaining as a sub-line on Details. Deferred: a prominent "remaining", mini-cards, the archive, an estimate-vs-actual framing.
+- **Routing:** `proto-detail run` (spec) → **residual direct-edits** (aggregate + helper + 3 displays) → `proto-edgecases run` → `proto-harden run` (the no-estimate states) → optionally `proto-design`/`proto-polish`.
+- **Residual:** 6 edits in 5 files (+ possibly a new `src/shared/format.ts` with `formatMinutes`).
 
-Niskie ryzyko — cienki, read-only slice; główna uwaga to jednostki (estimate = minuty vs `timeSpent` = sekundy) i semantyka (total vs remaining), rozstrzygnięte w planie (total jako główna liczba; remaining tani, na sub-linii).
+Low risk — a thin, read-only slice; the main attention is units (estimate = minutes vs `timeSpent` = seconds) and semantics (total vs remaining), resolved in the plan (total as the main number; remaining cheap, on a sub-line).
 
 ## Impact
-`proto-detail`/`edgecases`/`harden`/`design`/`polish` działają na planie; trzon implementuje residual. Constraint z `DESIGN.md`: powierzchnie hi-fi, utrzymać tabular-nums i styl istniejących kafli/linii. Re-run `proto-feature`, jeśli scope się zmieni (np. akcje edycji szacunków, mini-karty/archiwum w MVP, prominentna „remaining").
+`proto-detail`/`edgecases`/`harden`/`design`/`polish` work off the plan; the residual implements the core. A `DESIGN.md` constraint: hi-fi surfaces, maintain tabular-nums and the style of existing tiles/lines. Re-run `proto-feature` if the scope changes (e.g. estimate-editing actions, mini-cards/archive in the MVP, a prominent "remaining").

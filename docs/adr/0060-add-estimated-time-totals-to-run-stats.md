@@ -12,7 +12,7 @@ Add to `RunStats` (`src/modules/run/types/run.ts`) two fields computed in `deriv
 - **`estimatedTotalMin`** — suma `t.estimatedTime` po taskach z `estimatedTime != null` (wszystkie stany). Rozmiar pracy.
 - **`estimatedRemainingMin`** — sum of `t.estimatedTime` over tasks with `estimatedTime != null` **and** state ∈ {`pending`, `active`, `skipped`} (i.e. ∉ `completed`/`dismissed`). The "not done" definition is consistent with `doneCount` (completed+dismissed); `skipped` counts as remaining ("not now", returns to the pool).
 
-Jednostka = **minuty** (jak `EstimatedTime`, preset 5/15/30/45/60) — inna niż `timeSpentSec` (sekundy). Display przez `formatMinutes` (ADR 0061). Brak persystencji — czysto wyprowadzane, więc `useLiveRuns` rozda je automatycznie (już today spreads `deriveRunStats(tasks)`).
+Unit = **minutes** (like `EstimatedTime`, presets 5/15/30/45/60) — different from `timeSpentSec` (seconds). Display via `formatMinutes` (ADR 0061). No persistence — purely derived, so `useLiveRuns` distributes them automatically (it already spreads `deriveRunStats(tasks)` today).
 
 **Shared docs updated**: `ENTITY_MAP.md` (Run attributes + diagram), `GLOSSARY.md` (`EstimatedTotal`, `EstimatedRemaining`), `docs/modules/run.md` (Vision, the "View Details" flow, the RunDetails screen, the "no estimates" edge, integration).
 

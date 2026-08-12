@@ -13,7 +13,7 @@ Specified in `docs/modules/decompose.md` (an update to the existing spec) + two 
 - **Per-next-action counter**: `X/N done` (done = `completed` + `dismissed`, consistent with `Run.progress`), shown when ≥1 task is handled; at 0 tasks — "to break down".
 - **`ResolvedNextAction`** (all tasks handled): strike-through + muted (de-emphasis), but **still fully editable** (edit / break down / delete). Read-only applies to the task **state**, not to next-action CRUD.
 - **a11y**: state via glyph + text (`aria-label`), not color/strike-through only.
-- **Edge** (zdiagnozowane w specu, do wdrożenia w `proto-harden`): next-action bez tasków, mix stanów, ponowne rozbicie z done taskami (diff-po-tekście zachowuje `state`), stary task bez `state` → neutralnie.
+- **Edge** (diagnosed in the spec, to implement in `proto-harden`): a next-action with no tasks, a mix of states, re-breaking down with done tasks (text-diff preserves `state`), an old task without `state` → neutral.
 
 Three visual micro-decisions picked as recommended (the user was AFK on confirmation; to reopen if they disagree): dismissed = glyph+tag, resolved = strike+muted, counter = "X/N done".
 

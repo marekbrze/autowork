@@ -16,13 +16,13 @@ The `process` prototype handled happy paths and (largely already) the spec's edg
 - **#4 Return to summary from step 0** — `goBack` → summary at `idx 0`; "← Back" always visible.
 - **#5 Pluralization + routing** — `pluralTasks(n)` (full rule); emptying the session via deletion → summary (not done with zero).
 - **#6 Long name** — main `line-clamp-2` + tooltip; the stressor header and breadcrumb `truncate` + tooltip.
-- **#8 Sidebar** — lista z `max-h` + scroll; bieżący task auto-scrollowany (`scrollIntoView`).
+- **#8 Sidebar** — a list with `max-h` + scroll; the current task auto-scrolled (`scrollIntoView`).
 - **#9 Toast scope** — `storageView` aggregates read/write across three stores (tasks/stressors/nextActions); `retry`/`dismiss` for all.
 
 Stories: `ProcessView` (+`LongName`, `StorageReadError`), `Shared/ConfirmDialog` (+`DeleteTask`).
 
 ## Odroczone (❌)
-- **#7 Persystencja pozycji sesji** (`screen`+`cursorIndex`) — to **nowa funkcja** (wznowienie w miejscu po refresh), poza zakresem harden, który dodaje stany do istniejących flow, nie nowe zachowanie. Praca nie ginie: commitowane atrybuty trwają w storze, a `buildSession` liczy kolejkę na nowo.
+- **#7 Session-position persistence** (`screen`+`cursorIndex`) — this is a **new feature** (resume in place after refresh), outside harden's scope, which adds states to existing flows, not new behavior. No work is lost: committed attributes persist in the store, and `buildSession` recomputes the queue.
 - **#10 The "← Dashboard" link** — a **design decision** (a conscious escape hatch vs the spec's "no free nav links"), not a bug; left to the designer.
 
 ## Impact

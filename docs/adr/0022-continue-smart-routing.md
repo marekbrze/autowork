@@ -5,21 +5,21 @@
 **Status**: Accepted
 
 ## Context
-Przy wznawianiu Runa („Kontynuuj" z karty na dashboardzie) trzeba zdecydować, na który ekran lądować. User zakotwiczył jedną zasadę: „jeśli są już taski procesowane i gotowe do robienia → na pewno ekran wykonywania". Pozostała otwartą kwestię, czy brak atrybutów blokuje wejście do focusa — ADR 0013 mówi, że **nie** (atrybuty opcjonalne, nudge-nie-bramka).
+On resuming a Run ("Continue" from a card on the dashboard) you need to decide which screen to land on. The user anchored one principle: "if there are already processed tasks ready to do → definitely the execution screen." The open question was whether missing attributes block entering focus — ADR 0013 says **no** (attributes are optional, nudge-not-gate).
 
 ## Decision
-**Kontynuuj** kieruje do najdalszego kroku lejka, w którym jest jeszcze praca:
-1. trwa zapauzowana sesja focus → **wznów sesję** (timer od zapisanej pozycji);
-2. ≥1 task → **focus** (filtr sesji / start) — **atrybuty nie bramkują** (ADR 0013): dowolny istniejący task jest „gotowy"; task bez danego atrybutu po prostu nie wpadnie do filtrów tego wymagających;
-3. brak tasków, ale są nieprocesowane zadania → **process**;
-4. zrankowane stresory bez NextActionów → **decompose**;
+**Continue** routes to the furthest funnel step that still has work:
+1. a focus session is paused → **resume the session** (timer from the saved position);
+2. ≥1 task → **focus** (session filter / start) — **attributes don't gate** (ADR 0013): any existing task is "ready"; a task without a given attribute simply won't match filters that require it;
+3. no tasks, but there are unprocessed tasks → **process**;
+4. ranked stressors with no NextActions → **decompose**;
 5. stresory nierankingowane → **capture / ranking**;
-6. brak stresorów → **capture / brain dump**;
-7. wszystko done → **Szczegóły** (stan „ukończony").
+6. no stressors → **capture / brain dump**;
+7. everything done → **Details** (the "completed" state).
 
-Run śledzi `lastReachedStep` (`FunnelStep`), co steruje routingiem.
+The Run tracks `lastReachedStep` (`FunnelStep`), which drives the routing.
 
 ## Impact
-- `ENTITY_MAP.md`: Run zyskuje atrybut `lastReachedStep` (`FunnelStep`); dodany typ wartości `FunnelStep`.
+- `ENTITY_MAP.md`: Run gains a `lastReachedStep` attribute (`FunnelStep`); added a `FunnelStep` value type.
 - `ACTIONS.md`: `Resume Run` → `Continue (resume)` z opisem routingu.
 - `docs/modules/run.md`: flow Continue.

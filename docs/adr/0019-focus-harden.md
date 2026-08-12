@@ -5,52 +5,52 @@
 **Status**: Accepted
 
 ## Context
-Moduł `focus` był zbudowany w `proto-lofi` (happy paths działały), a audyt `proto-edgecases`
-(`docs/modules/focus-edgecases.md`) znalazł **10** nieobsłużonych ścieżek: 🔴 1 · 🟡 4 · 🟢 5.
-Najpoważniejsza: handlery akcji (Done/Skip/Dismiss/Back/Clear) wołały `advance()` niezależnie
-od wyniku zapisu `updateTask`/`deleteTask`, więc przy pełnym/wyłączonym LocalStorage UI szedł
-dalej, a stan się nie zapisał → po reloadzie task wracał jako `pending` (cicha utrata danych).
+The `focus` module was built in `proto-lofi` (the happy paths worked), and the `proto-edgecases` audit
+(`docs/modules/focus-edgecases.md`) found **10** unhandled paths: 🔴 1 · 🟡 4 · 🟢 5.
+The most serious: action handlers (Done/Skip/Dismiss/Back/Clear) called `advance()` regardless
+of the `updateTask`/`deleteTask` write result, so on full/disabled LocalStorage the UI moved on
+while the state wasn't saved → after reload the task returned as `pending` (silent data loss).
 
 ## Decision
-Wdrożono **9** z 10 gapów (1 odroczony z powodem). Pełna mapa: `docs/modules/focus-edgecases.md`
+**9** of 10 gaps implemented (1 deferred for a reason). Full map: `docs/modules/focus-edgecases.md`
 (sekcja „Hardening status"). Kluczowe decyzje:
 
-- **#1 Honest persistence** — każdy handler sprawdza wynik `updateTask`/`deleteTask` i przy awarii
+- **#1 Honest persistence** — every handler checks the result of `updateTask`/`deleteTask` and on failure
   zapisu **nie advance'uje / nie zmienia ekranu** (wzorzec `ProcessView.tsx` `if (!ok) return`).
-  `StorageStatusToast` z retry zostaje widoczny, user zostaje na tasku. Usunięto największą
-  kruchtość prototypu.
+  the `StorageStatusToast` with retry stays visible, the user stays on the task. The biggest
+  prototype fragility removed.
 - **#2 Resume sesji** (decyzja designu) — snapshot sesji (`queue` + `cursor`) persystowany w
-  `focus:session`; wejście w `/focus` z przerwaną sesją pokazuje **opt-in banner** „Wznów sesję"
-  nad filtrem (Exit / refresh / browser-back). Spełnia obietnicę ze spec („wznowienie od tego
-  samego taska"). Lo-fi trzyma bieżący task jako `pending` — stan `active` celowo **nieużywany**
-  w proto (utrzymana spójność z filtrem `attributed`).
+  `focus:session`; entering `/focus` with an interrupted session shows an **opt-in banner** "Resume session"
+  above the filter (Exit / refresh / browser-back). Fulfills the spec's promise ("resume from the
+  same task"). The lo-fi keeps the current task as `pending` — the `active` state is deliberately **unused**
+  in the proto (maintaining consistency with the `attributed` filter).
 - **#3 Undo Dismiss na summary** — toast undo przeniesiony z `FocusTaskScreen` na poziom
-  `FocusView`, więc przeżywa skok do podsumowania przy dismiss ostatniego taska (ADR 0017).
+  `FocusView`, so it survives the jump to the summary on dismissing the last task (ADR 0017).
 - **#4 Rozdzielenie empty-state** — „nic nie opisano" vs „wszystko zrobione — brawo" + CTA
   do `process`.
-- **#5 Rekonsyliacja mid-session** — task rozwiązany w innej karcie (storage event) nie zostaje
-  pokazany jako bieżący; `firstPendingFrom` przewija do następnego `pending` (albo kończy sesję).
+- **#5 Mid-session reconciliation** — a task resolved in another tab (storage event) isn't
+  shown as current; `firstPendingFrom` advances to the next `pending` (or ends the session).
 - **#9 Back nie un-dismissuje** — Back otwiera na nowo tylko `completed`/`skipped`; `dismissed`
-  pozostawia (od-cofnięcie Dismiss to osobna ścieżka undo).
-- **#10 Awaria odczytu** — `ReadErrorState` (jasny komunikat + Odśwież) zamiast mylnego
+  leaves it (un-dismissing is a separate undo path).
+- **#10 Read failure** — `ReadErrorState` (a clear message + Refresh) instead of a misleading
   empty-state listy przy `readError`.
 
-Wydzielono komponenty prezentacyjne stanów pomocniczych (`DismissUndoToast`,
-`SessionResumeBanner`, `ReadErrorState` w `FocusStates.tsx`), by każdy stan miał własną story.
+Split out presentational components for the auxiliary states (`DismissUndoToast`,
+`SessionResumeBanner`, `ReadErrorState` in `FocusStates.tsx`), so each state has its own story.
 
 ### Odroczone
-- **#6 Skróty klawiaturowe** (Done/Skip/Dismiss/Back/Pauza) — nowa modalność wejścia, nie obsługa
-  ścieżki błędnej (poza zakresem harden = „nie dodawaj cech"). Do osobnego passu feature/polish.
+- **#6 Keyboard shortcuts** (Done/Skip/Dismiss/Back/Pause) — a new input modality, not handling
+  an error path (outside harden's scope = "don't add features"). For a separate feature/polish pass.
 
 ### Uwagi modelowe
-- **Brak nowej domeny** — `dismissed`/`Dismiss` już w modelu (ADR 0017). `SessionSnapshot` to
+- **No new domain** — `dismissed`/`Dismiss` are already in the model (ADR 0017). `SessionSnapshot` is
   artefakt persystencji UI (nie encja domenowa) — NIE trafia do `ENTITY_MAP`/`ACTIONS`.
 - **`focus:session` best-effort** — awaria zapisu snapshotu celowo **nie** agregowana w
-  `StorageStatusToast` (utrata bookmarka ≠ utrata danych; fałszywy „nie zapisano" przy udanym
-  zapisie stanu Task byłby mylny). Krytyczne zapisy (stany `Task`) są bramkowane uczciwie.
+  `StorageStatusToast` (losing a bookmark ≠ losing data; a false "not saved" on a successful
+  Task-state write would be misleading). Critical writes (`Task` states) are honestly gated.
 
 ## Impact
-Prototyp `focus` obsługuje teraz każdą ścieżkę równo z happy path — awarie zapisu/odczytu, puste
-stany, zmiany mid-session, martwe punkty nawigacji. Happy path zachowany (handlery bramkują tylko
-przy porażce; `activeCursor === cursor` w normalnym przepływie). Wizualny polish to osobny
-przyszły `proto-design`. Po zmianach — uruchomić `proto-edgecases` ponownie dla świeżego baseline'u.
+The `focus` prototype now handles every path on par with the happy path — write/read failures, empty
+states, mid-session changes, dead navigation points. The happy path is preserved (handlers gate only
+on failure; `activeCursor === cursor` in normal flow). Visual polish is a separate
+future `proto-design`. After the changes — re-run `proto-edgecases` for a fresh baseline.

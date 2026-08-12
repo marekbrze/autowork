@@ -1,16 +1,16 @@
-# 0002 - Rotujący banner-prompt w brain dumpie
+# 0002 - Rotating prompt banner in the brain dump
 
 **Date**: 2026-06-28
 **Module**: capture
 **Status**: Accepted
 
 ## Context
-Podczas detailing modułu `capture` user opisał, że w brain dumpie chce „aktywne prompty, które pomogą zlapać o co chodzi" — coś, co wyciągnie stresory umykające przy wyrzucaniu z głowy. Finalny kształt: **interaktywny, rotujący banner** zmieniający się co kilka sekund. To nowy element, którego nie było w `ACTIONS.md` ani `GLOSSARY.md`.
+During `capture` module detailing the user described wanting "active prompts that help catch what it's about" in the brain dump — something that draws out stressors that slip away when emptying your head. Final shape: an **interactive, rotating banner** that changes every few seconds. This is a new element not in `ACTIONS.md` or `GLOSSARY.md`.
 
 ## Decision
-Wprowadzono **`PromptBanner`** — interaktywny, rotujący banner w brain dumpie, zmieniający się co kilka sekund; podsuwa kategorie / przykłady stresorów („finanse", „A rata kredytu?") i jest klikalny (pre-fill pola). Dodać termin do `GLOSSARY.md` oraz akcję „Pick prompt suggestion" do `ACTIONS.md` (encja `Stressor`).
+Introduced **`PromptBanner`** — an interactive, rotating banner in the brain dump, changing every few seconds; suggests categories / stressor examples ("finances", "What about that loan payment?") and is clickable (pre-fills the field). Add the term to `GLOSSARY.md` and a "Pick prompt suggestion" action to `ACTIONS.md` (entity `Stressor`).
 
 ## Impact
 - `GLOSSARY.md`: nowy wiersz `PromptBanner`.
 - `ACTIONS.md`: nowa akcja „Pick prompt suggestion" w sekcji Stressor.
-- Rozszerza brain dump o warstwę aktywnej pomocy — wzmacnia obietnicę „nie zostawiaj usera z pustą listą".
+- Extends the brain dump with a layer of active help — reinforces the "don't leave the user with an empty list" promise.

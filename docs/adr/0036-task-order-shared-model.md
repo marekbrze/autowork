@@ -23,7 +23,7 @@ We introduce **`TaskOrder`** — an ordered list of task IDs — as **one shared
 ## Impact
 - `ENTITY_MAP.md`: added `TaskOrder` (a value type / `Run 1—1 TaskOrder 1—* Task` relation) + a note about the shared model.
 - `GLOSSARY.md`: added the term `Manual queue order` (`TaskOrder`).
-- `focus.md`: ekran filtra dwuczęściowy (filtry + lista dopasowanych z drag/↑↓ + reset); Start buduje kolejkę w porządku `TaskOrder`.
-- `run.md`: lista zadań na Szczegółach sortowana wewnątrz grup stanu po `TaskOrder`.
+- `focus.md`: a two-part filter screen (filters + matched list with drag/↑↓ + reset); Start builds the queue in `TaskOrder` order.
+- `run.md`: the task list on Details sorted within state groups by `TaskOrder`.
 - Nowe akcje: `Reorder queue`, `Reset queue order` (→ ADR 0037).
 - Open (→ `edgecases`/`harden`): tasks added after `TaskOrder` is set; `TaskOrder` pointing to deleted tasks (prune) or tasks outside the current filter; reset (confirm vs undo).

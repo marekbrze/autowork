@@ -19,7 +19,7 @@ The `capture` prototype handled happy paths, but `proto-edgecases` (ADR 0008) fo
 
 Design decisions (AskUserQuestion): a write error → **a retry toast** (not a banner); the draft on "Next" → **discard** (behavior unchanged).
 
-Nie dodano frameworków/bibliotek — stany w istniejących komponentach (`@base-ui/react` + Tailwind), w stylu istniejących hand-built overlayów (modal PairingFlow, toast undo).
+No frameworks/libraries added — states in existing components (`@base-ui/react` + Tailwind), in the style of the existing hand-built overlays (PairingFlow modal, undo toast).
 
 ## Impact
-Każdy flow `capture` obsługuje teraz świadomie też ścieżki błędne, nie tylko happy path; happy path bez zmian. Największa usunięta kruchość: **cicha utrata danych w LocalStorage**. Nowe stany mają story w Storybooku (`Capture/StorageStatusToast`, `Capture/UndoToast`, `Capture/PairingFlow` z fazami). Po zmianach w prototypie uruchomić ponownie `proto-edgecases`, żeby odświeżyć baseline. Wizualny polish to oddzielny przyszły `proto-design`.
+Every `capture` flow now deliberately handles error paths too, not only the happy path; the happy path is unchanged. The biggest fragility removed: **silent data loss in LocalStorage**. The new states have Storybook stories (`Capture/StorageStatusToast`, `Capture/UndoToast`, `Capture/PairingFlow` with phases). After the prototype changes, re-run `proto-edgecases` to refresh the baseline. Visual polish is a separate future `proto-design`.

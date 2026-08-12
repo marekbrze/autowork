@@ -5,15 +5,15 @@
 **Status**: Accepted
 
 ## Context
-W `focus` user potrzebuje oznaczyć task jako **nieaktualny** — stracił sens (termin minął, ktoś inny załatwił, okoliczności się zmieniły). To inna intencja niż `Skip` („nie teraz, wrócę" — task żyje i wraca) i `Done` („zrobione"). Dotychczasowy `TaskState` (`pending → active → completed | skipped`) nie miał na to miejsca.
+In `focus` the user needs to mark a task as **not relevant** — it lost its meaning (deadline passed, someone else handled it, circumstances changed). This is a different intent from `Skip` ("not now, I'll come back" — the task lives and returns) and `Done` ("done"). The existing `TaskState` (`pending → active → completed | skipped`) had no place for it.
 
 ## Decision
-Dodano nowy stan terminalny **`dismissed`** i akcję **`Dismiss`** (oznacz task jako nieaktualny). Właściwości:
-- **Nie wraca** w kolejnych sesjach (terminalny; różnica vs `Skip`, który wraca jako `pending`).
-- **Undo** (jak usuwanie stresora — ADR 0004); cofnięcie → `pending`.
-- **Liczy do progresem Runa** (traktowany jako „załatwione" — zdjęte z talerza).
+Added a new terminal state **`dismissed`** and a **`Dismiss`** action (mark a task as not relevant). Properties:
+- **Doesn't return** in subsequent sessions (terminal; the difference vs `Skip`, which returns as `pending`).
+- **Undo** (like stressor deletion — ADR 0004); reverting → `pending`.
+- **Counts toward Run progress** (treated as "handled" — off the plate).
 - **Widoczny w `SessionSummary`** w **osobnej sekcji** („Nieaktualne").
-- `ClearCompleted` czyści `completed` **i** `dismissed`.
+- `ClearCompleted` clears `completed` **and** `dismissed`.
 
 `TaskState`: `pending → active → completed | skipped | dismissed`. `progress = (completedTasks + dismissedTasks) / totalTasks`.
 

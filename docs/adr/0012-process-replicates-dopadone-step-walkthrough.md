@@ -5,7 +5,7 @@
 **Status**: Accepted
 
 ## Context
-Podczas detailing `process` user wskazał jednoznaczne źródło wzorca: **„dokładnie jak w moim projekcie `marekbrze/dopadone` (`ProcessingView`)"** — inny zestaw kroków, ale ta sama logika wyświetlania. Kluczowy akcent: **nawigacja przód/tył** ma być wierna referencji. Do tej pory `MODULES.md` opisywał `process` tylko ogólnie („przypisuje się Context/Energy/EstimatedTime, styl inbox GTD"), bez określenia mechaniki ekranów i nawigacji.
+During `process` detailing the user pointed to an unambiguous pattern source: **"exactly like my project `marekbrze/dopadone` (`ProcessingView`)"** — a different set of steps, but the same display logic. The key emphasis: **forward/back navigation** must be faithful to the reference. Until now `MODULES.md` described `process` only generally ("assigns Context/Energy/EstimatedTime, a GTD-inbox style"), without defining the screen and navigation mechanics.
 
 ## Decision
 Apply the `dopadone` `ProcessingView` mechanics 1:1 in `process`:

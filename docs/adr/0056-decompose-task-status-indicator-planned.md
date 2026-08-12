@@ -11,7 +11,7 @@ Zaplanowane w `docs/changes/decompose-task-status-indicator.md`.
 - **Scope (confirmed with the user):** read-only (no state change from `decompose`); only `completed` + `dismissed`; a `{resolved}/{total} done` progress counter by the next-action + de-emphasis of a fully handled next-action.
 - **Module:** extends **only `decompose`**. `NextActionItem` **already receives full `Task` objects with `state`** — the field is in the data, it's just not displayed.
 - **New module:** no.
-- **Cross-module:** brak nowej integracji — czysty odczyt istniejącego pola (stan ustawiają `focus`/`run`; ten sam byt `Task`).
+- **Cross-module:** no new integration — a pure read of an existing field (the state is set by `focus`/`run`; the same `Task` entity).
 - **MVP:** 3 points; deferred: state-change actions from decompose, the `skipped`/`active` states, hi-fi (decompose is still neutral).
 - **Routing:** `proto-detail decompose` (light) → **a residual direct-edit in `NextActionItem.tsx`** (the core) → `proto-edgecases` → `proto-harden` (mainly a11y); `proto-design`/`polish` deferred to decompose's hi-fi.
 - **Residual:** 1 plik (`NextActionItem.tsx`) — znacznik stanu taska + licznik + de-emphasis.

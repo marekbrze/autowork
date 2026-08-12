@@ -5,20 +5,20 @@
 **Status**: Accepted
 
 ## Context
-Podczas detailing modułu `decompose` user opisał go jako odpowiedź na dwa pytania: DLACZEGO stresor jest dla niego ważny i JAK go popchnąć do przodu. Dotychczasowa dokumentacja (`ENTITY_MAP`, `ACTIONS`, `GLOSSARY`) pokrywała tylko HOW (`NextAction` → `Task`). Brakowało połowy WHY — materiału motywacyjnego, który user tworzy dla każdego stresora i który ma wracać później (np. w `focus`) jako przypomnienie „po co to robisz".
+During `decompose` module detailing the user described it as an answer to two questions: WHY a stressor matters to them and HOW to push it forward. The existing docs (`ENTITY_MAP`, `ACTIONS`, `GLOSSARY`) covered only HOW (`NextAction` → `Task`). The WHY half was missing — motivational material the user creates for each stressor and that should come back later (e.g. in `focus`) as a reminder "why you're doing this".
 
-User doprecyzował kształt tego materiału: powody może być kilka, każdy z **walencją** — pozytywną (zysk) lub negatywną (uniknięcie bólu); dodatkowo może być **pozytywna wizja efektu** (zrobiony stan). Materiał wpisuje user, ale apka może prowadzić; blok pokazywany przy każdym stresorze, opcjonalny/skippowalny.
+The user refined the shape of this material: there can be several reasons, each with a **valence** — positive (gain) or negative (pain avoidance); additionally there can be a **positive outcome vision** (the done state). The user enters the material, but the app can guide; the block is shown for each stressor, optional/skippable.
 
 ## Decision
-Wprowadzić materiał motywacyjny (`Motivation`) w `decompose`:
-- nowa encja **`Reason`** — powód, dla którego stresor jest ważny, z atrybutem **`valence`**: `positive` (zysk) | `negative` (uniknięcie bólu); 0..N na stresor;
-- atrybut **`doneVision`** na `Stressor` — opcjonalna (0..1), żywa wizja zrobionego stanu (tekst + emoji);
-- blok WHY pokazywany przy każdym stresorze, **opcjonalny/skippowalny** (nudge, nie bramka — spójnie z `capture`);
-- konsumowany później w `focus` (świetli się np. przy trudnym tasku).
+Introduce motivational material (`Motivation`) in `decompose`:
+- a new entity **`Reason`** — why a stressor matters, with a **`valence`** attribute: `positive` (gain) | `negative` (pain avoidance); 0..N per stressor;
+- a **`doneVision`** attribute on `Stressor` — optional (0..1), a vivid vision of the done state (text + emoji);
+- a WHY block shown for each stressor, **optional/skippable** (a nudge, not a gate — consistent with `capture`);
+- consumed later in `focus` (surfaced e.g. on a hard task).
 
 ## Impact
-- `ENTITY_MAP.md`: dodana encja `Reason` (relacja `Stressor ||--o{ Reason`), atrybut `doneVision` na `Stressor`, typy wartości `Valence` / `DoneVision`.
+- `ENTITY_MAP.md`: added the `Reason` entity (relation `Stressor ||--o{ Reason`), the `doneVision` attribute on `Stressor`, the `Valence` / `DoneVision` value types.
 - `ACTIONS.md`: nowa sekcja `Motivation` (Add Reason, Add DoneVision, Skip motivation).
-- `GLOSSARY.md`: terminy `Motivation`, `Reason`, `Valence`, `DoneVision`; zaktualizowany opis modułu `decompose`.
-- `MODULES.md`: encje i opis `decompose` rozszerzone o WHY; krawędź motivation → focus w mapie integracji.
-- `decompose` zyskuje drugą funkcję: nie tylko produkuje taski, ale **magazynuje paliwo motywacyjne** dla `focus`.
+- `GLOSSARY.md`: terms `Motivation`, `Reason`, `Valence`, `DoneVision`; updated `decompose` module description.
+- `MODULES.md`: `decompose` entities and description expanded with WHY; a motivation → focus edge in the integration map.
+- `decompose` gains a second function: not only does it produce tasks, it **stores motivational fuel** for `focus`.
