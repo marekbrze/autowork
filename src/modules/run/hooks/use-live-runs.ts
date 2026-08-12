@@ -9,7 +9,7 @@ import { deriveLastReachedStep, deriveRunStats } from '../stats';
 import type { Run } from '../types/run';
 import { useRuns } from './use-runs';
 
-/** Bezpieczny odczyt+parse z localStorage (fallback przy braku/uszkodzonym JSON). */
+/** Safe localStorage read + parse (falls back on missing/corrupt JSON). */
 function readJson<T>(key: string, fallback: T): T {
   try {
     const raw = window.localStorage.getItem(key);
@@ -20,14 +20,15 @@ function readJson<T>(key: string, fallback: T): T {
 }
 
 /**
- * `useRuns` + statystyki / krok resume wyprowadzane per-Run z各自 stores lejka (ADR 0044).
- * Każdy Run pokazuje **swój** progres ( wcześniej wszystkie Runy dzieliły jeden globalny zestaw).
+ * `useRuns` + per-Run stats / resume step derived from each Run's funnel stores (ADR 0044).
+ * Each Run shows **its own** progress (previously all Runs shared one global set).
  *
- * Statystyki czytane **bezpośrednio** z localStorage (nie przez hooki lejka) — dzięki temu moduł
- * `run` nie importuje hooków `capture`/`decompose` (koniec cyklu zależności; lejek importuje
- * `active-run` z `shared`, nie odwrotnie). Na ekranach zarządczych (Dashboard/Archived) nie
- * edytujemy lejka, więc brak reaktywności w locie jest akceptowalny — powrót na ekran = remount =
- * świeży odczyt. RunDetails liczy statystyki **lokalnie** ze swoich scope'owanych hooków (reaktywnie).
+ * Stats are read **directly** from localStorage (not via the funnel hooks) — that way the `run`
+ * module doesn't import the `capture`/`decompose` hooks (ending the dependency cycle; the funnel
+ * imports `active-run` from `shared`, not the other way around). On management screens
+ * (Dashboard/Archived) we don't edit the funnel, so the lack of live reactivity is acceptable —
+ * returning to a screen = remount = a fresh read. RunDetails computes stats **locally** from its
+ * own scoped hooks (reactively).
  */
 export function useLiveRuns() {
   const runsApi = useRuns();
@@ -45,8 +46,8 @@ export function useLiveRuns() {
           nextActionCount: nextActions.length,
           taskCount: tasks.length,
           doneCount: stats.doneCount,
-          // Kosmetyczne dla karty (routing do /focus taki sam bez względu na sesję);
-          // rzeczywiste wznowienie sesji rozstrzyga FocusView dla aktywnego Runa.
+          // Cosmetic for the card (routing to /focus is the same regardless of session);
+          // the actual session resume is settled by FocusView for the active Run.
           hasResumableSession: false,
         });
         return { ...r, stats, lastReachedStep };

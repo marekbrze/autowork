@@ -1,7 +1,7 @@
 # Entity Map
 
-Struktura domenowa: co istnieje w systemie, jak się łączy, do kogo należy i jakie ma stany.
-Nazwy encji są po angielsku — to identyfikatory, które wejdą do kodu. Opisy po polsku.
+Domain structure: what exists in the system, how things connect, who owns what, and what states each thing has.
+Entity names are in English — they are identifiers that will go into the code. Descriptions are in English.
 
 ## Diagram
 
@@ -45,108 +45,108 @@ erDiagram
     }
 ```
 
-**Typy wartości (atrybuty, nie encje):** `Context` (enum), `Energy` (1–3), `EstimatedTime` (preset), `Valence` (positive|negative), `DoneVision` (text+emoji), `RunState` (`in_progress` | `archived`), `FunnelStep` (krok lejka, steruje routingiem resume), `TaskOrder` (uporządkowana lista ID tasków — ręczny porządek kolejki; relacja `Run 1—1 TaskOrder 1—* Task`), `activeRunId` (wskaźnik aktualnie pracowanego Runa — ustawiany przy Create/Continue; scope'uje dane lejka w ekranach funnel; ADR 0044).
-**Pomijalnie jako encje (przejściowe ekrany/kroki):** `BrainDump`, `StressRanking`, `Processing`, `SessionFilter`, `Dashboard`.
+**Value types (attributes, not entities):** `Context` (enum), `Energy` (1–3), `EstimatedTime` (preset), `Valence` (positive|negative), `DoneVision` (text+emoji), `RunState` (`in_progress` | `archived`), `FunnelStep` (a funnel step, drives resume routing), `TaskOrder` (an ordered list of task IDs — the manual queue order; relation `Run 1—1 TaskOrder 1—* Task`), `activeRunId` (a pointer to the currently worked-on Run — set on Create/Continue; scopes the funnel data on the funnel screens; ADR 0044).
+**Optionally entities (transient screens/steps):** `BrainDump`, `StressRanking`, `Processing`, `SessionFilter`, `Dashboard`.
 
-**`TaskOrder` — jeden współdzielony model kolejności (ADR 0036):** uporządkowana lista ID tasków, default (pusty / po resecie) = kolejność po ranku stresora (jak `attributed` w `FocusView`). Ręczne przełożenie (drag / ↑↓ na liście filtra focus) go nadpisuje. Ten sam `TaskOrder` decyduje o kolejności w **trzech miejscach**: liście dopasowanych w filtrze focus, kolejce sesji po Starcie, liście zadań na Szczegółach Runa (sort wewnątrz grup stanu). W prototypie globalny; docelowo / wg `per-run-funnel-isolation` (ADR 0044) **per-Run** — każdy Run swój własny `TaskOrder`.
+**`TaskOrder` — one shared ordering model (ADR 0036):** an ordered list of task IDs; default (empty / after reset) = order by stressor rank (like `attributed` in `FocusView`). Manual reordering (drag / ↑↓ on the focus filter list) overrides it. The same `TaskOrder` decides the order in **three places**: the matched list in the focus filter, the session queue after Start, and the task list on Run Details (sort within state groups). Global in the prototype; per `per-run-funnel-isolation` (ADR 0044) ultimately **per-Run** — each Run gets its own `TaskOrder`.
 
 ## Entities
 
 ### User
-**Description**: Jedyna rola — autor projektu używający aplikacji jako osobistego narzędzia. Single-user, lokalne (localStorage).
-**Instances per user**: Jeden (brak kont, tożsamość = urządzenie).
-**Ownership**: Posiada wszystkie Runy i ich zawartość.
-**Lifecycle**: Stała, bezstanowa tożsamość lokalna.
-**States**: brak.
-**Contains**: Runy.
+**Description**: The only role — the project's author using the app as a personal tool. Single-user, local (localStorage).
+**Instances per user**: One (no accounts; identity = device).
+**Ownership**: Owns all Runs and their contents.
+**Lifecycle**: A constant, stateless local identity.
+**States**: none.
+**Contains**: Runs.
 **Belongs to**: —.
 
 ### Run
-**Description**: Jeden pełny przejazd lejka (brain dump → ranking → next-actions → procesowanie → wybór sesji → focus → celebracja). Pojemnik najwyższego poziomu, **widoczny obiekt ze statystykami** (ADR 0020). Trzyma historię, więc runy można porównywać i czerpać z nich motywację.
-**Instances per user**: Wiele — żyją równolegle, odpalane z dashboardu (historia zostaje).
+**Description**: One full run through the funnel (brain dump → ranking → next-actions → processing → session selection → focus → celebration). The top-level container, a **visible object with statistics** (ADR 0020). Holds history, so runs can be compared and mined for motivation.
+**Instances per user**: Many — they live in parallel, launched from the dashboard (history stays).
 **Ownership**: User.
-**Lifecycle**: Tworzony przy „start new" (`capture` implicite); trwały między otwarciami apki; wznawialny (Kontynuuj — ADR 0022); archiwizowany ręcznie (odwracalnie); możliwy do usunięcia trwale.
-**States**: `in_progress` (aktywny, widoczny na liście aktywnych, wznawialny) | `archived` (schowany z aktywnych, widoczny w archiwum/historii, odwracalny przez Un-archive — ADR 0021). Brak formalnego stanu terminalnego poza usunięciem; „ukończony" to stan wyliczany z `progress`, nie osobny stan.
+**Lifecycle**: Created on "start new" (`capture` implicitly); durable across app openings; resumable (Continue — ADR 0022); archived manually (reversibly); can be permanently deleted.
+**States**: `in_progress` (active, visible in the active list, resumable) | `archived` (hidden from active, visible in the archive/history, reversible via Un-archive — ADR 0021). No formal terminal state other than deletion; "completed" is a value derived from `progress`, not a separate state.
 **Attributes**:
-  - `name`: string — opcjonalna; domyślnie data/godzina.
+  - `name`: string — optional; defaults to date/time.
   - `progress`: float — `(completedTasks + dismissedTasks) / totalTasks`.
-  - `timeSpent`: int — łączny czas z focusa (suma `timerElapsed` po taskach/sesjach).
-  - `estimatedTotalMin`: int — łączny **czas szacunkowy** (suma `EstimatedTime` po wyestymowanych taskach; rozmiar pracy w przejeździe). Wyprowadzany na żywo w `deriveRunStats`, nie persystowany (ADR 0060).
-  - `estimatedRemainingMin`: int — **pozostały** czas szacunkowy (suma `EstimatedTime` po wyestymowanych taskach o stanie ∉ `completed`/`dismissed`). Wyprowadzany na żywo (ADR 0060).
-  - `lastReachedStep`: `FunnelStep` — najdalszy osiągnięty krok lejka; steruje routingiem Kontynuuj.
-  - `lastActiveAt`: `datetime` — znacznik ostatniej aktywności w Runie (praca w lejku, Continue); steruje sortowaniem na dashboardzie i wyborem dominującej karty (ADR 0028).
-**Contains**: Stressory, FocusSessiony.
+  - `timeSpent`: int — total time from focus (sum of `timerElapsed` across tasks/sessions).
+  - `estimatedTotalMin`: int — total **estimated time** (sum of `EstimatedTime` across estimated tasks; the size of the work in the run). Derived live in `deriveRunStats`, not persisted (ADR 0060).
+  - `estimatedRemainingMin`: int — **remaining** estimated time (sum of `EstimatedTime` across estimated tasks with state ∉ `completed`/`dismissed`). Derived live (ADR 0060).
+  - `lastReachedStep`: `FunnelStep` — the furthest funnel step reached; drives Continue routing.
+  - `lastActiveAt`: `datetime` — timestamp of the last activity in the Run (work in the funnel, Continue); drives sorting on the dashboard and the choice of the dominant card (ADR 0028).
+**Contains**: Stressors, FocusSessions.
 **Belongs to**: User.
 
 ### Stressor
-**Description**: Pojedyncza stresująca rzecz wyrzucona z głowy w brain dumpie. Surowy materiał, zanim zostanie rozbity na akcje.
-**Instances per Run**: Wiele (0..N; dodawane w kroku 1).
+**Description**: A single stressful thing emptied from the head in the brain dump. Raw material, before it gets broken into actions.
+**Instances per Run**: Many (0..N; added in step 1).
 **Ownership**: Run.
-**Lifecycle**: Tworzony w brain dumpie → ustawiany `rank` (ranking) → przy review-on-resume decydowane, czy nadal obowiązuje → ewentualnie usuwany.
-**States**: brak formalnych; niesie `rank` (pozycja od najbardziej do najmniej stresującego) — ustalany ręcznie (układanie listy) lub przez `Pairing` (porównania parami). Na resume: *relevant* / *stale (do usunięcia)*.
-**Contains**: NextActiony; **Reasons** (materiał motywacyjny) + opcjonalny `doneVision`.
+**Lifecycle**: Created in the brain dump → gets a `rank` (ranking) → at review-on-resume it's decided whether it still applies → possibly removed.
+**States**: no formal ones; carries a `rank` (position from most to least stressful) — set manually (list ordering) or via `Pairing` (pairwise comparisons). On resume: *relevant* / *stale (to remove)*.
+**Contains**: Next-actions; **Reasons** (motivational material) + optional `doneVision`.
 **Belongs to**: Run.
 
 ### Reason
-**Description**: Pojedynczy powód, dla którego stresor jest dla usera ważny — element materiału motywacyjnego (odpowiedź na „dlaczego"). Niesie walencję: pozytywną (zysk) lub negatywną (uniknięcie bólu). Tworzony w `decompose`; konsumowany później, np. w `focus`.
-**Instances per Stressor**: Wiele (0..N).
+**Description**: A single reason this stressor matters to the user — an element of the motivational material (the answer to "why"). Carries a valence: positive (gain) or negative (avoiding pain). Created in `decompose`; consumed later, e.g. in `focus`.
+**Instances per Stressor**: Many (0..N).
 **Ownership**: Stressor / Run.
-**Lifecycle**: Tworzony w `decompose` → edytowalny / usuwalny; konsumowany w `focus` (wyświetlany jako motywacja).
-**States**: brak formalnych; niesie `valence`.
-**Attributes**: `valence`: `Valence` — `positive` (zysk) | `negative` (uniknięcie bólu).
+**Lifecycle**: Created in `decompose` → editable / removable; consumed in `focus` (shown as motivation).
+**States**: no formal ones; carries `valence`.
+**Attributes**: `valence`: `Valence` — `positive` (gain) | `negative` (avoiding pain).
 **Contains**: —.
 **Belongs to**: Stressor.
 
 ### NextAction
-**Description**: Kierunek / pomysł, co pchnie stresor do przodu. Grubszy niż task — może być konkretny (→ 1 task) albo rozbity na kilka.
-**Instances per Stressor**: Wiele (0..N; dopisywane w kroku 3).
+**Description**: A direction / idea for what will push the stressor forward. Coarser than a task — it can be concrete (→ 1 task) or broken into several.
+**Instances per Stressor**: Many (0..N; added in step 3).
 **Ownership**: Stressor / Run.
-**Lifecycle**: Tworzony w kroku 3 → opcjonalnie rozbity na Taski → edytowalny / usuwalny.
-**States**: brak formalnych.
-**Contains**: Taski (1..N; ≥1 wymagane, żeby wejść do lejka dalej).
+**Lifecycle**: Created in step 3 → optionally broken into Tasks → editable / removable.
+**States**: no formal ones.
+**Contains**: Tasks (1..N; ≥1 required to proceed further into the funnel).
 **Belongs to**: Stressor.
 
 ### Task
-**Description**: Atomiczna, wykonywalna jednostka — element listy focus. Nosi kontekst, energię i szacowany czas. Powstaje z NextAction (rozbicie 1..N; konkretny NextAction = 1 Task).
+**Description**: An atomic, executable unit — an item on the focus list. Carries a context, energy, and estimated time. Comes from a NextAction (a 1..N breakdown; a concrete NextAction = 1 Task).
 **Instances per NextAction**: 1..N.
 **Ownership**: NextAction / Run.
-**Lifecycle**: Tworzony (rozbicie lub bezpośrednio) → atrybuty przypięte w Processing → cyklony przez sesje focus → completed / skipped → możliwy do wyczyszczenia (ClearCompleted).
+**Lifecycle**: Created (via breakdown or directly) → attributes pinned in Processing → cycled through focus sessions → completed / skipped → clearable (ClearCompleted).
 **States**: `pending` → `active` → `completed` | `skipped` | `dismissed`.
-  - `Skip` → `skipped` → (przy **następnej** sesji) → `pending`.
-  - `Back` → reaktywacja poprzedniego (znów `active`); bieżący wraca jako `pending`.
-  - `Dismiss` → `dismissed` (terminalny; **nie** wraca w kolejnych sesjach; widoczny w `SessionSummary`, liczy do progresem, undo — ADR 0017).
+  - `Skip` → `skipped` → (at the **next** session) → `pending`.
+  - `Back` → reactivates the previous (now `active` again); the current one returns as `pending`.
+  - `Dismiss` → `dismissed` (terminal; does **not** come back in later sessions; visible in `SessionSummary`, counts toward progress, undo — ADR 0017).
 **Attributes**:
-  - `context`: `Context` (dokładnie jeden) — `Phone` | `Message` | `Creative` | `Errands` | `Home` | `City`
-  - `energy`: `Energy` — 1..3 (bateryjki: 1 = Low, 3 = High)
+  - `context`: `Context` (exactly one) — `Phone` | `Message` | `Creative` | `Errands` | `Home` | `City`
+  - `energy`: `Energy` — 1..3 (batteries: 1 = Low, 3 = High)
   - `estimatedTime`: `EstimatedTime` — preset `5` | `15` | `30` | `45` | `60` min
-  - `timerElapsed`: licznik upłyniętego czasu — persystowany, do wznowienia timera
-  - **Nullability**: `context`, `energy`, `estimatedTime` są **opcjonalne (nullable)** — nadawane w `process`, ale każdy można pominąć (nudge, ADR 0007/0013); task bez danego atrybutu nie kwalifikuje się do sesji tego wymagających.
+  - `timerElapsed`: an elapsed-time counter — persisted, for resuming the timer
+  - **Nullability**: `context`, `energy`, `estimatedTime` are **optional (nullable)** — assigned in `process`, but each can be skipped (nudge, ADR 0007/0013); a task without a given attribute doesn't qualify for sessions that require it.
 **Contains**: —.
 **Belongs to**: NextAction.
 
 ### FocusSession
-**Description**: Przejście focus: wyfiltrowany zestaw tasków przerabiany po jednym pod timerem, zakończony podsumowaniem.
-**Instances per Run**: Wiele (0..N; kilka sesji w jednym Runie na różnych filtrach).
+**Description**: A focus pass: a filtered set of tasks worked through one at a time under a timer, ending with a summary.
+**Instances per Run**: Many (0..N; several sessions in one Run on different filters).
 **Ownership**: Run.
-**Lifecycle**: Tworzona przy Start (po SessionFilter) → taski cyklone → kończy się SessionSummary.
-**States**: `running` (aktywny task pod timerem) | `paused` | `finished`.
-**Contains**: wyfiltrowane Taski (M:N), Timer, SessionSummary.
+**Lifecycle**: Created on Start (after SessionFilter) → tasks cycle through → ends with SessionSummary.
+**States**: `running` (an active task under the timer) | `paused` | `finished`.
+**Contains**: filtered Tasks (M:N), Timer, SessionSummary.
 **Belongs to**: Run.
 
 ### Timer
-**Description**: Licznik dla aktywnego taska — **liczy w górę od 0:00** (model B, ADR 0016); `EstimatedTime` to próg, po którego przekroczeniu licznik renderuje się na czerwono. **Pamięta pozycję** — po pauzie/wznawianiu kontynuuje tam, gdzie stanął (stan licznika trzymany per Task: `timerElapsed`). **Mechanizm timestamp-based** (wall-clock, nie ticki) — zawsze poprawny po powrocie z tła/uśpionej karty (Edge); tick w tle napędza Web Worker, ekran trzyma Wake Lock, a `document.title` pokazuje live elapsed podczas sesji (ADR 0053).
-**Instances per FocusSession**: Jeden (UI); stan per Task.
+**Description**: The counter for the active task — **counts up from 0:00** (model B, ADR 0016); `EstimatedTime` is the threshold beyond which the counter renders red. **Remembers its position** — after pause/resume it continues where it stopped (counter state held per Task: `timerElapsed`). **Timestamp-based mechanism** (wall-clock, not ticks) — always correct after returning from the background/a sleeping tab (Edge); the background tick is driven by a Web Worker, the screen holds a Wake Lock, and `document.title` shows the live elapsed time during a session (ADR 0053).
+**Instances per FocusSession**: One (UI); state per Task.
 **Ownership**: FocusSession.
-**Lifecycle**: Tworzony z sesją; wartość persystowana; wznawiany.
-**States**: `running` | `paused` | `overtime` (`timerElapsed` > `EstimatedTime` — po progu, render czerwony).
+**Lifecycle**: Created with the session; value persisted; resumed.
+**States**: `running` | `paused` | `overtime` (`timerElapsed` > `EstimatedTime` — past the threshold, red render).
 **Contains**: —.
 **Belongs to**: FocusSession.
 
 ### SessionSummary
-**Description**: Ekran na końcu sesji: zrobione taski + łączny czas spędzony na zadaniach + akcja „Usuń skończone" (moment celebracji).
-**Instances per FocusSession**: Jedno.
+**Description**: The screen at the end of a session: completed tasks + total time spent on tasks + the "Clear completed" action (the moment of celebration).
+**Instances per FocusSession**: One.
 **Ownership**: FocusSession.
-**Lifecycle**: Generowane po zakończeniu sesji; ClearCompleted usuwa completed taski.
-**States**: brak (widok).
+**Lifecycle**: Generated after the session ends; ClearCompleted removes the completed tasks.
+**States**: none (a view).
 **Contains**: —.
 **Belongs to**: FocusSession.

@@ -25,7 +25,7 @@ const TS = '2026-06-28T00:00:00.000Z';
 const task: Task = {
   id: 't1',
   runId: 'story',
-  text: 'Znajdź numer telefonu do warsztatu',
+  text: 'Find the phone number for the repair shop',
   nextActionId: 'na1',
   stressorId: 's1',
   state: 'pending',
@@ -37,12 +37,12 @@ const task: Task = {
   updatedAt: TS,
 };
 
-const stressor = { id: 's1', runId: 'story', text: 'samochód do naprawy', createdAt: TS, updatedAt: TS };
-const nextAction = { id: 'na1', runId: 'story', stressorId: 's1', text: 'Umów naprawę w warsztacie', createdAt: TS, updatedAt: TS };
+const stressor = { id: 's1', runId: 'story', text: 'car needs repair', createdAt: TS, updatedAt: TS };
+const nextAction = { id: 'na1', runId: 'story', stressorId: 's1', text: 'Book the repair at the shop', createdAt: TS, updatedAt: TS };
 
 const reasons = [
-  { id: 'r1', runId: 'story', stressorId: 's1', text: 'wrócę bezpiecznie do domu każdej nocy', valence: 'positive' as const, createdAt: TS, updatedAt: TS },
-  { id: 'r2', runId: 'story', stressorId: 's1', text: 'auto zepsuje się w trasie', valence: 'negative' as const, createdAt: TS, updatedAt: TS },
+  { id: 'r1', runId: 'story', stressorId: 's1', text: 'I get home safely every night', valence: 'positive' as const, createdAt: TS, updatedAt: TS },
+  { id: 'r2', runId: 'story', stressorId: 's1', text: 'the car will break down on the road', valence: 'negative' as const, createdAt: TS, updatedAt: TS },
 ];
 
 const baseArgs = {
@@ -50,7 +50,7 @@ const baseArgs = {
   stressor,
   nextAction,
   reasons,
-  doneVision: { text: 'samochód jedzie gładko i milczy, jazda bez napięcia', emoji: '😌' },
+  doneVision: { text: 'the car runs smoothly and quietly, driving without tension', emoji: '😌' },
   running: true,
   position: { index: 0, total: 4 },
   canGoBack: false,

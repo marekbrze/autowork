@@ -5,9 +5,9 @@ import { useActiveRun } from '@/shared/active-run';
 import { useRuns } from '@/modules/run/hooks/use-runs';
 
 /**
- * Guard tras lejka (`/capture`, `/decompose`, `/process`, `/focus`): bez ważnego aktywnego Runa
- * (brak `activeRunId`, albo wskazuje na usunięty/zarchiwizowany Run) → przekieruj na Dashboard
- * (ADR 0044, PR-1). Lejek wymaga aktywnego Runa, którego dane scope'uje.
+ * Guard for funnel routes (`/capture`, `/decompose`, `/process`, `/focus`): without a valid active Run
+ * (no `activeRunId`, or it points to a deleted/archived Run) → redirect to the Dashboard
+ * (ADR 0044, PR-1). The funnel requires an active Run to scope its data.
  */
 export function RequireActiveRun({ children }: { children: ReactNode }) {
   const { activeRunId } = useActiveRun();

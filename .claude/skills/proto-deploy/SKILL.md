@@ -11,8 +11,8 @@ description: >
   after the project is functionally complete and `npm run build` succeeds. This skill
   WRITES code: vite.config, .github/workflows/deploy.yml, package.json scripts, optionally
   DevToolbar/loader gates. Triggers on: "deploy to github pages", "ship to pages", "publish
-  prototype", "prepare deploy", "github pages", "deploy", "opublikuj", "deploy na pages",
-  "shipnij na pages", "wrzuć na github pages", "publish prototype". For local dev setup use
+  prototype", "prepare deploy", "github pages", "deploy", "publish", "deploy to pages",
+  "ship to pages", "put it on github pages", "publish prototype". For local dev setup use
   proto-devsetup instead — this skill assumes the project already runs and builds.
 ---
 
@@ -65,8 +65,8 @@ Read before starting:
 
 ## Decisions — ask the designer (one at a time)
 
-**Production scenario** — "Który scenariusz danych ma się ładować dla userów na Pages? (empty / minimal / full)". Default `empty`. Empty is the right default for a deploy aimed at first-time users — it shows the onboarding/empty state. Lock this choice in code (Step 4).
-**Branch** — "Na jaki branch ma reagować workflow? (default: main)". Default `main`. Use whatever the user's default branch is (`git symbolic-ref refs/remotes/origin/HEAD --short 2>/dev/null | sed 's@^origin/@@'` if uncertain, else ask).
+**Production scenario** — "Which data scenario should load for users on Pages? (empty / minimal / full)". Default `empty`. Empty is the right default for a deploy aimed at first-time users — it shows the onboarding/empty state. Lock this choice in code (Step 4).
+**Branch** — "Which branch should the workflow react to? (default: main)". Default `main`. Use whatever the user's default branch is (`git symbolic-ref refs/remotes/origin/HEAD --short 2>/dev/null | sed 's@^origin/@@'` if uncertain, else ask).
 
 Don't ask about the URL path, repo name, or base — those are detected, not chosen. Don't ask about per-step choices (which workflow action versions, whether to enable Pages) — those are decided by the standard.
 
@@ -82,7 +82,7 @@ Strip the trailing `.git`. **Pages type** is decided by the repo name:
 - **User/org pages** — repo name is `OWNER.github.io` (or `*.github.io`). Base path: `/`. Final URL: `https://OWNER.github.io/`.
 - **Project pages** — repo name is anything else. Base path: `/REPO/` (note the trailing slash). Final URL: `https://OWNER.github.io/REPO/`.
 
-Tell the user what was detected: "Wykryte: OWNER/REPO → project pages → base `/REPO/` → URL `https://OWNER.github.io/REPO/`." If the user disagrees with the detection, ask for the correct path; do not guess.
+Tell the user what was detected: "Detected: OWNER/REPO → project pages → base `/REPO/` → URL `https://OWNER.github.io/REPO/`." If the user disagrees with the detection, ask for the correct path; do not guess.
 
 ## Step 2: Configure Vite's `base`
 
@@ -304,6 +304,6 @@ Tell the user:
 5. **What end users will see** — the locked scenario (empty by default), no dev toolbar, no scenario picker.
 
 Suggest next steps:
-- "Po weryfikacji deployu — `proto-bug` jeśli coś wyjdzie na produkcji, czego nie było lokalnie"
-- "Jeśli chcesz inny scenario dla userów (np. `full` dla showcase'u) — odpal `proto-deploy` jeszcze raz z innym wyborem"
-- "Custom domain (CNAME) — poza zakresem tego skilla, ale jak ustawisz, zdejmnij `base` z powrotem na `/`"
+- "After verifying the deploy — `proto-bug` if something shows up in production that didn't locally"
+- "If you want a different scenario for users (e.g. `full` for a showcase) — run `proto-deploy` again with a different choice"
+- "Custom domain (CNAME) — outside this skill's scope, but once you set it, change `base` back to `/`"

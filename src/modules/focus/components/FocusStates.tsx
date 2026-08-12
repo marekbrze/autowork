@@ -3,8 +3,8 @@ import { AlertTriangle, Play, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 /**
- * Stany pomocnicze `focus` na poziomie kontenera (FocusView) — wydzielone jako
- * komponenty prezentacyjne, by każdy miał osobną story (empty/error/undo/resume).
+ * Auxiliary `focus` states at the container level (FocusView) — split out as
+ * presentational components so each gets its own story (empty/error/undo/resume).
  */
 
 interface DismissUndoToastProps {
@@ -13,8 +13,8 @@ interface DismissUndoToastProps {
 }
 
 /**
- * Toast undo Dismiss (#3). Żyje na poziomie FocusView (nie FocusTaskScreen), więc
- * przeżywa skok do podsumowania przy dismiss ostatniego taska (ADR 0017 obiecuje undo).
+ * Dismiss undo toast (#3). Lives at the FocusView level (not FocusTaskScreen), so
+ * it survives the jump to the summary when the last task is dismissed (ADR 0017 promises undo).
  */
 export function DismissUndoToast({ text, onUndo }: DismissUndoToastProps) {
   return (
@@ -32,7 +32,7 @@ export function DismissUndoToast({ text, onUndo }: DismissUndoToastProps) {
 }
 
 interface SessionResumeBannerProps {
-  /** Pozycja (1-based) w przerwanej sesji. */
+  /** Position (1-based) in the interrupted session. */
   position: number;
   total: number;
   onResume: () => void;
@@ -40,9 +40,9 @@ interface SessionResumeBannerProps {
 }
 
 /**
- * Banner wznawiania sesji (#2). Pojawia się nad filtrem, gdy wejściu w `/focus`
- * towarzyszy persystowany snapshot przerwanej sesji. Opt-in — nie wrzuca usera
- * w środek sesji bez pytania (Exit / refresh / browser-back).
+ * Session resume banner (#2). Appears above the filter when entering `/focus`
+ * with a persisted snapshot of an interrupted session. Opt-in — does not drop the
+ * user into the middle of a session without asking (Exit / refresh / browser-back).
  */
 export function SessionResumeBanner({ position, total, onResume, onAbandon }: SessionResumeBannerProps) {
   return (
@@ -67,9 +67,9 @@ interface ReadErrorStateProps {
 }
 
 /**
- * Stan błędu odczytu storage (#10). Gdy `readError` — hook fallbackuje do `[]`, co
- * bez tego stanu pokazywało mylny empty-state listy („brak atrybutów"). Tu: jasny
- * komunikat awarii + odśwież (localStorage czytany raz, przy starcie).
+ * Storage read error state (#10). When `readError` — the hook falls back to `[]`,
+ * which without this state showed a misleading list empty-state ("no attributes").
+ * Here: a clear failure message + refresh (localStorage is read once, at startup).
  */
 export function ReadErrorState({ onReload }: ReadErrorStateProps) {
   return (

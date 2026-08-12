@@ -1,43 +1,43 @@
 import type { BaseEntity } from '@/shared/types';
 
 /**
- * Kontekst wykonania taska — przypinany w `process` (dokładnie jeden).
- * Kategorie GTD; wielokrotny wybór dopiero przy filtrze sesji (`focus`).
+ * The execution context of a task — assigned in `process` (exactly one).
+ * GTD-style categories; multiple selection happens only at the session filter (`focus`).
  */
 export type Context = 'Phone' | 'Message' | 'Creative' | 'Errands' | 'Home' | 'City';
 
 /**
- * Energia potrzebna do taska — skala 1..3 (Low / Medium / High),
- * renderowana jako bateryjki. Przypinana w `process`.
+ * The energy a task needs — a 1..3 scale (Low / Medium / High),
+ * rendered as battery icons. Assigned in `process`.
  */
 export type Energy = 1 | 2 | 3;
 
-/** Szacowany czas (min) — preset; źródło wartości timera w `focus`. */
+/** Estimated time (min) — a preset; the source of the timer value in `focus`. */
 export type EstimatedTime = 5 | 15 | 30 | 45 | 60;
 
-/** Cykl życia taska: pending → active → completed | skipped | dismissed. */
+/** Task lifecycle: pending → active → completed | skipped | dismissed. */
 export type TaskState = 'pending' | 'active' | 'completed' | 'skipped' | 'dismissed';
 
 /**
- * Atomiczna, wykonywalna jednostka — element listy focus. Powstaje z
- * `NextAction` w `decompose` (rozbicie 1..N; konkretny next-action = 1 task).
+ * An atomic, executable unit — an item in the focus list. Created from a
+ * `NextAction` in `decompose` (broken down 1..N; a concrete next-action = 1 task).
  *
- * Tworzona TU jako „goły" task (tylko tekst + przynależność); atrybuty
- * `context` / `energy` / `estimatedTime` przypinane są dopiero w `process`,
- * a `timerElapsed` zużywany w `focus`.
+ * Created HERE as a "bare" task (only text + membership); the attributes
+ * `context` / `energy` / `estimatedTime` are assigned later in `process`,
+ * and `timerElapsed` is consumed in `focus`.
  */
 export interface Task extends BaseEntity {
   text: string;
   nextActionId: string;
-  /** Denormalizowane dla wygody (motywacja / grupowanie po stresorze). */
+  /** Denormalized for convenience (motivation / grouping by stressor). */
   stressorId: string;
-  /** Run, do którego należy ten task (ADR 0044 — per-Run własność lejka). */
+  /** The Run this task belongs to (ADR 0044 — per-Run funnel ownership). */
   runId: string;
   state: TaskState;
-  /** Przypinane w `process`. */
+  /** Assigned in `process`. */
   context?: Context;
   energy?: Energy;
   estimatedTime?: EstimatedTime;
-  /** Persystowany licznik timera — do wznowienia w `focus`. */
+  /** Persisted timer counter — for resuming in `focus`. */
   timerElapsed: number;
 }

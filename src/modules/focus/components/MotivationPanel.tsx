@@ -10,9 +10,9 @@ interface MotivationPanelProps {
 }
 
 /**
- * Materiał motywacyjny (WHY z `decompose`) — **zawsze widoczny** na ekranie
- * zadania w `focus` (payoff budowania powodów + wizji efektu). Powody z walencją:
- * pozytywna (zysk, ✓) / negatywna (uniknięcie bólu, ⚠ — `destructive`).
+ * Motivational material (the WHY from `decompose`) — **always visible** on the
+ * task screen in `focus` (payoff of building reasons + a vision of the outcome).
+ * Reasons carry a valence: positive (gain, ✓) / negative (avoiding pain, ⚠ — `destructive`).
  */
 export function MotivationPanel({ doneVision, reasons }: MotivationPanelProps) {
   if (!doneVision && reasons.length === 0) {

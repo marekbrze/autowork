@@ -1,84 +1,84 @@
 # Decompose — Edge Cases
 
-Diagnoza prototypu `decompose` (WHY: powody + wizja efektu ‖ HOW: next-actiony → taski) pod kątem nieobsłużonych przypadków brzegowych. Stress-test z `proto-edgecases` przed hardenem (`proto-harden`). Każdy wiersz ma `file:line` — gdzie luka *powinna* być obsłużona.
+Diagnosis of the `decompose` prototype (WHY: reasons + done vision ‖ HOW: next-actions → tasks) for unhandled edge cases. A stress-test with `proto-edgecases` before the harden (`proto-harden`). Each row has a `file:line` — where the gap *should* be handled.
 
 ## Coverage
-- **Spec już ujął** (`docs/modules/decompose.md` Edge Cases): brak pomysłu na next-action (wymóg ≥1) · pominięta motywacja (WHY opcjonalny) · next-action bez rozbicia (skip = 1 task) · zbyt ogólny next-action (aktywny język w promptach/przykładach) · jeden stresor (trywialny przepływ) · bardzo dużo next-actionów/tasków (jeden stresor na ekran).
-- **Już obsłużone w kodzie**: pusty zbiór stresorów — empty-state + CTA „Idź do brain dump" (`DecomposeView.tsx:37-51`); brak next-actionów — placeholder w HOW (`HowBlock.tsx:106-109`); brak powodów — hint w kolumnie (`ReasonColumn.tsx:81-83`); brak kroków w modalu — hint + ścieżka „Pomiń → 1 task" (`DecomposeModal.tsx:129-133`, `:137-139`); skip rozbicia → 1 konkretny task (`DecomposeModal.tsx:51-54`); safety-net „Dalej" materializuje gołe next-actiony (`use-tasks.ts:72-82`, `DecomposeView.tsx:68-77`); gating „Dalej" przy 0 next-actionach z hintem (`DecomposeView.tsx:61`, `:169-177`); przykłady aktywnego języka jako nudge (`HowBlock.tsx:10-11`, `:89-104`); cascade delete tasków przy usuwaniu next-actionu (`DecomposeView.tsx:63-66`); clamp indeksu przy zmianie liczby stresorów (`DecomposeView.tsx:53`); truncate długich next-actionów w liście (`NextActionItem.tsx:80`); klawiatura w edycji inline (Enter/Escape) (`NextActionItem.tsx:58-68`); Escape zamyka modal (`DecomposeModal.tsx:31-37`).
-- **Luki znalezione**: **14**.
-- **Po severity**: 🔴 2 · 🟡 5 · 🟢 7.
-- **Po `proto-harden`**: ✅ **8 wdrożone** · ◑ **1 częściowo** · ❌ **3 odroczone** · — **2 by-design (bez zmian)**.
+- **Spec already covered** (`docs/modules/decompose.md` Edge Cases): no idea for a next-action (≥1 requirement) · skipped motivation (WHY optional) · next-action without break-down (skip = 1 task) · too-generic next-action (active language in prompts/examples) · single stressor (trivial flow) · very many next-actions/tasks (one stressor per screen).
+- **Already handled in code**: empty set of stressors — empty-state + "Go to brain dump" CTA (`DecomposeView.tsx:37-51`); no next-actions — placeholder in HOW (`HowBlock.tsx:106-109`); no reasons — hint in the column (`ReasonColumn.tsx:81-83`); no steps in the modal — hint + "Skip → 1 task" path (`DecomposeModal.tsx:129-133`, `:137-139`); skip break-down → 1 concrete task (`DecomposeModal.tsx:51-54`); safety-net "Next" materializes bare next-actions (`use-tasks.ts:72-82`, `DecomposeView.tsx:68-77`); "Next" gating at 0 next-actions with a hint (`DecomposeView.tsx:61`, `:169-177`); active-language examples as a nudge (`HowBlock.tsx:10-11`, `:89-104`); cascade delete of tasks when deleting a next-action (`DecomposeView.tsx:63-66`); index clamp when the number of stressors changes (`DecomposeView.tsx:53`); truncate long next-actions in the list (`NextActionItem.tsx:80`); keyboard in inline edit (Enter/Escape) (`NextActionItem.tsx:58-68`); Escape closes the modal (`DecomposeModal.tsx:31-37`).
+- **Gaps found**: **14**.
+- **By severity**: 🔴 2 · 🟡 5 · 🟢 7.
+- **After `proto-harden`**: ✅ **8 implemented** · ◑ **1 partial** · ❌ **3 deferred** · — **2 by-design (unchanged)**.
 
-> Największe źródło kruchości: **warstwa persystencji jest „uczciwa" w `useLocalStorage`, ale cztery hooki `decompose` wyrzucają jej status** (`writeError`/`readError`/`retry`) — więc błędy zapisu/odczytu są tu ciche. To dokładnie te same dwie 🔴 luki, które `capture` właśnie zahardowało (`StorageStatusToast`); `decompose` ma ich odpowiednik.
+> Biggest source of fragility: **the persistence layer is "honest" in `useLocalStorage`, but four `decompose` hooks throw away its status** (`writeError`/`readError`/`retry`) — so read/write errors are silent here. These are exactly the same two 🔴 gaps that `capture` just hardened (`StorageStatusToast`); `decompose` needs its counterpart.
 
 ## Inventory
 
 | # | Severity | Category | Edge case | Behavior today | Suggested behavior | Where |
 |---|----------|----------|-----------|----------------|--------------------|-------|
-| 1 | 🔴 | Prototype-specific | Zapis do LocalStorage zawodzi (quota/disabled) | Hooki `decompose` destrukturyzują tylko `[value, setValue]` i ignorują 4. element `status`; `useLocalStorage` słusznie nie aktualizuje stanu i ustawia `writeError`, ale nikt go nie czyta. Draft pola czyści się bez warunku (`HowBlock.tsx:54`, `ReasonColumn.tsx:31`), a wpis „nie wchodzi" na listę → **cicha utrata wpisu**. | Wystawić `storage` z każdego hooka + renderować `StorageStatusToast` (wznowić komponent z `capture`) w `DecomposeView`; czyścić draft tylko gdy zapis się powiódł. | `use-tasks.ts:26`, `use-reasons.ts:12`, `use-next-actions.ts:11`, `use-done-visions.ts:16` (destrukturyzacja); konsumenci `HowBlock.tsx:50-56`, `ReasonColumn.tsx:27-32` |
-| 2 | 🔴 | Errors | Uszkodzony/niepoprawny JSON w storage | `useLocalStorage` przy złym odczycie fallbackuje do wartości początkowej i ustawia `readError` (`use-local-storage.ts:31-33,38`) — ale hooki `decompose` go nie przekazują. User widzi pusty WHY/HOW bez informacji, że zapisane dane były uszkodzone; może wszystko wpisać od nowa. | Ten sam `StorageStatusToast` z wariantem read-error („nie udało się wczytać — startuję od pustej listy"). | `use-tasks.ts:26`, `use-reasons.ts:12`, `use-next-actions.ts:11`, `use-done-visions.ts:16` |
-| 3 | 🟡 | Action outcomes | Usuwanie bez undo (next-action + jego taski; reason) | `[×]` na next-action usuwa natychmiast razem z taskami, bez cofnięcia; `[×]` na powodzie usuwa natychmiast. `capture` ma undo na delete (ADR 0004, `UndoToast`) — `decompose` jest niespójne (brak jakiegokolwiek undo). | Undo-toast dla delete-next-action (z taskami) i delete-reason, wzorem `capture` (nie dialog potwierdzenia — spójnie z ADR 0004). | `NextActionItem.tsx:104-113`, `ReasonColumn.tsx:69-77` |
-| 4 | 🟡 | Action outcomes | Edycja next-actionu do pustego = ciche usunięcie | `commit()` przy pustym drafcie wywołuje `onDelete` zamiast anulować (`NextActionItem.tsx:34-39`). Ten sam antywzór, który `capture` naprawiło (capture #8). | Pusty commit anuluje edycję (zostaw oryginał); usuwanie to osobna jawna akcja. | `NextActionItem.tsx:34-39` |
-| 5 | 🟡 | Navigation & flow / Forms | Drafty + aktywny stresor giną przy wyjściu | Draft w polu HOW/WHY oraz indeks „który stresor z N" są stanem komponentu — znikają przy wyjściu (back przeglądarki, link „← Dashboard", „Dalej"). Zapisane dane przetrwają; giną tylko niezacommitowane drafty i pozycja. | Trzymać aktywny indeks stresora (resume tam, gdzie skończono) i/lub ostrzec przy niezacommitowanym drafcie. (`capture` odroczyło draft decyzją designu „odrzuć" — potwierdzić tę samą decyzję tutaj.) | `DecomposeView.tsx:34` (index), `:184` (link); `HowBlock.tsx:37`, `ReasonColumn.tsx:24` (drafty) |
-| 6 | 🟡 | Cross-module / lifecycle | Usunięcie Stressora sieroci dane `decompose` | `deleteStressor` usuwa tylko wiersz z `capture:stressors` i nie kaskaduje do `decompose:reasons/nextActions/tasks` (osobne klucze). Sierota jest niewidoczna (filtr po istniejących `stressorId`, `DecomposeView.tsx:57-59`), ale gromadzi się w storage. ACTIONS.md obiecuje „razem z dziećmi" — usuwa się tylko wiersz. | Kaskadowe usuwanie dzieci (wymaga mechanizmu koordynacji) albo lazy-cleanup sierot przy starcie `decompose`. Ta sama klasa co odroczone capture #3 (brak scope'owania do Runa). | `src/modules/capture/hooks/use-stressors.ts:38-47`; filtr `DecomposeView.tsx:57-59` |
-| 7 | 🟡 | Cross-module / lifecycle | Ponowne rozbicie rekreuje ID tasków → zmaże przyszłe atrybuty *(latentne)* | `replaceTasksForNextAction` usuwa wszystkie taski next-actionu i tworzy świeże z tekstów — nowe ID (`use-tasks.ts:56-66`). Dziś (process = placeholder) taski nie mają atrybutów, więc nic nie ginie. Gdy `process`/`focus` powstaną, powrót do `decompose` i zapis modala zmaże już przypięte `context`/`energy`/`estimatedTime`/`timerElapsed`/`state`. | Diff zamiast pełnego replace'u (zachować identyczność istniejących tasków) albo zablokować ponowne rozbicie, gdy taski mają już atrybuty. | `use-tasks.ts:56-66`, `DecomposeModal.tsx:46-49` |
-| 8 | 🟢 | Forms / Data states | Brak `maxLength` na polach tekstowych | Pola next-action / reason / krok / wizja nie mają limitu — bardzo długi wklejony tekst rozpycha wiersze. `capture` dodało `maxLength={300}` (capture #14). | `maxLength` na inputach/textarea (wzorem `capture`). | `HowBlock.tsx:74-82`, `ReasonColumn.tsx:48-55`, `DecomposeModal.tsx:97-105`, `WhyBlock.tsx:73-81` |
-| 9 | 🟢 | Errors / a11y | `DecomposeModal`: brak focus-trap, brak close na backdrop | Overlay `role="presentation"` bez `onClick` — klik w tło nic nie robi; Tab ucieka do tła. Escape zamyka (OK). | Focus-trap + zamykanie po kliku w backdrop (wzorzec z modala `PairingFlow`). | `DecomposeModal.tsx:57` |
-| 10 | 🟢 | a11y | A/B tablist: niepełna semantyka tabów | `role="tab"` bez `role="tabpanel"`, `aria-controls`, nawigacji strzałkami. | Pełne spięcie tab/tabpanel albo degeneracja do przełącznika segmentowego. | `DecomposeView.tsx:104-124` |
-| 11 | 🟢 | Data states | Duplikaty next-actionów / powodów dozwolone | Brak dedup — można dodać ten sam tekst dwa razy → dwa identyczne taski w dół lejka. | Zaakceptować jako celowe (postać `capture`: duplikaty nieblokowane) albo miękki hint. | `use-next-actions.ts:13-21`, `use-reasons.ts:14-22` |
-| 12 | 🟢 | Data states | Bardzo długa lista next-actionów — brak wirtualizacji | Stresor z kilkunastoma next-actionami renderuje się jako jeden długi `<ul>`. | Akceptowalne dla prototypu (postać `capture` #15); opcjonalnie obszar przewijany. | `HowBlock.tsx:111-124` |
-| 13 | 🟢 | Loading & async (multi-tab) | Lokalny stan wizji w `WhyBlock` zestarzał się międzykartowo | `useState(doneVision?.text)` inicjuje się raz; przy zmianie wizji w innej karcie dla tego samego otwartego stresora lokalny draft się nie re-synchronizuje (warstwa storage już się syncuje). | Re-sync lokalnego draftu, gdy prop `doneVision` się zmieni (albo zaakceptować — niska częstotliwość). | `WhyBlock.tsx:32-33` |
-| 14 | 🟢 | Forms (soft) | Vague next-action: tylko statyczne przykłady | Aktywny język modelują tylko statyczne chipy przykładów; nic nie wykrywa „pomyśl o tym"/„ogarnij". | Zgodnie z filozofią spec/ADR 0006 (nudge, nie bramka) to **z założenia** wystarcza; opcjonalnie miękki heuristic hint. | `HowBlock.tsx:10-11`, `:89-104` |
+| 1 | 🔴 | Prototype-specific | Save to LocalStorage fails (quota/disabled) | The `decompose` hooks only destructure `[value, setValue]` and ignore the 4th element `status`; `useLocalStorage` correctly doesn't update state and sets `writeError`, but nobody reads it. The field draft clears unconditionally (`HowBlock.tsx:54`, `ReasonColumn.tsx:31`), and the entry "doesn't make it" onto the list → **silent entry loss**. | Expose `storage` from each hook + render `StorageStatusToast` (reuse the component from `capture`) in `DecomposeView`; clear the draft only when the save succeeded. | `use-tasks.ts:26`, `use-reasons.ts:12`, `use-next-actions.ts:11`, `use-done-visions.ts:16` (destructuring); consumers `HowBlock.tsx:50-56`, `ReasonColumn.tsx:27-32` |
+| 2 | 🔴 | Errors | Corrupted/invalid JSON in storage | `useLocalStorage` on a bad read falls back to the initial value and sets `readError` (`use-local-storage.ts:31-33,38`) — but the `decompose` hooks don't surface it. The user sees an empty WHY/HOW with no indication that the saved data was corrupted; they may re-enter everything. | The same `StorageStatusToast` with a read-error variant ("couldn't load — starting from an empty list"). | `use-tasks.ts:26`, `use-reasons.ts:12`, `use-next-actions.ts:11`, `use-done-visions.ts:16` |
+| 3 | 🟡 | Action outcomes | Delete without undo (next-action + its tasks; reason) | `[×]` on a next-action deletes immediately along with its tasks, with no undo; `[×]` on a reason deletes immediately. `capture` has undo on delete (ADR 0004, `UndoToast`) — `decompose` is inconsistent (no undo at all). | An undo-toast for delete-next-action (with tasks) and delete-reason, following `capture` (not a confirmation dialog — consistent with ADR 0004). | `NextActionItem.tsx:104-113`, `ReasonColumn.tsx:69-77` |
+| 4 | 🟡 | Action outcomes | Editing a next-action to empty = silent delete | `commit()` on an empty draft calls `onDelete` instead of canceling (`NextActionItem.tsx:34-39`). The same anti-pattern that `capture` fixed (capture #8). | An empty commit cancels the edit (keep the original); deletion is a separate explicit action. | `NextActionItem.tsx:34-39` |
+| 5 | 🟡 | Navigation & flow / Forms | Drafts + active stressor are lost on exit | The draft in the HOW/WHY field and the "which stressor of N" index are component state — they disappear on exit (browser back, "← Dashboard" link, "Next"). Saved data survives; only uncommitted drafts and position are lost. | Hold the active stressor index (resume where you left off) and/or warn on an uncommitted draft. (`capture` deferred the draft by design ("discard") — confirm the same decision here.) | `DecomposeView.tsx:34` (index), `:184` (link); `HowBlock.tsx:37`, `ReasonColumn.tsx:24` (drafts) |
+| 6 | 🟡 | Cross-module / lifecycle | Deleting a Stressor orphans `decompose` data | `deleteStressor` removes only the row from `capture:stressors` and doesn't cascade to `decompose:reasons/nextActions/tasks` (separate keys). The orphan is invisible (filter by existing `stressorId`, `DecomposeView.tsx:57-59`), but it accumulates in storage. ACTIONS.md promises "together with children" — only the row is removed. | Cascade-delete children (requires a coordination mechanism) or lazy-cleanup of orphans on `decompose` start. The same class as deferred capture #3 (no scoping to the Run). | `src/modules/capture/hooks/use-stressors.ts:38-47`; filter `DecomposeView.tsx:57-59` |
+| 7 | 🟡 | Cross-module / lifecycle | Re-break-down recreates task IDs → wipes future attributes *(latent)* | `replaceTasksForNextAction` removes all tasks of the next-action and creates fresh ones from text — new IDs (`use-tasks.ts:56-66`). Today (process = placeholder) tasks have no attributes, so nothing is lost. Once `process`/`focus` exist, returning to `decompose` and saving the modal will wipe already-pinned `context`/`energy`/`estimatedTime`/`timerElapsed`/`state`. | A diff instead of a full replace (preserve the identity of existing tasks), or block re-break-down when tasks already have attributes. | `use-tasks.ts:56-66`, `DecomposeModal.tsx:46-49` |
+| 8 | 🟢 | Forms / Data states | No `maxLength` on text fields | The next-action / reason / step / vision fields have no limit — a very long pasted text pushes the rows out. `capture` added `maxLength={300}` (capture #14). | `maxLength` on inputs/textareas (following `capture`). | `HowBlock.tsx:74-82`, `ReasonColumn.tsx:48-55`, `DecomposeModal.tsx:97-105`, `WhyBlock.tsx:73-81` |
+| 9 | 🟢 | Errors / a11y | `DecomposeModal`: no focus-trap, no close on backdrop | Overlay `role="presentation"` with no `onClick` — clicking the backdrop does nothing; Tab escapes to the background. Escape closes (OK). | Focus-trap + close on backdrop click (the pattern from the `PairingFlow` modal). | `DecomposeModal.tsx:57` |
+| 10 | 🟢 | a11y | A/B tablist: incomplete tab semantics | `role="tab"` without `role="tabpanel"`, `aria-controls`, arrow-key navigation. | Full tab/tabpanel wiring, or degenerate to a segmented control. | `DecomposeView.tsx:104-124` |
+| 11 | 🟢 | Data states | Duplicate next-actions / reasons allowed | No dedup — you can add the same text twice → two identical tasks down the funnel. | Accept as intentional (in line with `capture`: duplicates not blocked) or a soft hint. | `use-next-actions.ts:13-21`, `use-reasons.ts:14-22` |
+| 12 | 🟢 | Data states | Very long list of next-actions — no virtualization | A stressor with a dozen next-actions renders as one long `<ul>`. | Acceptable for the prototype (in line with `capture` #15); optionally a scroll area. | `HowBlock.tsx:111-124` |
+| 13 | 🟢 | Loading & async (multi-tab) | Local vision state in `WhyBlock` went stale across tabs | `useState(doneVision?.text)` initializes once; when the vision changes in another tab for the same open stressor, the local draft doesn't re-sync (the storage layer already syncs). | Re-sync the local draft when the `doneVision` prop changes (or accept it — low frequency). | `WhyBlock.tsx:32-33` |
+| 14 | 🟢 | Forms (soft) | Vague next-action: only static examples | Active language is modeled only by static example chips; nothing detects "think about this"/"figure out". | Per the spec/ADR 0006 philosophy (a nudge, not a gate), this is **by design** sufficient; optionally a soft heuristic hint. | `HowBlock.tsx:10-11`, `:89-104` |
 
-### Sprawdzone kategorie — bez luk / N/A
-- **Pusta kolekcja**: solidne — empty-state stresorów + CTA (`DecomposeView.tsx:37-51`), placeholdery WHY/HOW/modal.
-- **Jeden vs wiele vs bardzo dużo**: jeden-stresor trywialny; wiele = jeden na ekran + licznik „Stresor X z N"; bardzo dużo → tylko 🟢 #12.
-- **Znaki specjalne / unicode / emoji / RTL**: free-text, React-escapowany display, emoji w wizji — ✓.
-- **Wartości brzegowe (zero/ujemne/max/ułamki)**: brak pól liczbowych w `decompose` (energy/time przypinane w `process`) — N/A.
-- **Niepoprawne formaty**: brak pól formatu (sam free text) — N/A.
-- **Podwójny submit**: persystencja synchroniczna; podwójny klik „Dalej" jest no-opem (`materializeBareNextActions` idempotentne) — ✓.
-- **Pola opcjonalne**: cały blok WHY opcjonalny; wizja opcjonalna; zapis działa — ✓.
-- **Feedback sukcesu**: lista sama w sobie jest feedbackiem (postać `capture`) — ✓.
-- **In-flight state / Loading**: odczyt synchroniczny (`useRef` init w `useLocalStorage`), bez blank-screen, bez okna in-flight — N/A (skeleton sztuczny).
-- **Przejścia stanów (FSM)**: `decompose` tworzy tylko taski `pending`; bez FSM w tym module — N/A.
-- **`alert()` / unexpected error**: brak wywołań `alert()`; (nieoczekiwane błędy = storage → 🔴 #1/#2).
-- **Dead ends**: zawsze jest droga dalej/wstecz/Dashboard — ✓.
-- **Uprawnienia / role**: single-user — N/A.
-- **Offline**: localStorage działa offline, brak wywołań sieciowych — ✓.
+### Checked categories — no gaps / N/A
+- **Empty collection**: solid — stressors empty-state + CTA (`DecomposeView.tsx:37-51`), WHY/HOW/modal placeholders.
+- **One vs many vs very many**: single-stressor trivial; many = one per screen + a "Stressor X of N" counter; very many → only 🟢 #12.
+- **Special chars / unicode / emoji / RTL**: free-text, React-escaped display, emoji in vision — ✓.
+- **Boundary values (zero/negative/max/fractions)**: no numeric fields in `decompose` (energy/time are pinned in `process`) — N/A.
+- **Invalid formats**: no format fields (free text only) — N/A.
+- **Double submit**: persistence synchronous; a double click on "Next" is a no-op (`materializeBareNextActions` is idempotent) — ✓.
+- **Optional fields**: the whole WHY block is optional; vision is optional; save works — ✓.
+- **Success feedback**: the list itself is feedback (in line with `capture`) — ✓.
+- **In-flight state / Loading**: synchronous read (`useRef` init in `useLocalStorage`), no blank-screen, no in-flight window — N/A (a skeleton would be artificial).
+- **State transitions (FSM)**: `decompose` only creates `pending` tasks; no FSM in this module — N/A.
+- **`alert()` / unexpected error**: no `alert()` calls; (unexpected errors = storage → 🔴 #1/#2).
+- **Dead ends**: there's always a way forward/back/Dashboard — ✓.
+- **Permissions / roles**: single-user — N/A.
+- **Offline**: localStorage works offline, no network calls — ✓.
 
 ## Priority list
-1. 🔴 **Cicha utrata danych w LocalStorage** (#1 zapis, #2 odczyt) — hooki `decompose` wyrzucają status persystencji. Wystawić `storage` + `StorageStatusToast` z retry. Największa kruchość modułu; tożsame z blokerami, które `capture` właśnie usunęło.
-2. 🟡 **Brak undo na usuwanie** (#3) — delete next-action (z taskami) i delete reason bez cofnięcia; niespójne z `capture` (ADR 0004). Undo-toast wzorem `capture`.
-3. 🟡 **Edycja-do-pustego = ciche usunięcie** (#4) — pusty commit anuluje edycję, nie usuwa (capture #8).
-4. 🟡 **Orphan cascade + re-decompose** (#6, #7) — cykl życia cross-module: usunięty stressor zostawia sieroty; ponowne rozbicie zmaże przyszłe atrybuty tasków. Rozwiązać razem z modułem `run` / przed zbudowaniem `process`.
-5. 🟡 **Drafty + pozycja przy wyjściu** (#5) — potwierdzić decyzję designu (odrzuć vs persystuj indeks), spójnie z `capture`.
-6. 🟢 **Polish / a11y** (#8-#14) — `maxLength`, focus-trap modala, tablist a11y, reszta akceptowalna/by-design.
+1. 🔴 **Silent data loss in LocalStorage** (#1 write, #2 read) — the `decompose` hooks throw away the persistence status. Expose `storage` + `StorageStatusToast` with retry. The module's biggest fragility; identical to the blockers `capture` just removed.
+2. 🟡 **No undo on delete** (#3) — delete next-action (with tasks) and delete reason with no undo; inconsistent with `capture` (ADR 0004). An undo-toast following `capture`.
+3. 🟡 **Edit-to-empty = silent delete** (#4) — an empty commit cancels the edit, doesn't delete (capture #8).
+4. 🟡 **Orphan cascade + re-decompose** (#6, #7) — cross-module lifecycle: a deleted stressor leaves orphans; re-break-down wipes future task attributes. Solve together with the `run` module / before building `process`.
+5. 🟡 **Drafts + position on exit** (#5) — confirm the design decision (discard vs persist index), consistent with `capture`.
+6. 🟢 **Polish / a11y** (#8-#14) — `maxLength`, modal focus-trap, tablist a11y, the rest acceptable/by-design.
 
 ## Hand-off to proto-harden
-Top-priority luki, które harden powinien wdrożyć jako pierwsze:
-- **#1 + #2 — surface storage status**: wystawić `storage` z czterech hooków `decompose` i pokazać `StorageStatusToast` (przeniesiony/współdzielony z `capture`) w `DecomposeView`. Czyścić draft pola tylko po udanym zapisie. To jedne 🔴 i największy zysk.
-- **#3 — undo na usuwanie**: undo-toast dla delete-next-action (z kaskadowymi taskami) i delete-reason, spójnie z `capture`/ADR 0004.
-- **#4 — edycja-do-pustego**: pusty commit anuluje, nie usuwa.
-- **#6 + #7 — cross-module lifecycle**: skoordynować z modułem `run` (kaskada przy usuwaniu stressora) i zabezpieczyć `replaceTasksForNextAction` przed zmatywaniem atrybutów, zanim `process`/`focus` powstaną.
+Top-priority gaps the harden should implement first:
+- **#1 + #2 — surface storage status**: expose `storage` from the four `decompose` hooks and show `StorageStatusToast` (moved/shared with `capture`) in `DecomposeView`. Clear the field draft only after a successful save. These are the only 🔴 and the biggest gain.
+- **#3 — undo on delete**: an undo-toast for delete-next-action (with cascading tasks) and delete-reason, consistent with `capture`/ADR 0004.
+- **#4 — edit-to-empty**: an empty commit cancels, doesn't delete.
+- **#6 + #7 — cross-module lifecycle**: coordinate with the `run` module (cascade on stressor delete) and protect `replaceTasksForNextAction` from wiping attributes before `process`/`focus` exist.
 
 ## Harden outcome
-Wdrożono **8/14** stanów (＋1 częściowo #9; 3 odroczone; 2 by-design). Designer wybrał **dialog potwierdzenia** zamiast undo na usuwanie (#3) — odmiennie niż `capture`/ADR 0004. Happy path bez zmian. Największa usunięta kruchość: **cicha utrata danych w warstwie LocalStorage** — cztery store'y `decompose` raportują teraz `writeError`/`readError` przez wspólny `StorageStatusToast` z retry (tożsame z `capture`, ADR 0009).
+Implemented **8/14** states (＋1 partial #9; 3 deferred; 2 by-design). The designer chose a **confirmation dialog** instead of undo on delete (#3) — different from `capture`/ADR 0004. Happy path unchanged. Biggest removed fragility: **silent data loss in the LocalStorage layer** — the four `decompose` stores now report `writeError`/`readError` via a shared `StorageStatusToast` with retry (identical to `capture`, ADR 0009).
 
-| # | Status | Gdzie teraz / powód odroczenia |
+| # | Status | Where now / deferral reason |
 |---|--------|--------------------------------|
-| 1 | ✅ | 4 hooki wystawiają `storage`; `DecomposeView` renderuje łączny `StorageStatusToast` (writeError) z retry. `use-{tasks,reasons,next-actions,done-visions}.ts`, `DecomposeView.tsx` |
-| 2 | ✅ | Ten sam toast, wariant readError. Te same pliki |
-| 3 | ✅ | **Dialog potwierdzenia** (decyzja designu, nie undo). `ConfirmDialog.tsx`; gate w `NextActionItem.tsx` (next-action + kaskada tasków) i `ReasonColumn.tsx` (powód) |
-| 4 | ✅ | Pusty commit anuluje edycję (zostaw oryginał). `NextActionItem.tsx` (`commit`) |
-| 5 | ❌ | **Odroczone** — spójnie z decyzją designu `capture` (odrzuć draft); zapisane dane przetrwają, giną tylko niezacommitowane drafty + aktywny indeks |
-| 6 | ❌ | **Odroczone** do modułu `run` — wymaga koordynacji cross-module; lazy-cleanup obarczone ryzykiem zmatywania danych przy `readError` stressora |
-| 7 | ✅ | `replaceTasksForNextAction` diff-po-tekście zachowuje ID tasków (obserwacyjnie neutralne dziś, chroni przyszłe atrybuty). `use-tasks.ts` |
-| 8 | ✅ | `maxLength` (300 na inputach, 600 na textarea wizji). `HowBlock.tsx`, `ReasonColumn.tsx`, `DecomposeModal.tsx`, `WhyBlock.tsx`, `NextActionItem.tsx` |
-| 9 | ◑ | Escape + explicit close + initial focus (jak `PairingFlow`). Backdrop-click-close **nie** dodane — konwencja modali w projekcie (`PairingFlow` tego nie robi). Focus-trap odroczony (spójnie z `capture`) |
-| 10 | ✅ | A/B „tablist" zredukowana do przełącznika segmentowego (`role="group"` + `aria-pressed`). `DecomposeView.tsx` |
-| 11 | — | **By-design** — duplikaty dozwolone celowo (postać `capture`). Bez zmian |
-| 12 | ❌ | **Odroczone** — wirtualizacja akceptowalna dla prototypu (postać `capture` #15) |
-| 13 | ✅ | `WhyBlock` re-sync lokalnego draftu wizji przy zmianie propa. `WhyBlock.tsx` (`useEffect`) |
-| 14 | — | **By-design** — aktywny język to nudge, nie bramka (ADR 0006). Bez zmian |
+| 1 | ✅ | 4 hooks expose `storage`; `DecomposeView` renders a combined `StorageStatusToast` (writeError) with retry. `use-{tasks,reasons,next-actions,done-visions}.ts`, `DecomposeView.tsx` |
+| 2 | ✅ | Same toast, readError variant. Same files |
+| 3 | ✅ | **Confirmation dialog** (design decision, not undo). `ConfirmDialog.tsx`; gate in `NextActionItem.tsx` (next-action + task cascade) and `ReasonColumn.tsx` (reason) |
+| 4 | ✅ | An empty commit cancels the edit (keeps the original). `NextActionItem.tsx` (`commit`) |
+| 5 | ❌ | **Deferred** — consistent with the `capture` design decision (discard draft); saved data survives, only uncommitted drafts + the active index are lost |
+| 6 | ❌ | **Deferred** to the `run` module — requires cross-module coordination; lazy-cleanup carries a risk of wiping data on a stressor `readError` |
+| 7 | ✅ | `replaceTasksForNextAction` diff-by-text preserves task IDs (observably neutral today, protects future attributes). `use-tasks.ts` |
+| 8 | ✅ | `maxLength` (300 on inputs, 600 on the vision textarea). `HowBlock.tsx`, `ReasonColumn.tsx`, `DecomposeModal.tsx`, `WhyBlock.tsx`, `NextActionItem.tsx` |
+| 9 | ◑ | Escape + explicit close + initial focus (like `PairingFlow`). Backdrop-click-close **not** added — the project's modal convention (`PairingFlow` doesn't do it either). Focus-trap deferred (consistent with `capture`) |
+| 10 | ✅ | A/B "tablist" reduced to a segmented control (`role="group"` + `aria-pressed`). `DecomposeView.tsx` |
+| 11 | — | **By-design** — duplicates allowed intentionally (in line with `capture`). Unchanged |
+| 12 | ❌ | **Deferred** — virtualization acceptable for the prototype (in line with `capture` #15) |
+| 13 | ✅ | `WhyBlock` re-syncs the local vision draft when the prop changes. `WhyBlock.tsx` (`useEffect`) |
+| 14 | — | **By-design** — active language is a nudge, not a gate (ADR 0006). Unchanged |
 
-Nowe stany mają story w Storybooku: `Decompose/ConfirmDialog` (DeleteNextAction / DeleteReason / Closed), `Decompose/StorageStatusToast` (Write / Read error). Po zmianach w prototypie uruchomić ponownie `proto-edgecases`, żeby odświeżyć baseline.
+The new states have stories in Storybook: `Decompose/ConfirmDialog` (DeleteNextAction / DeleteReason / Closed), `Decompose/StorageStatusToast` (Write / Read error). After changes in the prototype, re-run `proto-edgecases` to refresh the baseline.

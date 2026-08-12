@@ -8,10 +8,10 @@ import type { Stressor } from '../types/stressor';
 
 interface StressorItemProps {
   stressor: Stressor;
-  /** 0-based pozycja w liście. */
+  /** 0-based position in the list. */
   index: number;
   isFocused: boolean;
-  /** Rejestracja refu przycisku-wiersza (do nawigacji strzałkami z parenta). */
+  /** Registers the row-button ref (for arrow-key navigation from the parent). */
   registerRef: (index: number, el: HTMLButtonElement | null) => void;
   onFocus: (id: string) => void;
   onMove: (dir: -1 | 1) => void;
@@ -44,8 +44,8 @@ export function StressorItem({
 
   const commit = () => {
     const text = draft.trim();
-    // Pusty draft = anuluj edycję (zostaw oryginał). Usuwanie to osobna, jawna akcja
-    // (przycisk ✕ / Backspace) — czyszczenie pola nie usuwa stresora po cichu.
+    // An empty draft = cancel the edit (keep the original). Deletion is a separate, explicit action
+    // (✕ button / Backspace) — clearing the field does not silently delete the stressor.
     if (text && text !== stressor.text) onSave(stressor.id, text);
     setEditing(false);
   };

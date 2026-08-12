@@ -3,14 +3,14 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 /**
- * Stepper postępu lejka (ADR 0001) — prowadzi przez kroki aktywnego Runa:
- * capture → ranking → decompose → process → focus. Wspólny dla wszystkich
- * modułów Core; renderowany w ekranach lejka.
+ * Funnel progress stepper (ADR 0001) — guides through the steps of the active Run:
+ * capture → ranking → decompose → process → focus. Shared across all
+ * Core modules; rendered on the funnel screens.
  *
- * Klikalna nawigacja (ADR 0048 — supersede wczesnego „leading, nie menu"):
- * każdy krok to link do trasy aktywnego Runa; bieżący = no-op (link do samego siebie).
- * Opcjonalny `onBeforeNavigate` blokuje skok (zwraca false) — np. ConfirmDialog
- * przed wyjściem z aktywnej sesji focus (focus/FocusView).
+ * Clickable navigation (ADR 0048 — supersedes the early "leading, not a menu"):
+ * each step is a link to the active Run's route; the current one is a no-op (a link to itself).
+ * Optional `onBeforeNavigate` blocks the jump (returns false) — e.g. a ConfirmDialog
+ * before leaving an active focus session (focus/FocusView).
  */
 const STAGES = [
   { key: 'capture', label: '1. Stressors', route: '/capture' },
@@ -24,7 +24,7 @@ export type FunnelStage = (typeof STAGES)[number]['key'];
 
 interface FunnelStepperProps {
   current: FunnelStage;
-  /** Guard: zwróć false, by zablokować skok (np. potwierdzenie wyjścia z aktywnej sesji). */
+  /** Guard: return false to block the jump (e.g. confirm leaving an active session). */
   onBeforeNavigate?: (stage: FunnelStage, route: string) => boolean;
 }
 

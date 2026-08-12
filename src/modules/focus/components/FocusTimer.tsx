@@ -4,17 +4,17 @@ import type { EstimatedTime } from '@/modules/decompose/types/task';
 import { formatClock } from '../types/focus';
 
 interface FocusTimerProps {
-  /** Policzone sekundy (licznik w górę). */
+  /** Elapsed seconds (counting up). */
   elapsedSeconds: number;
-  /** Próg = oszacowanie taska (min); po przekroczeniu render czerwony. */
+  /** Threshold = task estimate (min); once exceeded, renders in red. */
   thresholdMinutes?: EstimatedTime;
-  /** Czy wstrzymany — sygnalizowane wizualnie. */
+  /** Whether paused — signaled visually. */
   paused?: boolean;
 }
 
 /**
- * Prezentacyjny licznik focus (model B, ADR 0016): liczy w górę, próg =
- * oszacowanie; po przekroczeniu prógu renderuje się na czerwono (`overtime`).
+ * Presentational focus timer (model B, ADR 0016): counts up, threshold =
+ * estimate; once the threshold is exceeded it renders in red (`overtime`).
  */
 export function FocusTimer({ elapsedSeconds, thresholdMinutes, paused }: FocusTimerProps) {
   const overThreshold = thresholdMinutes != null && elapsedSeconds > thresholdMinutes * 60;

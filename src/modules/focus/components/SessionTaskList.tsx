@@ -9,20 +9,20 @@ import type { Task } from '@/modules/decompose/types/task';
 import { CONTEXT_LABELS, ENERGY_LABELS } from '../types/focus';
 
 interface SessionTaskListProps {
-  /** Dopasowane taski w bieżącym porządku (`TaskOrder`, potem rank stresora). */
+  /** Matched tasks in the current order (`TaskOrder`, then stressor rank). */
   tasks: Task[];
-  /** Nowa pełna kolejność ID (po ↑↓ lub drag). Rodzic persystuje `TaskOrder`. */
+  /** New full ID order (after ↑↓ or drag). Parent persists `TaskOrder`. */
   onReorder: (ids: string[]) => void;
 }
 
 /**
- * Lista dopasowanych zadań na ekranie filtra (ADR 0035/0036). User przekłada kolejność
- * ręcznie — **drag-and-drop** (mysz; źródło = uchwyt GripVertical) oraz **↑↓** (klawiatura
- * / precyzja). Oba produkują nową kolejność ID → `onReorder` → rodzic zapisuje `TaskOrder`
- * (jeden współdzielony model kolejności, ADR 0036).
+ * List of matched tasks on the filter screen (ADR 0035/0036). The user reorders manually —
+ * **drag-and-drop** (mouse; source = the GripVertical handle) and **↑↓** (keyboard
+ * / precision). Both produce a new ID order → `onReorder` → parent saves `TaskOrder`
+ * (a single shared ordering model, ADR 0036).
  *
- * Lo-fi: drag = HTML5 DnD; ↑↓ pokrywają dostępność z klawiatury. Drag UX / plakietki /
- * rytm — do dopracowania w `proto-design`/`proto-polish`.
+ * Lo-fi: drag = HTML5 DnD; ↑↓ covers keyboard accessibility. Drag UX / badges /
+ * rhythm — to be refined in `proto-design`/`proto-polish`.
  */
 export function SessionTaskList({ tasks, onReorder }: SessionTaskListProps) {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -58,8 +58,8 @@ export function SessionTaskList({ tasks, onReorder }: SessionTaskListProps) {
   return (
     <ol className="space-y-1.5" aria-label="Matched tasks — drag or use arrows to reorder">
       {tasks.map((t, i) => (
-        // DnD drop zone na <li> (mysz); dostępność z klawiatury pokrywają przyciski ↑↓ niżej.
-        // role="option" odpada — opcje listboxa nie mogą zawierać przycisków. Do dopracowania w polish.
+        // DnD drop zone on the <li> (mouse); keyboard accessibility is covered by the ↑↓ buttons below.
+        // role="option" is out — listbox options cannot contain buttons. To be refined in polish.
         // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
         <li
           key={t.id}

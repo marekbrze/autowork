@@ -65,7 +65,7 @@ Ask questions **one at a time**. Show options when possible. Each answer shapes 
 
 The foundational decision — everything else depends on it.
 
-**"Na jakiej platformie bedzie uzywana aplikacja?"**
+**"What platform will the app be used on?"**
 
 Options:
 - **Desktop** — sidebar navigation, large content area, hover interactions
@@ -79,35 +79,35 @@ Explain that responsive means building two navigation variants — more work upf
 Based on the platform choice, ask about navigation type.
 
 **For desktop:**
-"Jak ma wygladac nawigacja glowna? Opcje:"
-- **Sidebar** — moduly po lewej, ikony + labelki, collapsible
-- **Top bar** — poziome menu na gorze, moduly jako linki
-- **Hybrid** — top bar z glowna nawigacja + sub-nawigacja wewnatrz modulow
+"What should the main navigation look like? Options:"
+- **Sidebar** — modules on the left, icons + labels, collapsible
+- **Top bar** — horizontal menu at the top, modules as links
+- **Hybrid** — top bar with main navigation + sub-navigation within modules
 
 Recommend sidebar for 4+ modules (scales better), top bar for 2-3 modules.
 
 **For mobile:**
-"Jak ma wygladac nawigacja glowna? Opcje:"
-- **Bottom tabs** — moduly jako ikony na dole ekranu
-- **Hamburger menu** — moduly schowane w bocznym menu
-- **Tab bar + hamburger** — core moduly na dole, reszta w hamburger
+"What should the main navigation look like? Options:"
+- **Bottom tabs** — modules as icons at the bottom of the screen
+- **Hamburger menu** — modules hidden in a side menu
+- **Tab bar + hamburger** — core modules at the bottom, the rest in the hamburger
 
 Recommend bottom tabs for up to 5 modules, tab bar + hamburger for more.
 
 **For responsive:**
-"Na desktopie sidebar czy top bar? Na mobile bottom tabs czy hamburger?"
+"On desktop, sidebar or top bar? On mobile, bottom tabs or hamburger?"
 
 Recommend the most common pairing: sidebar (desktop) + bottom tabs (mobile).
 
 ### Phase 3: Home page
 
-"Co user widzi po wejsciu w aplikacje — zanim wejdzie w konkretny modul?"
+"What does the user see after entering the app — before going into a specific module?"
 
 Options:
-- **Dashboard** — podsumowanie z wielu modulow (ostatnie akcje, statystyki, widgety)
-- **Pusta strona glowna** — tylko nawigacja, user od razu wybiera modul
-- **Start page z call to action** — onboarding lub glowna akcja na srodku
-- **Wprost do pierwszego modulu** — brak strony glownej, redirect
+- **Dashboard** — a summary from multiple modules (recent actions, stats, widgets)
+- **Empty home page** — just navigation, the user picks a module right away
+- **Start page with a call to action** — onboarding or the main action in the center
+- **Straight to the first module** — no home page, redirect
 
 Recommend based on project type: dashboard for data-heavy apps, direct-to-module for simple tools, start page for apps with onboarding.
 
@@ -115,32 +115,32 @@ Recommend based on project type: dashboard for data-heavy apps, direct-to-module
 
 Read the module names from MODULES.md. For each module, ask:
 
-"Modul `[module-name]` — jaki label ma widziec user w nawigacji? Domyślnie: `[human-readable default based on name]`"
+"Modul `[module-name]` — what label should the user see in the navigation? Default: `[human-readable default based on name]`"
 
 Offer a sensible default based on the module name, but let the designer override. The code name stays from MODULES.md — this is purely the display label.
 
-Example: module `recipe-management` → suggest "Recipes" or "Recipe Management", designer might say "Biblioteka przepisow".
+Example: module `recipe-management` → suggest "Recipes" or "Recipe Management", designer might say "Recipe Library".
 
-Also ask: "Czy kolejnosc modulow w nawigacji jest ok?" — show the list from MODULES.md and let designer reorder.
+Also ask: "Is the order of modules in the navigation OK?" — show the list from MODULES.md and let designer reorder.
 
 ### Phase 5: Content container
 
-"Jak ma wygladac kontener na tresc modulu? Opcje:"
-- **Full-width** — tresc rozciaga sie na cala szerokosc (tabele, dashboardy)
-- **Contained** — max-width ~1200px, wycentrowany (formularze, czytanie)
-- **Responsive** — contained na desktop, full-width na mobile
+"What should the module content container look like? Options:"
+- **Full-width** — content stretches across the full width (tables, dashboards)
+- **Contained** — max-width ~1200px, centered (forms, reading)
+- **Responsive** — contained on desktop, full-width on mobile
 
 Recommend responsive as default — contained content on wide screens is easier to scan.
 
-" Czy chcesz breadcrumbs wewnatrz modulow?" — yes/no. Useful when modules have deep navigation (list → detail → sub-detail).
+"Do you want breadcrumbs inside modules?" — yes/no. Useful when modules have deep navigation (list → detail → sub-detail).
 
 ### Phase 6: Shared elements
 
-"Jakie wspólne elementy maja byc widoczne zawsze? Opcje (wybierz wszystkie ktore pasuja):"
+"Which shared elements should always be visible? Options (select all that apply):"
 
-- **Header** — logo/app name + ewentualnie user info, notyfikacje
-- **Footer** — rzadko potrzebny w prototypach, ale moze byc
-- **Notifications area** — bell icon z badge, placeholder na przyszlosc
+- **Header** — logo/app name + optionally user info, notifications
+- **Footer** — rarely needed in prototypes, but can be
+- **Notifications area** — bell icon with a badge, placeholder for the future
 
 Recommend header as default (app name gives context), skip footer unless the designer specifically wants it.
 
@@ -283,5 +283,5 @@ Tell the user:
 5. Where the strategy is documented: `docs/UI-STRATEGY.md`
 
 Suggest next steps:
-- "Odpal proto-lofi na pierwszym module żeby zobaczyć ekrany wewnątrz shella"
-- "Jeśli chcesz zmienić nawigację — edytuj UI-STRATEGY.md i przetestuj"
+- "Run proto-lofi on the first module to see the screens inside the shell"
+- "If you want to change the navigation — edit UI-STRATEGY.md and test"

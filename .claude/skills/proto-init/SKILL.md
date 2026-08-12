@@ -47,7 +47,7 @@ This skill does **not** write any code. It captures understanding.
 
 ## Interview process
 
-Speak the same language the user speaks. If they write in Polish, conduct the interview in Polish. If English, use English. Match their tone — casual stays casual, formal stays formal.
+Speak the same language the user speaks. If they write in English, conduct the interview in English. Match their tone — casual stays casual, formal stays formal.
 
 Ask questions **one at a time**. Wait for the answer before moving on. Build understanding incrementally — each question should dig deeper based on what you've already learned.
 
@@ -149,7 +149,7 @@ Terms and concepts specific to this project. Used across all project skills to m
 
 Extract domain-specific terms from the interview. These are words the user used that have specific meaning in the context of this project — not generic terms. Include terms that might be ambiguous or that could be confused with something else. The "Avoid saying" column catches common misnomers the user mentioned or that you noticed during the interview.
 
-**Code Name** column: every domain term gets an English name that will be used in code (folder names, component names, entities, API endpoints). Even if the user speaks Polish, the code is in English. For example: "Plan treningowy" → `WorkoutPlan`, "Posiłek" → `Meal`.
+**Code Name** column: every domain term gets an English name that will be used in code (folder names, component names, entities, API endpoints). The code is always in English. For example: "Training plan" → `WorkoutPlan`, "Dish" → `Meal`.
 
 Create `docs/` if it doesn't exist. Write both files even if the glossary is short (it will grow with `proto-deepen`).
 

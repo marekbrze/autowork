@@ -1,80 +1,75 @@
 # Dashboard — Edge Cases
 
-Audit stress-test prototypu `dashboard` (po `proto-lofi`). Zachowanie-skupiona ewidencja
-luk: co prototyp robi dziś, sugerowane domyślne zachowanie (punkt startowy dla
-`proto-harden` — nie decyzja ostateczna), i `file:line` gdzie luka powinna być obsłużona.
+Audit stress-test of the `dashboard` prototype (after `proto-lofi`). A behavior-focused inventory of gaps: what the prototype does today, the suggested default behavior (the starting point for `proto-harden` — not a final decision), and the `file:line` where the gap should be handled.
 
-Zakres: cały moduł (jeden ekran-launcher `DashboardView` + `DominantRunCard`).
+Scope: the whole module (one launcher screen `DashboardView` + `DominantRunCard`).
 
 ## Coverage
 
-**Spec już uchwycił** (`docs/modules/dashboard.md` → Edge Cases): zero runów, jeden aktywny
-run, wszystkie zarchiwizowane, run ukończony-niezarchiwizowany, błąd odczytu storage, wiele
-aktywnych runów (sortowanie), statystyki poglądowe (mock).
+**Spec already captured** (`docs/modules/dashboard.md` → Edge Cases): zero runs, one active run, all archived, completed-not-archived run, storage read error, multiple active runs (sorting), overview statistics (mock).
 
-**Już obsłużone w kodzie:**
-- Zero runów → wielki CTA „Zacznij swój pierwszy Run" — `DashboardView.tsx:110-124`.
-- Jeden aktywny run → tylko dominująca karta (sekcja „pozostałe" się nie renderuje) — `DashboardView.tsx:66-72,74`.
-- Wszystkie zarchiwizowane → „brak aktywnych" + start + wejście do archiwum — `DashboardView.tsx:102-109,127`.
-- Błąd odczytu storage → `RunReadError` (reload) — `DashboardView.tsx:49-55` → `RunStates.tsx:20-37`.
-- Sortowanie aktywnych po `lastActiveAt` desc — `DashboardView.tsx:27-33`.
-- **Awaria zapisu (quota/disabled)** — `useLocalStorage` NIE aktualizuje stanu przy nieudanym zapisie, raportuje `writeError`, pamięta wartość do `retry` — `use-local-storage.ts:53-76`; w dashboardzie sygnalizowane `StorageStatusToast` — `DashboardView.tsx:137-143` → `StorageStatusToast.tsx:21-63`.
-- `createRun` zwraca `null` przy awarii zapisu, a `handleStartNew` nawiguje tylko po sukcesie (`if (run)`) — `use-runs.ts:37-38`, `DashboardView.tsx:42-45`.
+**Already handled in code:**
+- Zero runs → a large CTA "Start your first Run" — `DashboardView.tsx:110-124`.
+- One active run → only the dominant card (the "others" section doesn't render) — `DashboardView.tsx:66-72,74`.
+- All archived → "no active runs" + start + archive entry — `DashboardView.tsx:102-109,127`.
+- Storage read error → `RunReadError` (reload) — `DashboardView.tsx:49-55` → `RunStates.tsx:20-37`.
+- Active runs sorted by `lastActiveAt` desc — `DashboardView.tsx:27-33`.
+- **Save failure (quota/disabled)** — `useLocalStorage` does NOT update state on a failed save, reports `writeError`, remembers the value for `retry` — `use-local-storage.ts:53-76`; in the dashboard it's surfaced via `StorageStatusToast` — `DashboardView.tsx:137-143` → `StorageStatusToast.tsx:21-63`.
+- `createRun` returns `null` on save failure, and `handleStartNew` navigates only on success (`if (run)`) — `use-runs.ts:37-38`, `DashboardView.tsx:42-45`.
 
-**Nowe luki znalezione:** 6 (po `proto-harden`: ✅ 4 wdrożone, ❌ 2 odłożone).
-**Po severity:** 🔴 0 · 🟡 2 · 🟢 4.
+**New gaps found:** 6 (after `proto-harden`: ✅ 4 implemented, ❌ 2 deferred).
+**By severity:** 🔴 0 · 🟡 2 · 🟢 4.
 
-Moduł jest cienką warstwą widoku nad już-utwardzonym modułem `run` (storage, błędy,
-confirmacje destruktywne = dziedziczone i solidne). Luki poniżej są specyficzne dla dashboardu.
+The module is a thin view layer over the already-hardened `run` module (storage, errors, destructive confirmations = inherited and solid). The gaps below are specific to the dashboard.
 
 ## Inventory
 
 | # | Sev | Category | Edge case | Behavior today | Suggested behavior | Where |
 |---|-----|----------|-----------|----------------|--------------------|-------|
-| 1 | 🟡 | State transitions | **Ukończony run (100%) jako dominujący** — primary CTA „Kontynuuj" kłamie; nic do wznowienia; brak nudge do archiwizacji na karcie. | `completed` zmienia tylko kosmetykę (emerald tekst `DominantRunCard.tsx:50-51`, kolor paska `:75`). „Kontynuuj" zostaje primary (`:89-91`) → kieruje do `/focus` (celebracja) z niczym do zrobienia. Spec mówi „Continue → szczegóły ukończony", ale karta nie ma archiwum-CTA (w przeciwieństwie do `RunDetails`, które podmienia na `RunCompleted`). | Gdy `completed`: podmień primary CTA na „Archiwizuj ten przejazd" (wzorzec `RunCompleted` z `RunStates.tsx:48-65`) lub nudge „ukończony — archiwizuj?"; zepchnij Kontynuuj. | `src/modules/dashboard/components/DominantRunCard.tsx:88-98`; routing `DashboardView.tsx:70` |
-| 2 | 🟡 | Action outcomes | **Podwójny klik „Start new"** → tworzy osierocony pusty Run. | `handleStartNew` woła `createRun()` (sync) i `navigate('/capture')`; przycisk nie jest disableowany w locie (`DashboardView.tsx:42-45`). Dwa szybkie kliknięcia przed odmontowaniem → dwa `createRun` → dwa runy, do jednego nawigacja, drugi zostaje osierocony. Dotyczy 3 przycisków: CTA empty (`:120`), all-archived (`:106`), „+ nowy przejazd" (`DominantRunCard.tsx:95`). | Strażnik in-flight (disable przycisku do nawigacji) lub dedup `createRun` w krótkim oknie. | `src/modules/dashboard/components/DashboardView.tsx:42-45` |
-| 3 | 🟢 | Data states | **Run bez tasków (0/0) jako dominujący** → bezsensowna linijka statystyk. | Świeży run (`totalTasks: 0`, np. scenariusz `minimal` lub przed chwilą stworzony) pokazuje „0 z 0 zrobione · zostały 0 · 0s w focus" (`DominantRunCard.tsx:79-84`); `runProgress` = 0 (`run.ts`). Nowy run powinien zapraszać do akcji, nie pokazywać zer. | Gdy `totalTasks === 0`: zapraszająca linijka („Jeszcze bez tasków — zacznij od brain dumpu") zamiast rozbicia zer. | `src/modules/dashboard/components/DominantRunCard.tsx:79-84` |
-| 4 | 🟢 | Data states | **Bardzo wiele aktywnych runów** — nieograniczona lista. | Mniejsze runy renderują się w płaskim `<ul>` bez cap/paginacji (`DashboardView.tsx:77-98`). Przy wielu runach strona robi się długa (dominant + N mini-kart + archiwum). | Lofi: akceptowalne; rozważyć miękki cap (pierwsze N + „X więcej") lub grupowanie później. | `src/modules/dashboard/components/DashboardView.tsx:74-100` |
-| 5 | 🟢 | Navigation & flow | **Wejście do archiwum ukryte, gdy `archivedCount === 0`.** | Link archiwum renderuje się tylko gdy `archivedCount > 0` (`DashboardView.tsx:127`). Spec mówi „wejście do archiwum na końcu listy aktywnych runów" (implikuje stałą obecność). Przy zerze zarchiwizowanych — brak linku. | Zawsze obecne „Archiwum (0)" albo świadomie ukrywać-puste (potwierdzić z designerem). | `src/modules/dashboard/components/DashboardView.tsx:127-135` |
-| 6 | 🟢 | Data states | **Remis `lastActiveAt`** → niedeterministyczny wybór dominującego. | Sort `b.lastActiveAt.localeCompare(a.lastActiveAt)` (`DashboardView.tsx:31`); przy równej wartości (mock-seed lub ten sam tick) kolejność między remisami zależy od porządku wejścia, a `active[0]` (dominant) jest niedookreślony. | Sortowanie z kluczem wtórnym (np. `createdAt` desc), żeby remisy były deterministyczne. | `src/modules/dashboard/components/DashboardView.tsx:27-33` |
+| 1 | 🟡 | State transitions | **Completed run (100%) as dominant** — the primary CTA "Continue" lies; nothing to resume; no archive nudge on the card. | `completed` only changes cosmetics (emerald text `DominantRunCard.tsx:50-51`, bar color `:75`). "Continue" stays primary (`:89-91`) → routes to `/focus` (celebration) with nothing to do. The spec says "Continue → details completed", but the card has no archive CTA (unlike `RunDetails`, which swaps to `RunCompleted`). | When `completed`: swap the primary CTA to "Archive this run" (the `RunCompleted` pattern from `RunStates.tsx:48-65`) or a nudge "completed — archive?"; push Continue down. | `src/modules/dashboard/components/DominantRunCard.tsx:88-98`; routing `DashboardView.tsx:70` |
+| 2 | 🟡 | Action outcomes | **Double click "Start new"** → creates an orphaned empty Run. | `handleStartNew` calls `createRun()` (sync) and `navigate('/capture')`; the button isn't disabled in-flight (`DashboardView.tsx:42-45`). Two quick clicks before unmount → two `createRun` calls → two runs, one is navigated to, the other is left orphaned. Affects 3 buttons: empty CTA (`:120`), all-archived (`:106`), "+ new run" (`DominantRunCard.tsx:95`). | An in-flight guard (disable the button until navigation) or dedup `createRun` within a short window. | `src/modules/dashboard/components/DashboardView.tsx:42-45` |
+| 3 | 🟢 | Data states | **Run without tasks (0/0) as dominant** → a meaningless stats line. | A fresh run (`totalTasks: 0`, e.g. the `minimal` scenario or one just created) shows "0 of 0 done · 0 remaining · 0s in focus" (`DominantRunCard.tsx:79-84`); `runProgress` = 0 (`run.ts`). A new run should invite action, not show zeroes. | When `totalTasks === 0`: an inviting line ("No tasks yet — start with a brain dump") instead of breaking down zeroes. | `src/modules/dashboard/components/DominantRunCard.tsx:79-84` |
+| 4 | 🟢 | Data states | **Very many active runs** — unbounded list. | Smaller runs render in a flat `<ul>` with no cap/pagination (`DashboardView.tsx:77-98`). With many runs the page gets long (dominant + N mini-cards + archive). | Lofi: acceptable; consider a soft cap (first N + "X more") or grouping later. | `src/modules/dashboard/components/DashboardView.tsx:74-100` |
+| 5 | 🟢 | Navigation & flow | **Archive entry hidden when `archivedCount === 0`.** | The archive link renders only when `archivedCount > 0` (`DashboardView.tsx:127`). The spec says "archive entry at the end of the active runs list" (implies a constant presence). With zero archived — no link. | Either always-present "Archive (0)" or consciously hide-when-empty (confirm with the designer). | `src/modules/dashboard/components/DashboardView.tsx:127-135` |
+| 6 | 🟢 | Data states | **`lastActiveAt` tie** → non-deterministic dominant selection. | Sort `b.lastActiveAt.localeCompare(a.lastActiveAt)` (`DashboardView.tsx:31`); on equal values (mock-seed or the same tick) the order between ties depends on entry order, and `active[0]` (dominant) is underdetermined. | Sort with a secondary key (e.g. `createdAt` desc) so ties are deterministic. | `src/modules/dashboard/components/DashboardView.tsx:27-33` |
 
-## Kategorie sprawdzone bez luk
+## Categories checked with no gaps
 
-- **Forms & input** — dashboard nie ma formularzy (rename żyje w `RunDetails`, już zwalidowane: `aria-invalid`, `maxLength 60`). N/A.
-- **Validation** — brak pól. N/A.
-- **Destructive actions** — na launcherze żadnych (delete/archive w `RunDetails`/`ArchivedRuns` z `ConfirmDialog`). Dziedziczone ✓.
-- **Undo** — N/A dla launchera.
-- **Loading & async** — `localStorage` czytany synchronicznie przy pierwszym renderze (`use-local-storage.ts:27-34`); bez blank/spinner. ✓.
-- **Errors** — readError → `RunReadError`; writeError → `StorageStatusToast`; brak `alert()`/`window.alert`. ✓.
-- **Error recovery** — reload (odczyt) / retry (zapis). ✓.
-- **Navigation & flow** — brak dead-endów; każda akcja prowadzi gdzieś; refresh-safe (bezstanowy widok nad localStorage). ✓.
-- **Cross-module / lifecycle** — usunięty run znika z listy (filter przeliczany); brak wiszących referencji. ✓.
-- **Storage failure (quota/disabled)** — `useLocalStorage` łapie (`use-local-storage.ts:46`), raportuje `writeError`, stan niezaktualizowany; toast + retry. Solidne ✓.
-- **Offline** — client-side; działa offline. ✓.
+- **Forms & input** — the dashboard has no forms (rename lives in `RunDetails`, already validated: `aria-invalid`, `maxLength 60`). N/A.
+- **Validation** — no fields. N/A.
+- **Destructive actions** — none on the launcher (delete/archive in `RunDetails`/`ArchivedRuns` with `ConfirmDialog`). Inherited ✓.
+- **Undo** — N/A for the launcher.
+- **Loading & async** — `localStorage` read synchronously on first render (`use-local-storage.ts:27-34`); no blank/spinner. ✓.
+- **Errors** — readError → `RunReadError`; writeError → `StorageStatusToast`; no `alert()`/`window.alert`. ✓.
+- **Error recovery** — reload (read) / retry (write). ✓.
+- **Navigation & flow** — no dead-ends; every action leads somewhere; refresh-safe (stateless view over localStorage). ✓.
+- **Cross-module / lifecycle** — a deleted run disappears from the list (filter recomputed); no dangling references. ✓.
+- **Storage failure (quota/disabled)** — `useLocalStorage` catches it (`use-local-storage.ts:46`), reports `writeError`, state not updated; toast + retry. Solid ✓.
+- **Offline** — client-side; works offline. ✓.
 
 ## Priority list
 
-1. **Ukończony run jako dominujący (#1)** — primary CTA „Kontynuuj" wprowadza w błąd; największy user-facing impact, niski koszt (podmiana CTA wzorcem `RunCompleted`).
-2. **Podwójny klik „Start new" (#2)** — osierocony run = data pollution; strażnik in-flight to mała zmiana.
-3. **Run bez tasków (#3)** — czystość komunikatu na świeżym dominancie.
-4. **Wejście do archiwum ukryte (#5)** — discoverability nawigacji; decyzja designu.
-5. **Remis `lastActiveAt` (#6)** — determinizm, rzadko trafiany.
-6. **Nieograniczona lista (#4)** — skala; do odłożenia.
+1. **Completed run as dominant (#1)** — the primary CTA "Continue" is misleading; biggest user-facing impact, low cost (CTA swap via the `RunCompleted` pattern).
+2. **Double click "Start new" (#2)** — orphaned run = data pollution; an in-flight guard is a small change.
+3. **Run without tasks (#3)** — message clarity on a fresh dominant.
+4. **Archive entry hidden (#5)** — navigation discoverability; design decision.
+5. **`lastActiveAt` tie (#6)** — determinism, rarely hit.
+6. **Unbounded list (#4)** — scale; to defer.
 
 ## Hand-off to proto-harden
 
-Top-priority luki do wdrożenia w pierwszej kolejności:
-- **#1 Ukończony dominujący** — podmień primary CTA na archiwizację / nudge, zepchnij Kontynuuj.
-- **#2 Podwójny klik „Start new"** — strażnik in-flight na przyciskach tworzących Run.
+Top-priority gaps to implement first:
+- **#1 Completed dominant** — swap the primary CTA to archive / nudge, push Continue down.
+- **#2 Double click "Start new"** — in-flight guard on the buttons that create a Run.
 
-## Status po proto-harden
+## Status after proto-harden
 
-Wdrożone (✅):
-- **#1 Ukończony dominant** → primary CTA „Archiwizuj ten przejazd" (Kontynuuj usunięte) — `src/modules/dashboard/components/DominantRunCard.tsx` (akcje) + `DashboardView.tsx` (`onArchive` → `archiveRun`).
-- **#2 Podwójny klik „Start new"** → strażnik `creatingRef` blokuje drugie `createRun` — `src/modules/dashboard/components/DashboardView.tsx` (`handleStartNew`).
-- **#3 Run bez tasków (0/0)** → „Jeszcze bez tasków — zacznij od brain dumpu" zamiast rozbicia zer — `src/modules/dashboard/components/DominantRunCard.tsx`.
-- **#6 Remis `lastActiveAt`** → wtórny klucz `createdAt` desc — `src/modules/dashboard/components/DashboardView.tsx` (sort).
+Implemented (✅):
+- **#1 Completed dominant** → primary CTA "Archive this run" (Continue removed) — `src/modules/dashboard/components/DominantRunCard.tsx` (actions) + `DashboardView.tsx` (`onArchive` → `archiveRun`).
+- **#2 Double click "Start new"** → `creatingRef` guard blocks the second `createRun` — `src/modules/dashboard/components/DashboardView.tsx` (`handleStartNew`).
+- **#3 Run without tasks (0/0)** → "No tasks yet — start with a brain dump" instead of breaking down zeroes — `src/modules/dashboard/components/DominantRunCard.tsx`.
+- **#6 `lastActiveAt` tie** → secondary key `createdAt` desc — `src/modules/dashboard/components/DashboardView.tsx` (sort).
 
-Odłożone (❌, z racją):
-- **#4 Nieograniczona lista aktywnych runów** — akceptowalne dla lofi (jak „statystyki poglądowe" w `run.md`); ew. miękki cap / paginacja w fazie designu, nie harden.
-- **#5 Wejście do archiwum ukryte przy 0** — świadoma decyzja: ukrywanie pustego linku = czystszy UX (brak martwego linku do pustego archiwum); wrócić, jeśli discoverability nawigacji stanie się problemem.
+Deferred (❌, justified):
+- **#4 Unbounded active runs list** — acceptable for lofi (like the "overview statistics" in `run.md`); a soft cap / pagination belongs in the design phase, not harden.
+- **#5 Archive entry hidden at 0** — conscious decision: hiding the empty link = cleaner UX (no dead link to an empty archive); revisit if navigation discoverability becomes a problem.

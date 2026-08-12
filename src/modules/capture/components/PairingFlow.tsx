@@ -7,10 +7,10 @@ import { pluralize } from '@/lib/utils';
 import type { Stressor } from '../types/stressor';
 
 /**
- * Zobowiązany ciąg porównań parami („który bardziej stresuje: A czy B?").
- * Kolejność wyliczana adaptacyjnym insertion sortem: każdy kolejny stresor
- * wstawiany jest na właściwe miejsce przez wyszukiwanie binarne po porównaniach
- * — ~n·log(n) pytań zamiast pełnego n². "Mądry algorytm" z modułu capture.
+ * A committed sequence of pairwise comparisons ("which is more stressful: A or B?").
+ * The order is computed by an adaptive insertion sort: each successive stressor
+ * is placed in the right spot via binary search over comparisons
+ * — ~n·log(n) questions instead of a full n². The "smart algorithm" of the capture module.
  */
 export type PairingState =
   | { phase: 'intro' }
@@ -18,11 +18,11 @@ export type PairingState =
       phase: 'compare';
       sorted: Stressor[];
       queue: Stressor[];
-      x: Stressor; // aktualnie wstawiany stresor
+      x: Stressor; // the stressor currently being inserted
       lo: number;
       hi: number;
-      mid: number; // indeks w sorted, z którym porównujemy x
-      count: number; // liczba zadanych pytań
+      mid: number; // index in sorted we're comparing x against
+      count: number; // number of questions asked so far
     }
   | { phase: 'done'; order: Stressor[]; count: number };
 
@@ -30,9 +30,9 @@ interface PairingFlowProps {
   stressors: Stressor[];
   onApply: (orderedIds: string[]) => void;
   onClose: () => void;
-  /** Tylko dla Storybooka — pozwala renderować dany stan bez klikania. */
+  /** Storybook only — lets a given state render without clicking. */
   initialState?: PairingState;
-  /** Tylko dla Storybooka — pokaż od razu potwierdzenie przerwania. */
+  /** Storybook only — show the abandon confirmation right away. */
   initialConfirmAbandon?: boolean;
 }
 
@@ -42,13 +42,13 @@ export function PairingFlow({ stressors, onApply, onClose, initialState, initial
   const [state, setState] = useState<PairingState>(initialState ?? { phase: 'intro' });
   const [confirmAbandon, setConfirmAbandon] = useState(initialConfirmAbandon ?? false);
 
-  // Focus na główną akcję przy każdej zmianie stanu.
+  // Focus the primary action on every state change.
   useEffect(() => {
     const el = document.getElementById(PRIMARY_ID) as HTMLButtonElement | null;
     el?.focus();
   }, [state, confirmAbandon]);
 
-  // Przerwanie mid-sequence wymaga potwierdzenia (postęp by przepadł).
+  // Aborting mid-sequence requires confirmation (progress would be lost).
   const compareCount = state.phase === 'compare' ? state.count : 0;
   const requestClose = useCallback(() => {
     if (compareCount > 0 && !confirmAbandon) {
@@ -58,7 +58,7 @@ export function PairingFlow({ stressors, onApply, onClose, initialState, initial
     }
   }, [compareCount, confirmAbandon, onClose]);
 
-  // Esc = zamknij (z potwierdzeniem mid-sequence).
+  // Esc = close (with mid-sequence confirmation).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') requestClose();
@@ -98,7 +98,7 @@ export function PairingFlow({ stressors, onApply, onClose, initialState, initial
       const { sorted, queue, x, lo, hi, mid, count } = prev;
       let newLo = lo;
       let newHi = hi;
-      // x bardziej stresujący → ma być wcześniej (przed sorted[mid])
+      // x more stressful → should be earlier (before sorted[mid])
       if (xMoreStressful) newHi = mid - 1;
       else newLo = mid + 1;
       const nextCount = count + 1;
@@ -116,7 +116,7 @@ export function PairingFlow({ stressors, onApply, onClose, initialState, initial
         };
       }
 
-      // pozycja znaleziona — wstaw x na newLo
+      // position found — insert x at newLo
       const sorted2 = [...sorted];
       sorted2.splice(newLo, 0, x);
       const queue2 = queue.slice(1);

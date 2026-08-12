@@ -6,16 +6,16 @@ import type { Reason } from '@/modules/decompose/types/reason';
 import type { NextAction } from '@/modules/decompose/types/next-action';
 import type { Context, Energy, EstimatedTime, Task } from '@/modules/decompose/types/task';
 
-/** Stabilny timestamp dla seedu scenariusza. */
+/** Stable timestamp for the scenario seed. */
 const TS = '2026-06-28T00:00:00.000Z';
 
 export interface FocusSeed {
   stressors: Stressor[];
   reasons: Reason[];
   nextActions: NextAction[];
-  /** Taski z przypiętymi atrybutami (Context/Energy/EstimatedTime) — gotowe do filtra sesji. */
+  /** Tasks with pinned attributes (Context/Energy/EstimatedTime) — ready for the session filter. */
   tasks: Task[];
-  /** [stressorId, DoneVision] — do zapisu w `decompose:doneVisions:<runId>`. */
+  /** [stressorId, DoneVision] — to be saved in `decompose:doneVisions:<runId>`. */
   doneVisions: [string, DoneVision][];
 }
 
@@ -53,11 +53,11 @@ function attributedTask(
 }
 
 /**
- * Seed celowy dla `focus` — przeprowadza tester przez pełny payoff lejka:
- * 3 stresory (kolejność tablicy = rank: najbardziej stresujący pierwszy),
- * każdy z atrybuowanymi taskami o zróżnicowanych kontekstach/energiach/czasach,
- * materiał motywacyjny (WHY) dla dwóch z nich (trzeci celowo bez — edge case
- * „brak motywacji"). Wszystko należy do jednego Runa (`runId`).
+ * Intentional seed for `focus` — walks the tester through the full funnel payoff:
+ * 3 stressors (array order = rank: most stressful first),
+ * each with attributed tasks of varied contexts/energies/times,
+ * motivational material (WHY) for two of them (the third intentionally without — the edge case
+ * "no motivation"). Everything belongs to a single Run (`runId`).
  */
 export interface FocusStressorRefs {
   podatki: Stressor;
@@ -79,7 +79,7 @@ export function buildFocusSeed(runId: string, refs?: FocusStressorRefs): FocusSe
   const tasks: Task[] = [];
   const doneVisions: [string, DoneVision][] = [];
 
-  // --- stresor 1: podatki (rank 0) — pełne WHY ---
+  // --- stressor 1: podatki (rank 0) — full WHY ---
   reasons.push(
     mkReason(sPodatki.id, runId, 'peace — the tax office stops hanging over me', 'positive'),
     mkReason(sPodatki.id, runId, 'penalties and interest grow every day I delay', 'negative'),
@@ -93,7 +93,7 @@ export function buildFocusSeed(runId: string, refs?: FocusStressorRefs): FocusSe
   );
   doneVisions.push([sPodatki.id, { text: 'taxes filed, head clear of deadlines and the office', emoji: '😌' }]);
 
-  // --- stresor 2: auto (rank 1) — pełne WHY ---
+  // --- stressor 2: auto (rank 1) — full WHY ---
   reasons.push(
     mkReason(sAuto.id, runId, 'I get home safe every night', 'positive'),
     mkReason(sAuto.id, runId, 'the car breaks down on the road and derails my plans', 'negative'),
@@ -108,7 +108,7 @@ export function buildFocusSeed(runId: string, refs?: FocusStressorRefs): FocusSe
   );
   doneVisions.push([sAuto.id, { text: 'the car runs smooth and quiet, driving without stress', emoji: '😌' }]);
 
-  // --- stresor 3: podwyżka (rank 2) — celowo BEZ WHY (edge: brak motywacji) ---
+  // --- stressor 3: podwyzka (rank 2) — intentionally NO WHY (edge: no motivation) ---
   const naPrzygotuj = mkNextAction(sPodwyzka.id, runId, 'Prepare for the raise conversation');
   nextActions.push(naPrzygotuj);
   tasks.push(

@@ -10,7 +10,7 @@ description: >
   token vs one-off component vs conceptual misalignment), and fixes it. Use AFTER proto-design, on
   a functionally-complete module. This skill WRITES code. Triggers on: "polish this", "final pass",
   "ship pass", "pre-ship", "polish the details", "make it production-ready", "fix the details",
-  "wypoleruj", "finałowy pass", "pass przed shippem", "dopracuj detale", "przygotuj do shippa".
+  "polish it", "final pass", "pre-ship pass", "refine the details", "prepare for shipping".
   This is NOT for setting direction (proto-brand), implementing hi-fi (proto-design), or rescuing
   a broken app (proto-simplify). Polish is the LAST step, not the first.
 ---
@@ -62,8 +62,8 @@ The user should specify the module and scope. If they don't, list modules from `
 
 ## Decisions — ask the designer (one at a time)
 
-**Quality bar** — "Jaki quality bar? MVP (działa i wygląda przyzwoicie), czy flagship (detal do poziomu topowych narzędzi)? To decyduje ile czasu włożymy."
-**Ship deadline** — "Kiedy to shipujemy? Przy krótkim czasie — functional issues first, cosmetic może w follow-up."
+**Quality bar** — "What quality bar? MVP (works and looks decent), or flagship (detail on par with top tools)? This decides how much time we invest."
+**Ship deadline** — "When do we ship this? On a tight timeline — functional issues first, cosmetic can be a follow-up."
 **Ambiguity** — if anything about the design system is unclear, **ask, don't guess**. Never guess at design-system principles.
 
 Don't ask about per-pixel choices or which token to use — those are yours, and they're decided by aligning to the system.
@@ -178,6 +178,6 @@ Tell the user:
 5. That the app does everything it did before — only more precise
 
 Suggest next steps:
-- "Moduł gotowy do shippa. Odpal proto-design + proto-polish na kolejnym module"
-- "Po zmianach w kodzie — odpal proto-audit żeby zobaczyć świeży baseline"
-- "Jeśli direction trzeba doprecyzować — proto-brand, a potem design + polish od nowa na zmienionym"
+- "Module ready to ship. Run proto-design + proto-polish on the next module"
+- "After code changes — run proto-audit to see a fresh baseline"
+- "If the direction needs refining — proto-brand, then design + polish from scratch on the changed one"

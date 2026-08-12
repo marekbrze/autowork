@@ -1,57 +1,57 @@
 # Module Breakdown
 
 ## Overview
-Aplikacja to jednokierunkowy lejek wyciągający usera z paraliżu planowania. Rozbijamy ją na **6 modułów projektowych**: 4 Core (kolejne kroki lejka + wykonanie) i 2 Supporting (pojemnik Runa + dashboard motywacyjny). Moduły Core ułożone są w kolejności lejka — każdy zależy od wyjścia poprzedniego. Moduły nazwane po angielsku (code namespaces / foldery).
+The app is a one-way funnel that pulls the user out of planning paralysis. We break it into **6 project modules**: 4 Core (successive funnel steps + execution) and 2 Supporting (the Run container + a motivational dashboard). The Core modules are ordered along the funnel — each depends on the previous one's output. Modules are named in English (code namespaces / folders).
 
 ## Modules
 
 ### capture
 **Type**: Core
-**Description**: Wejście do apki — brain dump („Co cię teraz stresuje?", wpisywanie Enterem) i ułożenie stresorów od najbardziej do najmniej stresującego. Zerowa tarcie, ustawia ton całego narzędzia.
+**Description**: The app's entrance — brain dump ("What's stressing you right now?", typing with Enter) and ordering stressors from most to least stressful. Zero friction, sets the tone for the whole tool.
 **Entities**: `Stressor`
 **Key Actions**: Add Stressor (Enter), Rank Stressor, Edit Stressor, Delete Stressor
-**Connects to**: `decompose` (przekazuje uporządkowane stressory do rozbicia); `run` (implicite tworzy nowy Run przy starcie)
-**Design priority**: Medium — niska złożoność, ale to pierwszy kontakt i must-feel-good dla obietnicy „bez decydowania".
+**Connects to**: `decompose` (passes the ordered stressors on for breakdown); `run` (implicitly creates a new Run on start)
+**Design priority**: Medium — low complexity, but it's the first contact and the must-feel-good moment for the "no deciding" promise.
 
 ### decompose
 **Type**: Core
-**Description**: Dla każdego stresora pojedynczo (od najbardziej stresującego): WHY — materiał motywacyjny (powody + wizja efektu, „ładujący baterię" dla `focus`) — i HOW — next-actiony zapisane aktywnym/konkretnym językiem, rozbijane na wykonalne taski (konkretny next-action = 1 task; gruby = kilka). Driver: duże zadanie paraliżuje, trzeba rozbijać (persona ADHD/overwhelmed — ADR 0007).
-**Entities**: `Reason`, `DoneVision`, `NextAction`, `Task` (tworzenie)
+**Description**: For each stressor one at a time (starting with the most stressful): WHY — the motivational material (reasons + done vision, which "charges the battery" for `focus`) — and HOW — next-actions written in active/concrete language, broken down into doable tasks (a concrete next-action = 1 task; a coarse one = several). Driver: a large task paralyzes, so it has to be broken down (ADHD/overwhelmed persona — ADR 0007).
+**Entities**: `Reason`, `DoneVision`, `NextAction`, `Task` (creation)
 **Key Actions**: Add Reason / DoneVision, Skip motivation, Add NextAction, Decompose into Tasks, Edit, Delete
-**Connects to**: `capture` (pobiera stressory); `process` (przekazuje taski do opisania atrybutami); `focus` (przekazuje materiał motywacyjny, **zawsze widoczny** na ekranie zadania)
-**Design priority**: Medium — pomost od „stresora" do „wykonalnej jednostki" + magazyn paliwa motywacyjnego.
+**Connects to**: `capture` (pulls the stressors); `process` (passes the tasks on to be given attributes); `focus` (passes the motivational material, **always visible** on the task screen)
+**Design priority**: Medium — the bridge from "stressor" to "a doable unit" + the store of motivational fuel.
 
 ### process
 **Type**: Core
-**Description**: Procesowanie GTD-style (wzorzec inboxa jak w *dopadone*): każdemu taskowi przypisuje się `Context`, `Energy` i `EstimatedTime`. To, co później umożliwia filtrowanie sesji.
-**Entities**: `Task` (atrybuty)
+**Description**: GTD-style processing (the inbox pattern like in *dopadone*): each task gets a `Context`, `Energy`, and `EstimatedTime`. This is what later enables session filtering.
+**Entities**: `Task` (attributes)
 **Key Actions**: Assign Context / Energy / EstimatedTime, Edit Task
-**Connects to**: `decompose` (pobiera taski bez atrybutów); `focus` (przekazuje opisane taski do filtrowania)
-**Design priority**: High — efektywne przypinanie 3 atrybutów decyduje o tym, czy filtr sesji zadziała.
+**Connects to**: `decompose` (pulls tasks without attributes); `focus` (passes the attributed tasks on for filtering)
+**Design priority**: High — efficiently pinning the 3 attributes decides whether the session filter works.
 
 ### focus
 **Type**: Core
-**Description**: Serce apki: wybór sesji (konteksty + poziomy energii → filtr), sesja focus (jedno zadanie na ekranie pod timerem, done/skip/back), a na końcu podsumowanie z „Usuń skończone". Tu spoczywa obietnica: jedno zadanie goni drugie, zdejmujemy ciężar decydowania.
-**Entities**: `FocusSession`, `Timer`, `SessionSummary`, `Task` (stany)
-**Key Actions**: Filter session, Start, Done / Skip / Dismiss (nieaktualne) / Back, Timer pause/resume, View Summary, ClearCompleted
-**Connects to**: `process` (pobiera opisane taski); `run` (wynik sesji aktualizuje progres Runa)
-**Design priority**: High — największa złożoność i ryzyko (maszyneria stanów, wznawianie timera) oraz największy wpływ na usera.
+**Description**: The heart of the app: session selection (contexts + energy levels → filter), the focus session (one task on screen under a timer, done/skip/back), and finally the summary with "Clear completed". This is where the promise lives: one task chases the next, and we lift the burden of deciding.
+**Entities**: `FocusSession`, `Timer`, `SessionSummary`, `Task` (states)
+**Key Actions**: Filter session, Start, Done / Skip / Dismiss (stale) / Back, Timer pause/resume, View Summary, ClearCompleted
+**Connects to**: `process` (pulls the attributed tasks); `run` (the session result updates the Run's progress)
+**Design priority**: High — the greatest complexity and risk (the state machinery, timer resumption) and the biggest impact on the user.
 
 ### run
 **Type**: Supporting
-**Description**: Cykl życia Runa jako **widocznego, statystycznego obiektu** — pojemnik najwyższego poziomu: tworzenie, Kontynuuj (smart-routing do najdalszego kroku z pracą), ekran statystyk (czas spędzony, wykonane `completed + dismissed`, zostało, progress), review (ręczne — co nadal obowiązuje), rename, archiwizacja (odwracalna) / rozarchiwizowanie, usuwanie. Wiele runów żyje równolegle, odpalanych z dashboardu. Szczegóły: `docs/modules/run.md`. (ADR 0020)
+**Description**: The Run lifecycle as a **visible, statistical object** — the top-level container: creation, Continue (smart-routing to the furthest step that has work), the statistics screen (time spent, completed `completed + dismissed`, remaining, progress), review (manual — what still applies), rename, archiving (reversible) / un-archiving, deletion. Many runs live in parallel, launched from the dashboard. Details: `docs/modules/run.md`. (ADR 0020)
 **Entities**: `Run`
 **Key Actions**: Create Run, Continue (resume), View Details/Stats, Rename Run, Review, Archive Run, Un-archive Run, Delete Run
-**Connects to**: wszystkie moduły Core (każda akcja lejka dzieje się wewnątrz aktywnego Runa); `dashboard` (launcher list + archiwum/historia; karta Runa = Kontynuuj + Szczegóły)
-**Design priority**: Medium — warstwa persystencji + świadome zarządzanie runami (ADR 0020 superseded wczesnej notki „MVP = jeden aktywny Run").
+**Connects to**: all the Core modules (every funnel action happens inside the active Run); `dashboard` (the launcher list + archive/history; a Run card = Continue + Details)
+**Design priority**: Medium — the persistence layer + deliberate run management (ADR 0020 supersedes the early "MVP = one active Run" note).
 
 ### dashboard
 **Type**: Supporting
-**Description**: **Pas startowy apki, nie neutralna lista** — w jednym kliku wrzuca usera z powrotem do roboty. Dominująca karta ostatnio-pracowanego runa (duża, progres na pierwszym planie, Continue primary) + obok świadomy „rozpocznij nowy"; poniżej mniejsze karty aktywnych runów (każda Continue + Szczegóły, sortowane po `lastActiveAt`); na końcu listy wejście do archiwum/historii. Motywacja = głównie momentum progresem. ~~Porównanie/„Compare runs"~~ wyrzucone z MVP. Szczegóły: `docs/modules/dashboard.md`. (ADR 0026, 0027, 0028)
-**Entities**: — (czyta `Run` i jego progres)
+**Description**: **The app's launch runway, not a neutral list** — in one click it drops the user back into work. The dominant card of the most-recently-worked-on run (large, progress in the foreground, Continue primary) + a deliberate "start new" next to it; below it, smaller cards of active runs (each Continue + Details, sorted by `lastActiveAt`); at the end of the list, an entrance to the archive/history. Motivation = mostly progress momentum. ~~Comparison/"Compare runs"~~ dropped from the MVP. Details: `docs/modules/dashboard.md`. (ADR 0026, 0027, 0028)
+**Entities**: — (reads `Run` and its progress)
 **Key Actions**: View Dashboard, Continue (resume), View Details/Stats, Start new Run, Enter archive, Un-archive
-**Connects to**: `run` (czyta runy + `lastActiveAt`; uruchamia Continue/Create/Details/archive); pośrednio wszystkie Core przez Continue (smart-routing)
-**Design priority**: Low — warstwa launcher + motywacji, budowana na końcu; na MVP można pominąć i startować prosto z lejka.
+**Connects to**: `run` (reads runs + `lastActiveAt`; launches Continue/Create/Details/archive); indirectly all Core modules via Continue (smart-routing)
+**Design priority**: Low — a launcher + motivation layer, built last; can be skipped on the MVP in favor of starting straight from the funnel.
 
 ---
 
@@ -73,19 +73,19 @@ graph LR
     run -->|history + progress| dashboard
 ```
 
-Linie ciągłe = przepływ danych lejka; kropkowane = relacja hosts (każdy krok Core żyje wewnątrz aktywnego Runa) oraz dodatkowe przepływy (np. materiał motywacyjny `decompose` → `focus`).
+Solid lines = the funnel's data flow; dotted = the hosts relation (every Core step lives inside the active Run) and additional flows (e.g. the motivational material `decompose` → `focus`).
 
 ## Prototyping Order
 
-1. **`capture`** — wejście; tworzy Runa implicite; niskie ryzyko; reszta zależy od stressorów. Ustawia ton.
-2. **`decompose`** — potrzebuje stressorów z `capture`; pomost do tasków.
-3. **`process`** — potrzebuje tasków z `decompose`; warunek konieczny, by `focus` miał co filtrować.
-4. **`focus`** — payoff całego lejka; najwięcej uwagi projektowej; można też prototypować wcześnie z mock-taskami, by szybko zweryfikować obietnicę.
-5. **`run`** — jak zadziała pojedynczy przejazd, dokładasz persystencję, resume i review-on-resume.
-6. **`dashboard`** — warstwa motywacji/historii; na końcu, opcjonalna na MVP.
+1. **`capture`** — the entrance; creates a Run implicitly; low risk; everything else depends on the stressors. Sets the tone.
+2. **`decompose`** — needs the stressors from `capture`; the bridge to tasks.
+3. **`process`** — needs the tasks from `decompose`; a prerequisite for `focus` to have anything to filter.
+4. **`focus`** — the payoff of the whole funnel; the most design attention; can also be prototyped early with mock tasks to quickly verify the promise.
+5. **`run`** — once a single run-through works, you add persistence, resume, and review-on-resume.
+6. **`dashboard`** — the motivation/history layer; last, optional on the MVP.
 
 ## Priority Areas
 
-- **`focus`**: najwyższy priorytet projektowy. Tu realizuje się obietnica apki; największa złożoność (timer liczący w dół/w górę, maszyneria stanów done/skip/back, wznawianie timera per task) i największe ryzyko produktowe — kluczowe pytanie, czy „goniące się zadania" faktycznie zdejmują paraliż, czy odczuwane są jako sztywna klatka.
-- **`process`**: wysoki priorytet. Efektywne, bezfriction przypinanie trzech atrybutów (kontekst / energia-bateryjki / czas-presety) decyduje o użyteczności filtra sesji. Wzorzec inspirujący: *dopadone*.
-- **Przepływ lejka (cross-cutting)**: jak kroki płynnie, jednokierunkowo się łączą — tak, by prowadzić za rękę, nie dusząc. Dotyka wszystkich modułów Core; weryfikować od pierwszego lofi.
+- **`focus`**: the highest design priority. This is where the app's promise is realized; the greatest complexity (a timer counting down/up, the done/skip/back state machinery, per-task timer resumption) and the biggest product risk — the key question of whether "tasks chasing each other" actually lifts the paralysis or feels like a rigid cage.
+- **`process`**: high priority. Efficient, friction-free pinning of the three attributes (context / energy-batteries / time-presets) decides how useful the session filter is. Inspiring pattern: *dopadone*.
+- **The funnel flow (cross-cutting)**: how the steps connect smoothly and one-way — leading by the hand without suffocating. It touches all the Core modules; verify from the first lofi onward.

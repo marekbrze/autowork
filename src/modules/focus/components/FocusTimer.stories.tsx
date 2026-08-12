@@ -11,22 +11,22 @@ export default meta;
 
 type Story = StoryObj<typeof FocusTimer>;
 
-/** Pod progiem oszacowania — kolor neutralny. */
+/** Below the estimate threshold — neutral color. */
 export const UnderThreshold: Story = {
   args: { elapsedSeconds: 120, thresholdMinutes: 30 },
 };
 
-/** Powyżej progu — render czerwony (overtime). */
+/** Above the threshold — red render (overtime). */
 export const OverThreshold: Story = {
   args: { elapsedSeconds: 2100, thresholdMinutes: 30 },
 };
 
-/** Task bez oszacowania czasu — próg nieokreślony. */
+/** Task without a time estimate — threshold undefined. */
 export const NoThreshold: Story = {
   args: { elapsedSeconds: 745 },
 };
 
-/** Wstrzymany. */
+/** Paused. */
 export const Paused: Story = {
   args: { elapsedSeconds: 90, thresholdMinutes: 5, paused: true },
 };

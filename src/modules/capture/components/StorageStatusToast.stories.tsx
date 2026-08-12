@@ -17,7 +17,7 @@ const meta: Meta<typeof StorageStatusToast> = {
     readError: false,
     onRetry: () => {},
     onDismiss: () => {},
-    entityLabel: 'stresorów',
+    entityLabel: 'stressors',
   },
 };
 
@@ -25,17 +25,17 @@ export default meta;
 
 type Story = StoryObj<typeof StorageStatusToast>;
 
-/** Zapis nie powiósł się (LocalStorage pełne / niedostępne) — z retry. */
+/** The write failed (LocalStorage full / unavailable) — with retry. */
 export const WriteError: Story = {
   args: { writeError: true },
 };
 
-/** Odczyt nie powiódł się (uszkodzony JSON) — informacyjnie, bez retry. */
+/** The read failed (corrupted JSON) — informational, no retry. */
 export const ReadError: Story = {
   args: { readError: true },
 };
 
-/** Brak błędu — nic się nie renderuje. */
+/** No error — nothing renders. */
 export const Ok: Story = {
   args: { writeError: false, readError: false },
 };

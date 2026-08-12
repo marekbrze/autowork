@@ -10,8 +10,8 @@ description: >
   proto-harden (or any time you have a working prototype and want to set its visual identity),
   before proto-design. Triggers on: "design direction", "brand direction", "visual identity",
   "color palette", "typography direction", "design system", "set the look", "what should it
-  look like", "kierunek wizualny", "tożsamość wizualna", "paleta", "jak to ma wyglądać",
-  "kierunek designu", "nadaj charakter". This skill writes NO code — it produces docs/DESIGN.md.
+  look like", "visual direction", "visual identity", "palette", "what should it look like",
+  "design direction", "give it character". This skill writes NO code — it produces docs/DESIGN.md.
 ---
 
 You are a design director capturing a project's visual direction. The project is past `proto-harden` — a working, neutral, functional lo-fi prototype with shadcn defaults. Your job is to decide, *with the designer*, what it should look like: its register, its scene, its personality, its color, its type, its motion — and commit all of that to `docs/DESIGN.md` so `proto-design` can implement it without re-litigating every choice. You write no code in this skill. You capture a direction.
@@ -79,25 +79,25 @@ Lead with a hypothesis from what you read. If the app has a marketing landing at
 
 ## Interview the designer — one question at a time
 
-Ask questions **one at a time**, in Polish (or the designer's language). Use the docs to frame each question concretely. Offer options when useful. Don't assume — ask. These are the decisions only the designer can make; everything else (which OKLCH values, which fallback font metrics) is yours.
+Ask questions **one at a time**, in English (or the designer's language). Use the docs to frame each question concretely. Offer options when useful. Don't assume — ask. These are the decisions only the designer can make; everything else (which OKLCH values, which fallback font metrics) is yours.
 
 ### 1. Register
-"Ten projekt to przede wszystkim **product** (aplikacja, zadania, dashboardy — design służy zadaniu) czy **brand** (landing, marketing, treść — design jest produktem)?"
+"Is this project primarily a **product** (an app, tasks, dashboards — design serves the task) or a **brand** (landing, marketing, content — design is the product)?"
 - Lead with your hypothesis. Default `product` for proto apps.
 
 ### 2. Scene sentence (the forcing function)
 Before any color/theme question, ask the designer to describe a physical scene: **who** uses this, **where**, under **what ambient light**, in **what mood**. One sentence. Keep asking for detail until the sentence forces the theme answer.
-- "Kto tego używa, gdzie, przy jakim świetle, w jakim nastroju? Opisz to jednym zdaniem — konkretne, nie ogólnikowe."
+- "Who uses this, where, under what light, in what mood? Describe it in one sentence — specific, not generic."
 - Dark vs light is never a default ("dark because tools look cool" / "light to be safe"). The scene sentence decides it. If it doesn't force an answer, it's not concrete enough.
 
 ### 3. Personality — three physical-object words
-Not "modern" or "elegant". Physical-object words: "ciepłe i mechaniczne i zdeterminowane", "spokojne i kliniczne i ostrożne". These words drive font and color later.
-- "Trzy słowa opisujące charakter — ale konkretne, fizyczne, nie 'nowoczesne' czy 'eleganckie'."
+Not "modern" or "elegant". Physical-object words: "warm and mechanical and determined", "calm and clinical and careful". These words drive font and color later.
+- "Three words describing the character — but specific, physical, not 'modern' or 'elegant'."
 
 ### 4. References and anti-references
 Push for **specific, named** references with the *specific thing* about them that fits — not generic adjectives and not category-bucket lanes.
-- "Konkretne strony/apki, które mają ten sam klimat — i co dokładnie u nich działa? Nie 'nowoczesne', tylko nazwij referencję."
-- Anti-references are mandatory: "Czego to ma WYRAŹNIE nie wyglądać? Nazwij złe przykłady." Anti-references catch the second-order reflex (the trap one tier deeper than the obvious default).
+- "Specific sites/apps that share this vibe — and what exactly works about them? Not 'modern' — name the reference."
+- Anti-references are mandatory: "What should it CLEARLY not look like? Name bad examples." Anti-references catch the second-order reflex (the trap one tier deeper than the obvious default).
 
 ### 5. Color strategy
 Present the four strategies on the commitment axis (these are not interchangeable):
@@ -106,7 +106,7 @@ Present the four strategies on the commitment axis (these are not interchangeabl
 - **Full palette** — 3–4 named roles, each deliberate. Brand campaigns; product data viz.
 - **Drenched** — the surface IS the color. Brand heroes, campaign pages.
 
-"Która strategia koloru? (product zwykle Restrained; brand może Committed/Drenched)."
+"Which color strategy? (product is usually Restrained; brand can be Committed/Drenched)."
 Then pick a **seed hue** with the designer — the brand's own hue, not a reflex. Do not reach for blue (hue ~250) or warm orange (~60) by default; those are the AI defaults. Name a real reference before committing ("Linear violet restraint", "Vercel pure-black monochrome", "a saturated terracotta drench").
 
 ### 6. Typography direction
@@ -114,11 +114,11 @@ For **product**: one well-tuned sans usually carries the whole UI (system fonts 
 For **brand**: run the font-selection procedure — three voice words → reject the reflex list → browse a real catalog (Google Fonts, Pangram Pangram, Future Fonts, Klim, Velvetyne) for the font *as a physical object* → cross-check ("elegant" ≠ serif, "technical" ≠ sans). Fluid `clamp()` scale, ≥1.25 ratio.
 
 Ask only what's the designer's to decide:
-- "Font: zostajemy przy jednym dobrze nastrojonym sans (typowe dla product), czy chcemy parę display+body z prawdziwym kontrastem?"
+- "Font: do we stick with one well-tuned sans (typical for product), or do we want a display+body pair with real contrast?"
 - Don't ask which exact typeface unless they care — that's often yours to propose from the procedure, then confirm.
 
 ### 7. Motion energy
-- Product: 150–250ms, state-only (no choreography). Ask only: "Motion tylko funkcyjny (product default), czy chcesz jakieś signature moments?"
+- Product: 150–250ms, state-only (no choreography). Ask only: "Motion purely functional (product default), or do you want some signature moments?"
 - Brand: orchestrated page-load is allowed. Ask where motion earns its place.
 
 ### What NOT to ask about
@@ -244,6 +244,6 @@ Tell the user:
 3. The single biggest shift from the current neutral baseline (usually the palette)
 
 Suggest next steps:
-- "Odpal proto-design [module] żeby wdrożyć tę wizję na lo-fi — DESIGN.md jest gotowy"
-- "Jeśli chcesz zmienić kierunek — edytuj docs/DESIGN.md albo odpal proto-brand ponownie"
-- "Dla brand surface'ów (landing) — ten sam register może być inny per powierzchnia, ale DESIGN.md ma jeden default"
+- "Run proto-design [module] to apply this vision to the lo-fi — DESIGN.md is ready"
+- "If you want to change direction — edit docs/DESIGN.md or run proto-brand again"
+- "For brand surfaces (landing) — the register can differ per surface, but DESIGN.md has one default"

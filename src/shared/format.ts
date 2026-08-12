@@ -1,13 +1,13 @@
 /**
- * Współdzielone formatery wartości. Używane cross-module (run / dashboard / focus),
- * dlatego w `shared`, a nie w module `run` — moduły lejka nie importują z wnętrza `run`
- * (kierunek zależności: run agreguje dane lejka, nie odwrotnie; ADR 0061).
+ * Shared value formatters. Used cross-module (run / dashboard / focus),
+ * hence in `shared` rather than the `run` module — funnel modules do not import from inside `run`
+ * (dependency direction: run aggregates funnel data, not the other way around; ADR 0061).
  */
 
 /**
- * Minuty → zwarty czas ludzki: `2h 35m`, `45m`, `0m`. Wejście w **minutach** (np. suma
- * presetów `EstimatedTime`), w odróżnieniu od `formatDuration` (sekundy, `run/types/run.ts`).
- * Algorytm równoległy do `formatDuration`, ale bez sufiksu „s".
+ * Minutes → compact human time: `2h 35m`, `45m`, `0m`. Input is in **minutes** (e.g. the sum of
+ * `EstimatedTime` presets), unlike `formatDuration` (seconds, `run/types/run.ts`).
+ * Algorithm parallel to `formatDuration`, but without the "s" suffix.
  */
 export function formatMinutes(totalMinutes: number): string {
   const m = Math.max(0, Math.floor(totalMinutes));

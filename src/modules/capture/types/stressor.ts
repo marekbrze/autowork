@@ -1,15 +1,15 @@
 import type { BaseEntity } from '@/shared/types';
 
 /**
- * Pojedyncza stresująca rzecz wyrzucona z głowy w brain dumpie.
- * Surowy materiał, zanim zostanie rozbity na akcje.
+ * A single stressful thing dumped from the head in a brain dump.
+ * Raw material, before being broken down into actions.
  *
- * Kolejność (rank: najbardziej → najmniej stresujący) jest kanonicznie
- * reprezentowana przez pozycję w tablicy (entry order w brain dumpie,
- * potem ułożona ręcznie lub przez `Pairing` w rankingu).
+ * The ordering (rank: most → least stressful) is canonically
+ * represented by the array position (entry order in the brain dump,
+ * then arranged manually or via `Pairing` in the ranking).
  */
 export interface Stressor extends BaseEntity {
   text: string;
-  /** Run, do którego należy ten stresor (ADR 0044 — per-Run własność lejka). */
+  /** The Run this stressor belongs to (ADR 0044 — per-Run funnel ownership). */
   runId: string;
 }

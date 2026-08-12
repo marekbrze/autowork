@@ -11,8 +11,8 @@ description: >
   This skill writes NO code and does not apply the fix — it produces the diagnosis + plan that
   the fix is acted on from. Use on a project that already has working modules. Triggers on:
   "bug", "bug report", "something is broken", "this is broken", "fix this", "it's not working",
-  "diagnose this", "reproduce the bug", "why does it...", "bug", "błąd", "zgłoś błąd", "coś nie
-  działa", "zepsute", "napraw to", "zdiagnozuj błąd", "odtwórz błąd", "dlaczego to...". For
+  "diagnose this", "reproduce the bug", "why does it...", "bug", "error", "report a bug", "something's
+  not working", "it's broken", "fix this", "diagnose the bug", "reproduce the bug", "why does it...". For
   planning a NEW capability use proto-feature instead.
 ---
 
@@ -75,12 +75,12 @@ If `docs/MODULES.md` is missing, the project isn't a proto project — tell the 
 
 Ask **one question at a time** to nail the reproduction before you read code. A vague report ("it's broken") becomes a precise one through questions.
 
-**Repro steps** — "Co dokładnie robiłeś, krok po kroku, kiedy się zepsuło? Kliknij raz jeszcze i mów co widzisz."
-**Expected vs actual** — "Czego oczekiwałeś, a co się stało? Cytuj dosłownie — komunikat, stan, brak reakcji."
-**Reliability** — "Da się odtworzyć za każdym razem, czy czasem działa? Zależy od danych (który rekord), od stanu, od kolejności?"
-**When it started** — "Od kiedy? Co się niedawno zmieniło w tym miejscu?" — recent changes are the strongest lead.
+**Repro steps** — "What exactly were you doing, step by step, when it broke? Click through it once more and tell me what you see."
+**Expected vs actual** — "What did you expect, and what happened? Quote it verbatim — the message, the state, the lack of response."
+**Reliability** — "Can you reproduce it every time, or does it sometimes work? Does it depend on the data (which record), the state, the order?"
+**When it started** — "Since when? What changed recently in this area?" — recent changes are the strongest lead.
 
-Then **read the code** along the repro path. Locate the module/screen/flow and pin it to `file:line`. If you can run the app (dev command from `package.json`), reproduce it for real — observed behavior beats assumed behavior. State the exact location before diagnosing: "Bug jest w [module]/[screen], przy [action]. Lokalizacja: `src/.../Component.tsx:NN`."
+Then **read the code** along the repro path. Locate the module/screen/flow and pin it to `file:line`. If you can run the app (dev command from `package.json`), reproduce it for real — observed behavior beats assumed behavior. State the exact location before diagnosing: "The bug is in [module]/[screen], at [action]. Location: `src/.../Component.tsx:NN`."
 
 ## Step 2: Diagnose the root cause
 
@@ -192,7 +192,7 @@ Tell the user:
 3. The first fix action (direct-edit, or `proto-harden` / `proto-polish`)
 
 Suggest next steps:
-- "Dla logicznego fixu — zastosuj residual (direct edit) z planu, potem sprawdź regression sites"
-- "Jeśli to brakujący stan — odpal proto-harden [module], diagnoza jest gotowa"
-- "Jeśli fix odkrył więcej edge case'y — proto-edgecases [module] zrobi pełny skan"
-- "Jak fix nie zadziała — przyczyna była głębiej; odpal proto-bug ponownie z nowymi objawami"
+- "For a logic fix — apply the residual (direct edit) from the plan, then check the regression sites"
+- "If it's a missing state — run proto-harden [module], the diagnosis is ready"
+- "If the fix revealed more edge cases — proto-edgecases [module] will do a full scan"
+- "If the fix doesn't work — the cause was deeper; run proto-bug again with the new symptoms"

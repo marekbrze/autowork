@@ -13,8 +13,8 @@ export interface RemovedStressor {
 }
 
 /**
- * Stresory aktywnego Runa (lub `runId`, jeśli podano — np. RunDetails scope'uje po URL `:runId`).
- * Store jest per-Run, więc kolejność (rank) jest niezależna między runami.
+ * Stressors of the active Run (or `runId`, if provided — e.g. RunDetails scopes by the URL `:runId`).
+ * The store is per-Run, so the ordering (rank) is independent across runs.
  */
 export function useStressors(runId?: string) {
   const activeRunId = useActiveRunId(runId);
@@ -46,7 +46,7 @@ export function useStressors(runId?: string) {
     [setStressors],
   );
 
-  /** Usuwa stresor; zwraca usunięty element + indeks (do undo). */
+  /** Deletes a stressor; returns the removed item + its index (for undo). */
   const deleteStressor = useCallback(
     (id: string): RemovedStressor | null => {
       const index = stressors.findIndex((s) => s.id === id);
@@ -58,7 +58,7 @@ export function useStressors(runId?: string) {
     [stressors, setStressors],
   );
 
-  /** Wstawia z powrotem na pozycję (undo). */
+  /** Inserts it back at the position (undo). */
   const restoreStressor = useCallback(
     (item: Stressor, index: number) => {
       setStressors((prev) => {
@@ -105,7 +105,7 @@ export function useStressors(runId?: string) {
     [setStressors],
   );
 
-  /** Nadpisuje kolejność tablicą id (np. po `Pairing`). */
+  /** Overrides the order with an array of ids (e.g. after `Pairing`). */
   const setOrder = useCallback(
     (orderedIds: string[]) => {
       setStressors((prev) => {
@@ -113,7 +113,7 @@ export function useStressors(runId?: string) {
         const next = orderedIds
           .map((id) => byId.get(id))
           .filter((s): s is Stressor => Boolean(s));
-        // defensywnie dopnij wszystko, czego nie ma na liście
+        // defensively append anything missing from the list
         prev.forEach((s) => {
           if (!orderedIds.includes(s.id)) next.push(s);
         });
@@ -132,7 +132,7 @@ export function useStressors(runId?: string) {
     moveStressor,
     reorder,
     setOrder,
-    /** Status persystencji (błędy zapisu/odczytu + retry). */
+    /** Persistence status (read/write errors + retry). */
     storage: storage as LocalStorageStatus,
   };
 }

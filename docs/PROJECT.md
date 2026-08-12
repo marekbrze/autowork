@@ -1,60 +1,60 @@
-# Bez nazwy (roboczo)
+# Untitled (working name)
 
 ## Core Idea
-Aplikacja, która wyciąga użytkownika z paraliżu planowania, prowadząc go przez narzucony, jednokierunkowy lejek — od surowego "co mnie teraz stresuje", przez ranking, rozbicie na mikrokroki i GTD-procesowanie, aż po sesję focus, w której jedno zadanie goni drugie pod timerem, a na końcu czeka moment celebracji z podsumowaniem czasu. Sedno: zdejmować z człowieka ciężar decydowania "od czego zacząć".
+An app that pulls the user out of planning paralysis by guiding them through an imposed, one-way funnel — from the raw "what's stressing me right now", through ranking, breaking things down into micro-steps and GTD-style processing, all the way to a focus session where one task chases the next under a timer, ending with a moment of celebration that totals up the time spent. The essence: take the burden of deciding "where to start" off the person.
 
 ## User Problems
-- **Paraliż na etapie planowania**: użytkownik utyka w budowaniu list zadań, porzuca je w połowie i nie potrafi przejść do działania. Pojawia się, kiedy nagromadzi się dużo rzeczy do zrobienia i nie wiadomo, od czego zacząć. Czuje się jak niemoc / overwhelm / zamrożenie. Dziś radzi sobie tworząc listy — co samo w sobie zawodzi, bo przerywa w trakcie.
-- **Brak priorytetyzacji**: przy długiej liście nie potrafi wybrać pierwszego kroku.
-- **Przepaść między "mam dużo na głowie" a "robię jedną konkretną rzecz teraz"**: brakuje narzuconej ścieżki, która by go przez to przeprowadziła zamiast zostawiać sam na sam z pustą listą.
+- **Paralysis at the planning stage**: the user gets stuck building to-do lists, abandons them halfway, and can't move to action. It shows up when a lot of things pile up and it's not clear where to start. It feels like helplessness / overwhelm / freezing. Today they cope by making lists — which itself fails, because they break off midway through.
+- **No prioritization**: with a long list, they can't pick the first step.
+- **The gap between "I have a lot on my mind" and "I'm doing one specific thing right now"**: there's no imposed path that would lead them through it instead of leaving them alone with an empty list.
 
 ## Target Users
-Na ten moment autor projektu — **osobiste narzędzie, single-user, lokalne**. Ktoś, kto przytłoczony zadaniami potrzebuje prowadzenia za rękę przez gotowy lejek, a nie kolejnego pustego edytora list do samodzielnego zarządzania.
+For now, the project's author — **a personal tool, single-user, local**. Someone who, overwhelmed by tasks, needs to be led by the hand through a ready-made funnel rather than given yet another empty list editor to manage on their own.
 
-**Główna persona projektowa**: osoba z **ADHD** (oraz ogólnie **overwhelmed** — przytłoczona). Decyzje projektowe stroimy pod nią: duże zadanie paraliżuje → rozbijamy na małe; prowadzimy promptami (nudge), nie zmuszamy; motywację traktujemy jako paliwo, które wraca w trudnym momencie (ADR 0007).
+**Primary design persona**: a person with **ADHD** (and more broadly, the **overwhelmed**). We tune product decisions around them: a large task paralyzes → we break it into small pieces; we guide with prompts (nudge), we don't force; we treat motivation as fuel that returns at the hard moment (ADR 0007).
 
 ## Deployment & Technical Constraints
-- **Hosting**: GitHub Pages — statyczny build Vite (SPA).
-- **Persystencja**: `localStorage` przeglądarki, **brak backendu**. Dane żyją lokalnie, per-przeglądarka; brak synchronizacji między urządzeniami. Stan między sesjami oparty o trwały, wznawialny `Run`.
-- **Architektura**: single-user, w pełni client-side.
-- **Stack**: React + Vite + TypeScript + Tailwind v4 + shadcn/ui (base-nova). Zob. `package.json`.
+- **Hosting**: GitHub Pages — static Vite build (SPA).
+- **Persistence**: the browser's `localStorage`, **no backend**. Data lives locally, per-browser; no sync between devices. State between sessions is built on a durable, resumable `Run`.
+- **Architecture**: single-user, fully client-side.
+- **Stack**: React + Vite + TypeScript + Tailwind v4 + shadcn/ui (base-nova). See `package.json`.
 
 ## Key Actions
-W kolejności priorytetu — same kroki lejka to są główne akcje:
+In priority order — the funnel steps themselves are the key actions:
 
-1. **Brain dump** — wyrzucić z głowy wszystko, co teraz stresuje.
-2. **Ranking stresu** — ustawić stresory od najbardziej do najmniej stresującego.
-3. **Next-actions** — dla każdego stresora wypisać, co pchnie go do przodu (może być kilka).
-4. **Procesowanie (GTD-style)** — każdemu zadaniu przypisać kontekst, energię i czas.
-5. **Wybór sesji** — zaznaczyć kontekst(y) (można kilka), potem energię → wyfiltrować zestaw do zrobienia teraz.
-6. **Sesja focus** — start, timer, done / skip / powrót do poprzedniego.
-7. **Celebracja** — zobaczyć podsumowanie (co zrobione, łączny czas) i usunąć skończone.
+1. **Brain dump** — empty your head of everything that's stressing you right now.
+2. **Stress ranking** — order the stressors from most to least stressful.
+3. **Next-actions** — for each stressor, list what will move it forward (there can be several).
+4. **Processing (GTD-style)** — assign each task a context, energy, and time.
+5. **Session selection** — pick context(s) (several allowed), then energy → filter down to the set to do now.
+6. **Focus session** — start, timer, done / skip / back to previous.
+7. **Celebration** — see the summary (what's done, total time) and clear the finished ones.
 
 ## Happy Path
-1. Otwierasz aplikację → pojawia się pytanie **"Co cię teraz stresuje?"** → wpisujesz Enterem stresor po stresorze (pole tekstowe, dodawanie Enterem).
-2. **Ranking** — ustawiasz stresory od najbardziej do najmniej stresującego.
-3. Aplikacja pokazuje stresory **po kolei, pojedynczo**; do każdego dopisujesz next-action(y) — co można zrobić, żeby popchnąć to do przodu (może być dużo).
-4. **Procesowanie** (styl inboxa GTD, jak w aplikacji *dopadone*): dla każdej rzeczy określasz **kontekst** (telefon, wiadomość, kreatywne, chore, dom, miasto), **energię** potrzebną i **czas** potrzebny na zadanie.
-5. **Wybór sesji**: najpierw wybierasz **kontekst(y)** (można kilka), potem **energię** → filtruje to długą listę do zestawu zadań, które realnie możesz teraz zrobić.
-6. Klikasz **Start** → pojawia się ekran focus pierwszego zadania (kolejność: najbardziej stresujący stresor → pierwsze) i odpala **timer liczący w górę od 0**; oszacowany czas (krok 4) to próg, po którego przekroczeniu timer robi się czerwony. Motywacja (WHY z kroku 3) jest **zawsze widoczna** na ekranie.
-   - **Done** → kolejne zadanie startuje automatycznie.
-   - **Skip** → zadanie zostaje na liście na później; wracasz do niego później.
-   - Możesz **wrócić do poprzedniego** zadania.
-7. Po wyczerpaniu zestawu → **podsumowanie sesji**: które zadania zostały zrobione + **łączny czas** spędzony na zadaniach + taski **nieaktualne** (osobną sekcją) + przycisk **"Usuń skończone"** (czyści Done + Nieaktualne; moment celebracji).
+1. You open the app → the question **"What's stressing you right now?"** appears → you type stressor after stressor with Enter (text field, Enter to add).
+2. **Ranking** — order the stressors from most to least stressful.
+3. The app shows the stressors **one at a time, in order**; under each you write next-action(s) — what can be done to move it forward (there can be many).
+4. **Processing** (GTD inbox style, like the *dopadone* app): for each item you specify the **context** (phone, message, creative, errands, home, city), the **energy** needed, and the **time** needed for the task.
+5. **Session selection**: first you pick **context(s)** (several allowed), then **energy** → this filters the long list down to the set of tasks you can realistically do right now.
+6. You click **Start** → the focus screen of the first task appears (order: most stressful stressor → first) and a **timer counting up from 0** starts; the estimated time (step 4) is the threshold beyond which the timer turns red. The motivation (the WHY from step 3) is **always visible** on the screen.
+   - **Done** → the next task starts automatically.
+   - **Skip** → the task stays on the list for later; you come back to it later.
+   - You can **go back to the previous** task.
+7. After the set is exhausted → **session summary**: which tasks got done + **total time** spent on tasks + **stale** tasks (in a separate section) + the **"Clear completed"** button (clears Done + stale; the moment of celebration).
 
 ## Decisions (resolved)
-Otwarte pytania z `proto-init` zostały rozstrzygnięte w `proto-deepen` i `proto-strategize`. Szczegóły w `docs/ENTITY_MAP.md`, `docs/ACTIONS.md`, `docs/GLOSSARY.md`.
+Open questions from `proto-init` were resolved in `proto-deepen` and `proto-strategize`. Details in `docs/ENTITY_MAP.md`, `docs/ACTIONS.md`, `docs/GLOSSARY.md`.
 
-- ✅ **Nazwa aplikacji**: roboczo **„Autowork"** (ustawiona w scaffoldzie; do zmiany w 3 plikach).
-- ✅ **Persystencja między sesjami**: tak — `localStorage`; `Run` jest trwały i wznawialny (zob. *Deployment* oraz `docs/ENTITY_MAP.md`).
-- ✅ **Skala energii**: 1–3 (bateryjki).
-- ✅ **Wybór energii**: wiele poziomów naraz.
-- ✅ **Skipnięte zadania**: wracają przy **następnej sesji**.
-- ✅ **Timer a powrót**: timer się **wznawia** (pamięta pozycję).
-- ✅ **Edycja w trakcie sesji**: focus = tryb wykonania (Done/Skip/Back); edycja w Processing i przy review-on-resume.
-- ✅ **Jednostka listy focus**: `Task` (NextAction rozkłada się na 1..N tasków).
-- ✅ **Single-user / lokalne**: potwierdzone.
-- ✅ **Primary persona**: ADHD / overwhelmed — kształtuje rozbijanie zadań, nudge-not-gate, motywację jako paliwo (ADR 0007).
-- ✅ **`decompose` = WHY + HOW**: WHY (materiał motywacyjny: powody + wizja efektu) i HOW (next-actiony → taski, aktywny/konkretny język); WHY konsumowane w `focus` (ADR 0005, 0006).
-- ✅ **Model timera**: liczy **w górę od 0**; oszacowanie = próg czerwono (model B, ADR 0016; zmiana z odliczania w dół).
-- ✅ **Nieaktualne taski**: nowy status `dismissed` + akcja `Dismiss` — undo, liczą do progresem, osobna sekcja w summary, nie wracają (ADR 0017).
+- ✅ **App name**: working name **"Autowork"** (set in the scaffold; to change in 3 files).
+- ✅ **Persistence between sessions**: yes — `localStorage`; `Run` is durable and resumable (see *Deployment* and `docs/ENTITY_MAP.md`).
+- ✅ **Energy scale**: 1–3 (batteries).
+- ✅ **Energy selection**: multiple levels at once.
+- ✅ **Skipped tasks**: come back at the **next session**.
+- ✅ **Timer and return**: the timer **resumes** (remembers its position).
+- ✅ **Editing during a session**: focus = execution mode (Done/Skip/Back); editing happens in Processing and during review-on-resume.
+- ✅ **Focus list unit**: `Task` (a NextAction breaks down into 1..N tasks).
+- ✅ **Single-user / local**: confirmed.
+- ✅ **Primary persona**: ADHD / overwhelmed — shapes task breakdown, nudge-not-gate, motivation as fuel (ADR 0007).
+- ✅ **`decompose` = WHY + HOW**: WHY (motivational material: reasons + done vision) and HOW (next-actions → tasks, active/concrete language); WHY consumed in `focus` (ADR 0005, 0006).
+- ✅ **Timer model**: counts **up from 0**; the estimate = red threshold (model B, ADR 0016; a change from counting down).
+- ✅ **Stale tasks**: a new `dismissed` status + a `Dismiss` action — undo, they count toward progress, a separate section in the summary, they don't come back (ADR 0017).

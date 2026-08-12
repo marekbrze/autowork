@@ -14,29 +14,29 @@ import { SessionTaskList } from './SessionTaskList';
 interface SessionFilterProps {
   selection: FilterSelection;
   onSelectionChange: (sel: FilterSelection) => void;
-  /** Ile pending tasków z atrybutami pasuje do bieżącego filtra. */
+  /** How many attributed pending tasks match the current filter. */
   matchCount: number;
-  /** Łączny szacunek dopasowanych tasków (min) — do oceny długości sesji (ADR 0060). */
+  /** Total estimate of matched tasks (min) — to gauge session length (ADR 0060). */
   matchedEstimateMin: number;
-  /** Wszystkie pending taski z atrybutami (do komunikatu „brak czego opisać"). */
+  /** All attributed pending tasks (for the "nothing to describe" message). */
   totalAttributed: number;
-  /** Atrybuowane taski już rozwiązane (done/skipped/dismissed) — do rozdzielenia
-   * empty-state (#4): „nic nie opisano" vs „wszystko zrobione". */
+  /** Attributed tasks already resolved (done/skipped/dismissed) — to split the
+   * empty-state (#4): "nothing described" vs "all done". */
   resolvedAttributed: number;
-  /** Dopasowane taski w porządku `TaskOrder` (lista do przełożenia). Opcjonalne: brak = ukryta. */
+  /** Matched tasks in `TaskOrder` (the list to reorder). Optional: omitted = hidden. */
   matchedTasks?: Task[];
-  /** Nowa kolejność ID po ↑↓/drag → rodzic persystuje `TaskOrder` (ADR 0036). */
+  /** New ID order after ↑↓/drag → parent persists `TaskOrder` (ADR 0036). */
   onReorder?: (ids: string[]) => void;
-  /** Czy aktywny ręczny porządek (pokazuje „Reset to default"). */
+  /** Whether a manual order is active (shows "Reset to default"). */
   hasManualOrder?: boolean;
   onResetOrder?: () => void;
   onStart: () => void;
 }
 
 /**
- * Ekran wyboru sesji (krok 5). Jeden ekran: multi-select kontekstów + energii,
- * licznik dopasowanych na żywo, duży „Zacznij" (zablokowany przy braku wyboru
- * lub 0 dopasowań + info). Prezentacyjny — stan filtra trzymany przez rodzica.
+ * Session selection screen (step 5). One screen: multi-select of contexts +
+ * energies, a live matched counter, a big "Start" (disabled when nothing is
+ * selected or 0 matches + info). Presentational — filter state held by the parent.
  */
 export function SessionFilter({
   selection,
@@ -61,7 +61,7 @@ export function SessionFilter({
     onSelectionChange({ contexts: selection.contexts, energies: isAllEnergies ? [] : [...ENERGY_ORDER] });
 
   const toggleContext = (c: Context) => {
-    // W trybie „Wszystkie" kliknięcie konkretnej opcji zawęża do niej samej.
+    // In "All" mode, clicking a specific option narrows to just that one.
     if (isAllContexts) {
       onSelectionChange({ contexts: [c], energies: selection.energies });
       return;
@@ -99,8 +99,8 @@ export function SessionFilter({
 
       {totalAttributed === 0 ? (
         resolvedAttributed > 0 ? (
-          // #4: taski opisane są, ale wszystkie rozwiązane — to nie brak danych,
-          // tylko koniec lejka. Mylny komunikat „brak atrybutów" był frustrujący.
+          // #4: tasks are described but all resolved — this isn't missing data,
+          // it's the end of the funnel. A misleading "no attributes" message was frustrating.
           <div className="rounded-lg border border-dashed p-10 text-center">
             <PartyPopper className="mx-auto size-6 text-muted-foreground" aria-hidden />
             <p className="mt-2 text-sm">

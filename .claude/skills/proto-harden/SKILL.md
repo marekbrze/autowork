@@ -11,8 +11,8 @@ description: >
   diagnosis exists, or run directly (it does a quick inline stress test first). This skill
   writes code. Triggers on: "harden", "harden the prototype", "handle the edge cases",
   "implement edge cases", "add empty states", "add error states", "make it robust",
-  "wzmocnij", "wzmocnij prototyp", "obsłuż przypadki brzegowe", "dodaj empty states",
-  "dodaj stany błędów", "zrób z tego solidny prototyp". This is NOT the skill for adding
+  "harden", "harden the prototype", "handle edge cases", "add empty states",
+  "add error states", "make it a solid prototype". This is NOT the skill for adding
   features or visual polish — it makes the existing flows handle every path, including the
   broken ones.
 ---
@@ -83,12 +83,12 @@ The user should specify which module to harden. If they don't, list modules from
 
 Ask **one at a time**. For every gap that's a genuine design choice, frame it concretely against the screen and offer the audit's *suggested behavior* as the recommended option. Everything else you decide yourself.
 
-**Scope** — "Chcesz zahardować cały moduł, czy konkretne flow / ekrany?" (Default: the whole module, in priority order.)
+**Scope** — "Do you want to harden the whole module, or specific flows / screens?" (Default: the whole module, in priority order.)
 
 Then, per ambiguous gap (only the ones the audit flagged as not obvious), for example:
-- "Lista [entity] z bardzo długą nazwą — skrócić z `…`, zawinąć w drugą linijkę, czy rozwijać po kliknięciu? (audit sugeruje: skrócić)"
-- "Błąd zapisu (LocalStorage pełne) — toast z retry, czy banner na górze ekranu? (audit sugeruje: banner)"
-- "Czy przy usuwaniu [entity] dać undo, czy tylko potwierdzenie? (audit sugeruje: potwierdzenie)"
+- "A list [entity] with a very long name — truncate with `…`, wrap to a second line, or expand on click? (audit suggests: truncate)"
+- "Save error (LocalStorage full) — a toast with retry, or a banner at the top of the screen? (audit suggests: banner)"
+- "When deleting an [entity], offer undo, or just a confirmation? (audit suggests: confirmation)"
 
 Do not ask about technical choices (which component holds the state, how validation is wired, where the error boundary lives) — those are yours. The designer cares about what they see and interact with, not how it's implemented.
 
@@ -161,6 +161,6 @@ Tell the user:
 4. How to see it: `npm run storybook` (each state has a story) and `npm run dev` to click through happy and edge paths
 
 Suggest next steps:
-- "Przetestuj prototyp z userami — teraz pokrywa też ścieżki błędne, nie tylko happy path"
-- "Odpal ponownie proto-edgecases żeby zobaczyć nowy baseline po zahardowaniu"
-- "Możesz odpalić proto-harden na kolejnym module"
+- "Test the prototype with users — it now covers the error paths too, not just the happy path"
+- "Re-run proto-edgecases to see the new baseline after hardening"
+- "You can run proto-harden on the next module"

@@ -1,32 +1,32 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface LocalStorageStatus {
-  /** Ostatni zapis nie powiódł się (quota/disabled). Stan NIE został zaktualizowany. */
+  /** The last write failed (quota/disabled). State was NOT updated. */
   writeError: boolean;
-  /** Nie udało się odczytać/zdeserializować danych przy starcie — start od wartości początkowej. */
+  /** Failed to read/deserialize data on startup — starts from the initial value. */
   readError: boolean;
-  /** Ponów ostatni nieudany zapis. */
+  /** Retry the last failed write. */
   retry: () => void;
-  /** Ukryj komunikat błędu (nie rozwiązuje problemu). */
+  /** Hide the error message (does not fix the problem). */
   dismiss: () => void;
 }
 
 /**
- * Persystencja prototypu. W odróżnieniu od naiwnego hooka:
- * - przy nieudanym zapisie NIE aktualizuje stanu (UI zawsze odzwierciedla to, co faktycznie zapisane),
- *   zamiast tego raportuje `writeError` i pamięta ostatnią failed wartość do `retry`;
- * - przy uszkodzonym odczycie (zły JSON) raportuje `readError` zamiast cichego fallbacku;
- * - synchronizuje się ze zmianami z innych kart (zdarzenie `storage`) ORAZ z innymi instancjami
- *   tego samego klucza w tej samej karcie (własne zdarzenie `use-local-storage:<key>`) — to drugie
- *   rozwiązuje problem synchronizacji wielu instancji tego samego klucza w jednym drzewie komponentów
- *   (np. statystyki Runa vs. ekran lejka; patrz R2-1);
- * - reinicjalizuje się przy zmianie `key` (namespaced klucze per-Run przełączane ze zmianą aktywnego Runa).
+ * Prototype persistence. Unlike a naive hook:
+ * - on a failed write it does NOT update state (the UI always reflects what is actually persisted),
+ *   instead it reports `writeError` and remembers the last failed value for `retry`;
+ * - on a corrupted read (bad JSON) it reports `readError` instead of a silent fallback;
+ * - it syncs with changes from other tabs (`storage` event) AND with other instances
+ *   of the same key in the same tab (custom `use-local-storage:<key>` event) — the latter
+ *   solves the problem of syncing multiple instances of the same key in a single component tree
+ *   (e.g. Run stats vs. funnel screen; see R2-1);
+ * - it reinitializes when `key` changes (per-Run namespaced keys are switched when the active Run changes).
  *
- * Zwraca krotkę `[value, setValue, removeValue, status]`. Pierwsze trzy elementy są
- * wstecznie kompatybilne z poprzednią sygnaturą `[value, setValue, removeValue]`.
+ * Returns a tuple `[value, setValue, removeValue, status]`. The first three elements are
+ * backward-compatible with the previous signature `[value, setValue, removeValue]`.
  */
 
-/** Zdarzenie broadcastu same-tab dla danego klucza. */
+/** Same-tab broadcast event for a given key. */
 function broadcastEvent(key: string): string {
   return `use-local-storage:${key}`;
 }
@@ -41,7 +41,7 @@ function readValue<T>(key: string, initialValue: T): { value: T; failed: boolean
 }
 
 export function useLocalStorage<T>(key: string, initialValue: T) {
-  // --- odczyt: raz, przy pierwszym renderze (dla bieżącego `key`) ---
+  // --- read: once, on first render (for the current `key`) ---
   const initRef = useRef<{ value: T; failed: boolean; key: string } | null>(null);
   if (initRef.current === null || initRef.current.key !== key) {
     initRef.current = { ...readValue(key, initialValue), key };
@@ -52,14 +52,14 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
   const [readError, setReadError] = useState(initRef.current.failed);
   const pendingRef = useRef<T | null>(null);
 
-  // --- reinicjalizacja przy zmianie `key` (per-Run namespaced klucze) ---
+  // --- reinitialize on `key` change (per-Run namespaced keys) ---
   useEffect(() => {
     const r = readValue(key, initialValue);
     setStoredValue(r.value);
     setReadError(r.failed);
     pendingRef.current = null;
     setWriteError(false);
-    // initialValue celowo poza deps — reinit TYLKO przy zmianie key.
+    // initialValue intentionally excluded from deps — reinit ONLY on key change.
   }, [key]);
 
   const persist = useCallback(
@@ -74,7 +74,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     [key],
   );
 
-  /** Broadcast nowej wartości do innych instancji tego samego klucza w tej samej karcie. */
+  /** Broadcast the new value to other instances of the same key in the same tab. */
   const broadcast = useCallback(
     (value: T) => {
       window.dispatchEvent(new CustomEvent(broadcastEvent(key), { detail: value }));
@@ -92,7 +92,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
         broadcast(next);
         return true;
       }
-      // nie aktualizujemy stanu — UI musi odzwierciedlać to, co faktycznie zapisane
+      // do not update state — the UI must reflect what is actually persisted
       pendingRef.current = next;
       setWriteError(true);
       return false;
@@ -123,11 +123,11 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
       setStoredValue(initialValue);
       broadcast(initialValue);
     } catch {
-      // usuwanie jest best-effort
+      // deletion is best-effort
     }
   }, [key, initialValue, broadcast]);
 
-  // --- synchronizacja: cross-tab (`storage`) + same-tab (broadcast) ---
+  // --- sync: cross-tab (`storage`) + same-tab (broadcast) ---
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key !== key) return;
@@ -137,7 +137,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
       setWriteError(false);
     };
     const onBroadcast = (e: Event) => {
-      // ignorujemy własny dispatch (stan już ustawiony); dla innych instancji — aktualizuj
+      // ignore our own dispatch (state already set); for other instances — update
       setStoredValue((e as CustomEvent<T>).detail);
       pendingRef.current = null;
       setWriteError(false);

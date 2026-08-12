@@ -7,7 +7,7 @@ import { generateId } from '@/shared/types';
 
 import type { NextAction } from '../types/next-action';
 
-/** Next-actiony aktywnego Runa (lub `runId`, jeśli podano). */
+/** Next-actions of the active Run (or `runId`, if provided). */
 export function useNextActions(runId?: string) {
   const activeRunId = useActiveRunId(runId);
   const key = nextActionsKey(activeRunId ?? '__none__');
@@ -51,7 +51,7 @@ export function useNextActions(runId?: string) {
     addNextAction,
     updateNextAction,
     deleteNextAction,
-    /** Status persystencji (błędy zapisu/odczytu + retry). */
+    /** Persistence status (read/write errors + retry). */
     storage: storage as LocalStorageStatus,
   };
 }

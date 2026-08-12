@@ -12,13 +12,13 @@ export default meta;
 
 type Story = StoryObj<typeof DismissUndoToast>;
 
-/** #3 — undo Dismiss widoczne też na podsumowaniu (toast na poziomie FocusView). */
+/** #3 — undo Dismiss visible on the summary too (toast at the FocusView level). */
 export const Default: Story = {
-  args: { text: 'Wypełnij formularz PIT w e-Urzędzie' },
+  args: { text: 'Fill out the PIT form in the e-Office' },
 };
 
 export const LongText: Story = {
   args: {
-    text: 'Napisaz długą, szczegółową wiadomość do klienta z podsumowaniem ustaleń i propozycją kolejnych kroków w projekcie',
+    text: 'Write a long, detailed message to the client summarizing the agreements and proposing the next steps in the project',
   },
 };

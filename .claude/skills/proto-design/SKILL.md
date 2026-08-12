@@ -10,8 +10,8 @@ description: >
   (proto-lofi) and handled edge cases (proto-harden). This skill WRITES code. Triggers on:
   "design this module", "apply the design", "hi-fi", "high fidelity", "implement the design
   system", "make it on-brand", "apply DESIGN.md", "polish the look" (visual, not final-pass),
-  "zaprojektuj ten moduł", "wdroż design", "hi-fi", "nadaj charakter", "zastosuj DESIGN.md",
-  "zrób z tego hi-fi". For the final ship pass (contrast, states, a11y, the last 5%) use
+  "design this module", "apply the design", "hi-fi", "give it character", "apply DESIGN.md",
+  "make it hi-fi". For the final ship pass (contrast, states, a11y, the last 5%) use
   proto-polish AFTER this. For setting the direction in the first place use proto-brand BEFORE this.
 ---
 
@@ -78,10 +78,10 @@ The user should specify which module. If they don't, list modules from `docs/MOD
 
 DESIGN.md already decided the direction. Ask only about scope and the few things it leaves open:
 
-**Scope** — "Wdrażam design na cały moduł, czy konkretne ekrany?"
-**Confirm the palette** — show the seed palette from DESIGN.md in one line: "Potwierdzam paletę z DESIGN.md: seed [oklch], strategia [Restrained|...]. OK?"
-**Dark mode** — if DESIGN.md defines dark mode: "Wdrażam dark mode razem z light, czy tylko light na ten przebieg?"
-**Density** — for product: "Zostajemy przy standardowej gęstości, czy bardziej zagęszczone (tabele/panele)?"
+**Scope** — "Am I applying the design to the whole module, or specific screens?"
+**Confirm the palette** — show the seed palette from DESIGN.md in one line: "Confirming the palette from DESIGN.md: seed [oklch], strategy [Restrained|...]. OK?"
+**Dark mode** — if DESIGN.md defines dark mode: "Am I implementing dark mode together with light, or only light for this pass?"
+**Density** — for product: "Are we keeping standard density, or more compact (tables/panels)?"
 **Anything ambiguous in DESIGN.md** — if the direction is unclear on a specific surface, ask once with a sensible default. Don't re-open settled decisions.
 
 Don't ask about token mechanics, which Tailwind version, fallback font metrics, or per-pixel layout — those are yours.
@@ -187,6 +187,6 @@ Tell the user:
 5. Any DESIGN.md ambiguity you resolved (and how), worth revisiting
 
 Suggest next steps:
-- "Odpal proto-polish [module] na finałowy pass — kontrast, stany, a11y, ostatnie 5%"
-- "Możesz odpalić proto-design na kolejnym module — token layer już leży, pójdzie szybciej"
-- "Jeśli direction nie do końca siadł — edytuj docs/DESIGN.md i odpal proto-brand jeszcze raz"
+- "Run proto-polish [module] for the final pass — contrast, states, a11y, the last 5%"
+- "You can run proto-design on the next module — the token layer is already in place, it'll go faster"
+- "If the direction didn't quite land — edit docs/DESIGN.md and run proto-brand once more"

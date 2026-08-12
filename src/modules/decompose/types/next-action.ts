@@ -1,14 +1,14 @@
 import type { BaseEntity } from '@/shared/types';
 
 /**
- * Kierunek / pomysł, co pchnie stresor do przodu (HOW w `decompose`).
- * Grubszy niż task — zapisany **aktywnym, konkretnym językiem** (czasownik
- * na początku, fizycznie wykonalne; standard ADR 0006). Rozbijany na 1..N
- * `Task` (konkretny next-action = 1 task; gruby = kilka).
+ * A direction / idea that moves the stressor forward (the HOW in `decompose`).
+ * Coarser than a task — written in **active, concrete language** (a verb
+ * up front, physically doable; the ADR 0006 standard). Broken down into 1..N
+ * `Task`s (a concrete next-action = 1 task; a coarse one = several).
  */
 export interface NextAction extends BaseEntity {
   stressorId: string;
   text: string;
-  /** Run, do którego należy ten next-action (ADR 0044). */
+  /** The Run this next-action belongs to (ADR 0044). */
   runId: string;
 }

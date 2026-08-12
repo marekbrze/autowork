@@ -59,27 +59,27 @@ Ask questions **one at a time**. Show options when possible. Use the module spec
 
 For each screen described in the module spec, ask:
 
-**Layout** — "Ekran [screen name] — jak ma wyglądać? Opcje: full-width tabela, grid kart, lista z detalami po boku, formularz full-page?"
+**Layout** — "Screen [screen name] — what should it look like? Options: full-width table, card grid, list with details on the side, full-page form?"
 
-**Data display** — "Na liście [entity] — jakie kolumny/informacje są najważniejsze? Co user musi zobaczyć od razu?"
+**Data display** — "On the [entity] list — which columns/information matter most? What does the user need to see right away?"
 
-**Actions placement** — "Gdzie mają być akcje na tym ekranie? Top bar z przyciskami, inline przy każdym wierszu, context menu, fab button?"
+**Actions placement** — "Where should the actions go on this screen? Top bar with buttons, inline on each row, context menu, FAB button?"
 
-**Empty state** — "Co user widzi jak nie ma żadnych [entity]? Placeholder z ilustracją, call to action, czy pusta struktura?"
+**Empty state** — "What does the user see when there are no [entity] yet? Placeholder with an illustration, call to action, or an empty structure?"
 
 ### During building: Interaction decisions
 
 As you build each screen, ask about:
 
-**Forms** — "Formularz tworzenia [entity] — jakie pola są required? Czy jest multi-step czy wszystko na jednej stronie?"
+**Forms** — "The create-[entity] form — which fields are required? Is it multi-step or all on one page?"
 
-**Navigation** — "Kliknięcie w [entity] na liście — co się dzieje? Nawigacja do detail page, expand inline, czy modal?"
+**Navigation** — "Clicking an [entity] in the list — what happens? Navigate to a detail page, expand inline, or open a modal?"
 
-**State transitions** — "Zmiana stanu [entity] z [state A] na [state B] — czy to przez przycisk, dropdown, czy osobny krok?"
+**State transitions** — "Changing [entity] state from [state A] to [state B] — via a button, a dropdown, or a separate step?"
 
-**Feedback** — "Po akcji [action] — jaki feedback dostaje user? Toast, inline message, redirect?"
+**Feedback** — "After the [action] action — what feedback does the user get? Toast, inline message, redirect?"
 
-**Edge cases from the spec** — "W module jest edge case [X] — jak to ma wyglądać? [options]"
+**Edge cases from the spec** — "The module has edge case [X] — what should it look like? [options]"
 
 ### What NOT to ask about
 
@@ -229,7 +229,7 @@ Tell the user:
 6. Any design decisions that were made and might need revisiting
 
 Suggest next steps:
-- "Odpal proto-edgecases żeby znaleźć edge case'y, potem proto-harden żeby je zaimplementować"
-- "Gdy moduł ma obsłużone edge case'y (po harden) — proto-brand → proto-design → proto-polish zamienią neutralne lo-fi w hi-fi, on-brand UI"
-- "Przetestuj prototyp z userami i daj znać co trzeba zmienić"
-- "Możesz odpalić proto-lofi na kolejnym module"
+- "Run proto-edgecases to find edge cases, then proto-harden to implement them"
+- "Once the module handles edge cases (after harden) — proto-brand → proto-design → proto-polish will turn the neutral lo-fi into hi-fi, on-brand UI"
+- "Test the prototype with users and let me know what needs to change"
+- "You can run proto-lofi on the next module"

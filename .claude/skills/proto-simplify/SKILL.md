@@ -10,7 +10,7 @@ description: >
   that actually works. Use after proto-audit when docs/AUDIT.md exists, or run directly on a
   messy project (it does a quick inline scan first). This skill writes code. Triggers on:
   "simplify", "clean up the UI", "reduce visual noise", "make it look like a prototype",
-  "uprość", "zrób z tego prototyp", "oczyść", "przywróć do lo-fi". Use whenever the user has a
+  "simplify", "make it a prototype", "clean up", "restore to lo-fi". Use whenever the user has a
   working but visually chaotic/generic app (any stack) and wants it pared back to a clean,
   neutral, working prototype before developing the graphic direction further. This is NOT the
   skill for adding brand character or high-end visual design — that's a later proto-design.
@@ -88,12 +88,12 @@ The point is always the same: establish one neutral token source and route every
 
 Ask **one at a time**. These set the simplification target; everything else you decide yourself.
 
-**Scope** — "Chcesz uprościć cały projekt, czy konkretne moduły/ekrany/strony?"
+**Scope** — "Do you want to simplify the whole project, or specific modules/screens/pages?"
 
-**Accent** — "Zostawiamy jeden kolor akcentu (np. obecny brand color, zdesaturowany), czy full neutral (zero akcentu, czysty lo-fi)?"
+**Accent** — "Do we keep one accent color (e.g. the current brand color, desaturated), or full neutral (zero accent, pure lo-fi)?"
 - Recommend full neutral for a true prototype; one reserved accent only if there's a real semantic need (e.g. destructive actions already use red).
 
-**Dark mode** — "Projekt ma dark mode? Jeśli tak — zostawiamy, czy na czas prototypu przechodzimy tylko na light?"
+**Dark mode** — "Does the project have dark mode? If so — do we keep it, or go light-only for the prototype?"
 - Keep what exists; don't add dark mode in a simplify pass.
 
 Do not ask about technical choices (which token mechanism to use, which duplicates to merge into what) — those are yours. The designer cares about the result, not the implementation.
@@ -172,6 +172,6 @@ Tell the user:
 4. That the app still does everything it did before — only calmer
 
 Suggest next steps:
-- "Przetestuj prototyp z userami w tej czystej formie — łatwiej ocenić same flows bez dekoracji"
-- "Jak chcesz rozwinąć to graficznie (charakter marki, fonty, sygnatura) — odpal proto-brand żeby ustalić kierunek w docs/DESIGN.md, potem proto-design + proto-polish żeby wdrożyć hi-fi"
-- "Odpal ponownie proto-audit żeby zobaczyć nowy baseline po uproszczeniu"
+- "Test the prototype with users in this clean form — it's easier to judge the flows themselves without decoration"
+- "If you want to develop it graphically (brand character, fonts, signature) — run proto-brand to set the direction in docs/DESIGN.md, then proto-design + proto-polish to implement the hi-fi"
+- "Re-run proto-audit to see the new baseline after simplifying"

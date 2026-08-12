@@ -17,7 +17,7 @@ export function Ranking() {
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const [pairing, setPairing] = useState(false);
 
-  // Strzałki ↑/↓ na focuście przycisku wiersza — zmieniają kolejność.
+  // ↑/↓ arrow keys on the row button's focus — change the order.
   const onArrowKey = (e: KeyboardEvent<HTMLButtonElement>, id: string) => {
     if (e.key === 'ArrowUp') {
       e.preventDefault();
@@ -63,9 +63,9 @@ export function Ranking() {
       ) : (
         <div role="list" aria-label="Stressors to order" className="space-y-2">
           {stressors.map((s, i) => (
-            // Wiersz jest listitem (nie interaktywny), żeby uniknąć zagnieżdżonych
-            // kontrolek. Drag (mysz) na całym wierszu; reorder z klawiatury/touch
-            // przez jawne przyciski ↑/↓ poniżej.
+            // The row is a listitem (not interactive) to avoid nested
+            // controls. Mouse drag works on the whole row; keyboard/touch reorder
+            // happens through the explicit ↑/↓ buttons below.
             // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
             <div
               key={s.id}
@@ -98,9 +98,9 @@ export function Ranking() {
               <span className="min-w-0 flex-1 truncate text-sm" title={s.text}>
                 {s.text}
               </span>
-              {/* Przyciski ↑↓ — działają też na touch (HTML5 drag nie działa na mobilnym)
-                  i są dostępną z klawiatury drogą zmiany kolejności. Gdy przycisk ma focus,
-                  strzałki ↑/↓ też przesuwają (zgodnie ze spec). */}
+              {/* ↑↓ buttons — they also work on touch (HTML5 drag doesn't work on mobile)
+                  and are the keyboard-accessible way to reorder. When a button has focus,
+                  the ↑/↓ arrows also move it (per spec). */}
               <div className="flex shrink-0 items-center gap-0.5">
                 <Button
                   type="button"

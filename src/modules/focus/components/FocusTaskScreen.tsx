@@ -55,10 +55,10 @@ interface FocusTaskScreenProps {
 }
 
 /**
- * Ekran zadania w sesji focus (rdzeń). Layout **B — dwie kolumny**: lewa =
- * materiał motywacyjny (zawsze widoczny), prawa = timer (model B) + akcje
- * (Done primary, Skip/Dismiss secondary). Górny pasek: Back / Pause / Exit.
- * Prezentacyjny — stan sesji i timera trzymany przez `FocusView`.
+ * Task screen within a focus session (the core). Layout **B — two columns**:
+ * left = motivational material (always visible), right = timer (model B) +
+ * actions (Done primary, Skip/Dismiss secondary). Top bar: Back / Pause / Exit.
+ * Presentational — session and timer state are held by `FocusView`.
  */
 export function FocusTaskScreen({
   task,
@@ -81,7 +81,7 @@ export function FocusTaskScreen({
 
   return (
     <div className="animate-pop space-y-5">
-      {/* górny pasek: Back / Pause / Exit */}
+      {/* top bar: Back / Pause / Exit */}
       <div className="flex items-center justify-between">
         <Button type="button" variant="ghost" size="sm" disabled={!canGoBack} onClick={onBack}>
           <ArrowLeft /> Back
@@ -104,7 +104,7 @@ export function FocusTaskScreen({
         </div>
       </div>
 
-      {/* breadcrumb: stresor › next-action */}
+      {/* breadcrumb: stressor › next-action */}
       {(stressor || nextAction) && (
         <p
           className="-mb-1 truncate text-xs text-muted-foreground"
@@ -116,7 +116,7 @@ export function FocusTaskScreen({
         </p>
       )}
 
-      {/* tytuł zadania + badge atrybutów + pozycja */}
+      {/* task title + attribute badges + position */}
       <div className="space-y-2.5">
         <h2 className="break-words text-2xl font-extrabold tracking-tight sm:text-3xl">{task.text}</h2>
         <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
@@ -154,7 +154,7 @@ export function FocusTaskScreen({
 
       <div className="border-t" />
 
-      {/* dwie kolumny: motywacja | timer + akcje */}
+      {/* two columns: motivation | timer + actions */}
       <div className="grid gap-5 lg:grid-cols-2">
         <div className="rounded-xl border bg-card p-5">
           <MotivationPanel doneVision={doneVision} reasons={reasons} />

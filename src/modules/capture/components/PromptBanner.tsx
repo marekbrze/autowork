@@ -25,9 +25,9 @@ interface PromptBannerProps {
 }
 
 /**
- * Rotujący banner-prompt w brain dumpie. Pokazuje jedną podpowiedź naraz,
- * zmienia się co kilka sekund; ◀ ▶ do ręcznego przewijania; klik = pre-fill pola.
- * Pauzuje na hoverze, żeby nie uciekać podczas czytania.
+ * A rotating prompt banner in the brain dump. Shows one prompt at a time,
+ * changes every few seconds; ◀ ▶ for manual browsing; click = pre-fill the field.
+ * Pauses on hover so it doesn't drift away while reading.
  */
 export function PromptBanner({ prompts = DEFAULT_PROMPTS, onPick, intervalMs = 4500 }: PromptBannerProps) {
   const [index, setIndex] = useState(0);

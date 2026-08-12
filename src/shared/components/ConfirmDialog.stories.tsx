@@ -7,10 +7,10 @@ const meta: Meta<typeof ConfirmDialog> = {
   component: ConfirmDialog,
   args: {
     open: true,
-    title: 'Usunąć ten element?',
-    description: 'Tej operacji nie da się cofnąć.',
-    confirmLabel: 'Usuń',
-    cancelLabel: 'Anuluj',
+    title: 'Delete this item?',
+    description: 'This action cannot be undone.',
+    confirmLabel: 'Delete',
+    cancelLabel: 'Cancel',
     onConfirm: () => console.log('confirm'),
     onCancel: () => console.log('cancel'),
   },
@@ -20,31 +20,31 @@ export default meta;
 
 type Story = StoryObj<typeof ConfirmDialog>;
 
-/** Potwierdzenie usunięcia next-actionu (razem z jego taskami). Fokus na „Anuluj". */
+/** Confirmation for deleting a next-action (along with its tasks). Focus on "Cancel". */
 export const DeleteNextAction: Story = {
   args: {
-    title: 'Usunąć ten next-action?',
-    description: 'Usunę też jego taski. Tej operacji nie da się cofnąć.',
+    title: 'Delete this next-action?',
+    description: 'This will also delete its tasks. This action cannot be undone.',
   },
 };
 
-/** Potwierdzenie usunięcia pojedynczego powodu (decompose). */
+/** Confirmation for deleting a single reason (decompose). */
 export const DeleteReason: Story = {
   args: {
-    title: 'Usunąć ten powód?',
-    description: 'Ta operacja nie da się cofnąć.',
+    title: 'Delete this reason?',
+    description: 'This action cannot be undone.',
   },
 };
 
-/** Potwierdzenie usunięcia taska mid-session (process). */
+/** Confirmation for deleting a task mid-session (process). */
 export const DeleteTask: Story = {
   args: {
-    title: 'Usunąć to zadanie?',
-    description: 'Zniknie z kolejki procesowania. Tej operacji nie da się cofnąć.',
+    title: 'Delete this task?',
+    description: 'It will disappear from the processing queue. This action cannot be undone.',
   },
 };
 
-/** Zamknięty — nic nie renderuje. */
+/** Closed — renders nothing. */
 export const Closed: Story = {
   args: { open: false },
 };

@@ -9,8 +9,8 @@ description: >
   diagnosis. Run before proto-harden (which acts on it). Use after proto-lofi when the module
   has working screens. Triggers on: "edge cases", "edgecases", "stress test the flows",
   "stress test this module", "what about when...", "find edge cases", "what's missing",
-  "przypadki brzegowe", "stresstestuj flow", "stresstestuj moduł", "co jeśli", "co jak nie ma
-  danych", "czego tu brakuje". This is the systematic edge-case audit that proto-detail
+  "edge cases", "stress test the flow", "stress test the module", "what if", "what if there's no
+  data", "what's missing here". This is the systematic edge-case audit that proto-detail
   deliberately left for later.
 ---
 
@@ -69,7 +69,7 @@ The user should specify which module to audit. If they don't, list modules from 
 
 Ask the user one question:
 
-**"Chcesz przeskanować cały moduł, czy konkretne flow / ekrany?"**
+**"Do you want to scan the whole module, or specific flows / screens?"**
 
 Default to the whole module. If the user points at specific flows, focus there but still note cross-cutting gaps (validation, error handling, storage failure) that affect every screen.
 
@@ -220,5 +220,5 @@ Tell the user:
 3. The biggest source of gaps (usually missing empty/error states or unhandled action failure), so they know where the prototype is fragile
 
 Suggest next steps:
-- "Odpal proto-harden żeby zaimplementować te stany w prototypie — ewidencja jest już gotowa"
-- "Jeśli wolisz najpierw ręcznie naprawić konkretne rzeczy — priority list mówi co daje największy efekt"
+- "Run proto-harden to implement these states in the prototype — the inventory is ready"
+- "If you prefer to manually fix specific things first — the priority list says what gives the biggest effect"

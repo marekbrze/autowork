@@ -63,7 +63,7 @@ This is a more open, conversational interview than init or deepen. The user has 
 Start by asking the user to describe the module in their own words — what it's for, what the user experience feels like, what makes it work or not work.
 
 Example openings (adapt, don't copy):
-- "Opowiedz mi o tym module — jak to wygląda z perspektywy usera? Co on robi od początku do końca?"
+- "Tell me about this module — what does it look like from the user's perspective? What do they do from start to finish?"
 - "Describe the experience of using this part of the app. Walk me through it."
 
 Let them talk. Don't interrupt. Take notes mentally — you'll come back to unpack what they said.
@@ -74,13 +74,13 @@ From what the user described, pull out:
 
 **User flows** — the paths through this module. What does the user do step by step? Where do they start, where do they end? What branches exist (happy path vs alternatives)?
 
-Ask: "Wspomniałeś że user robi X — a co dokładnie się dzieje między krokiem A i B? Co widzi na ekranie?"
+Ask: "You mentioned the user does X — what exactly happens between step A and B? What do they see on screen?"
 
 **Actions** — what the user can do. These should mostly exist in ACTIONS.md already, but the user may mention new ones or describe them differently in context.
 
 **Screens/views** — rough idea of what the user sees. Not wireframes, just "there's a list view, and then you click into details, and there's an edit form". This will be refined by proto-lofi.
 
-**Edge cases** — things that can go wrong or are unusual. Empty states ("co user widzi jak nie ma żadnych przepisów?"), error states, missing data, unusual inputs. Capture what the user mentions naturally — don't force a systematic audit, that's proto-edgecases.
+**Edge cases** — things that can go wrong or are unusual. Empty states ("what does the user see when there are no recipes?"), error states, missing data, unusual inputs. Capture what the user mentions naturally — don't force a systematic audit, that's proto-edgecases.
 
 ### Mid-interview: Reference existing docs and capture decisions
 
@@ -96,7 +96,7 @@ Every new action, entity, or term discovered during this interview gets added to
 
 ### Wrap-up
 
-Summarize what you captured: the vision, main flows, key actions, rough screens, edge cases. Ask: "Czy to kompletny obraz tego modułu? Czy coś umknęło?"
+Summarize what you captured: the vision, main flows, key actions, rough screens, edge cases. Ask: "Is this a complete picture of the module? Did anything slip by?"
 
 ## Writing the documentation
 
@@ -183,4 +183,4 @@ Tell the user where the files are and summarize:
 - ADR entries created (list them)
 - Main flows, rough screen count, edge cases flagged
 
-Next steps: "Możesz teraz odpalić proto-lofi żeby zbudować prototyp tego modułu. Gdy prototyp działa: proto-edgecases znajdzie edge case'y, a proto-harden je obsłuży."
+Next steps: "You can now run proto-lofi to build the prototype for this module. Once the prototype works: proto-edgecases will find edge cases, and proto-harden will handle them."

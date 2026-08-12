@@ -41,7 +41,7 @@ The two commits are separate on purpose: the first locks in whatever came before
 
 Read `docs/PROJECT.md` and `docs/GLOSSARY.md` before starting. If they don't exist, tell the user to run `proto-init` first.
 
-Use terminology from the glossary consistently. If the user uses a different term than what's in the glossary, gently point it out: "W glossary mamy to jako X — o to chodzi?"
+Use terminology from the glossary consistently. If the user uses a different term than what's in the glossary, gently point it out: "In the glossary we have this as X — is that what you mean?"
 
 **Naming convention**: Entity names, module names, and any identifiers that will become code (folder names, component names, API endpoints) must be in **English**, regardless of the interview language. The glossary maps domain terms in the user's language to English code names.
 
@@ -67,7 +67,7 @@ Speak the same language as the user. Match their tone. Ask questions **one at a 
 Before diving into entities, understand if the system has distinct roles. Some apps have one role (everyone does the same thing), others have several (admin vs member vs guest).
 
 Ask:
-- "Czy wszyscy użytkownicy robią to samo w aplikacji, czy są różne typy dostępu?"
+- "Do all users do the same thing in the app, or are there different types of access?"
 - If roles emerge, name them and clarify what each role can/can't do at a high level
 - If there's only one role, acknowledge it and move on quickly
 
@@ -77,15 +77,15 @@ Keep it brief. Details come in Phase 3 when you map actions per role.
 
 Work through the **Key Actions** from PROJECT.md one by one. For each action, ask what "things" (entities) the user interacts with.
 
-For example, if PROJECT.md says "Plan workout", ask: "Kiedy user planuje trening — z jakimi elementami pracuje? Co tworzy, co wybiera, co modyfikuje?"
+For example, if PROJECT.md says "Plan workout", ask: "When the user plans a workout — what elements do they work with? What do they create, choose, modify?"
 
 For each entity discovered, drill into:
-- **Instances** — "Ile takich X ma user? Jeden czy wiele? Czy mogą być współdzielone między userami?"
-- **Ownership** — "Czyj to? Usera? Systemu? Wspólne?"
-- **Composition** — "Czy ten X składa się z czegoś mniejszego? Co jest w środku?"
-- **Lifecycle** — "Jak długo żyje ten X? Tworzy się raz i jest na zawsze, czy ma jakiś koniec?"
+- **Instances** — "How many of these X does a user have? One or many? Can they be shared between users?"
+- **Ownership** — "Whose is it? The user's? The system's? Shared?"
+- **Composition** — "Does this X consist of anything smaller? What's inside it?"
+- **Lifecycle** — "How long does this X live? Created once and forever, or does it have an end?"
 
-Build a mental entity model as you go. When you spot relationships between entities, verify with the user: "Wygląda na to że WorkoutPlan zawiera wiele Exercises — tak?"
+Build a mental entity model as you go. When you spot relationships between entities, verify with the user: "It looks like WorkoutPlan contains many Exercises — right?"
 
 If the user mentions entities that don't connect to any Key Action, that's fine — capture them. They probably matter even if init didn't highlight them.
 
@@ -93,16 +93,16 @@ If the user mentions entities that don't connect to any Key Action, that's fine 
 
 For each entity from Phase 2, work through what users can do with it. This is where the full action inventory comes from.
 
-**States first** — ask: "Jakie stany przechodzi ten obiekt od momentu stworzenia? Np. draft → active → archived?"
+**States first** — ask: "What states does this object go through from creation? E.g. draft → active → archived?"
 
 **Then actions** — for each state (and transitions between states), ask what the user can do:
-- "Co user może zrobić z [entity] kiedy jest w stanie [state]?"
-- "Czy może edytować, usunąć, udostępnić, zduplikować, zarchiwizować?"
-- "Czy są akcje które nie zmieniają stanu ale są ważne? Np. wyeksportować, wydrukować, oznaczyć jako ulubione?"
+- "What can the user do with [entity] when it's in the [state] state?"
+- "Can they edit, delete, share, duplicate, archive?"
+- "Are there actions that don't change state but matter? E.g. export, print, mark as favorite?"
 
 Use open format — capture everything the user mentions, not just CRUD. The format is: entity → action → description. If different roles have different actions, note that.
 
-Don't force the user to list everything exhaustively. Ask naturally, let them mention what comes to mind, and prompt for gaps: "A coś jeszcze z tym można zrobić?"
+Don't force the user to list everything exhaustively. Ask naturally, let them mention what comes to mind, and prompt for gaps: "Is there anything else you can do with it?"
 
 ### Phase 4: Wrap-up
 
@@ -111,7 +111,7 @@ Summarize what you've mapped:
 - Any surprises or changes from what PROJECT.md described
 - Things that felt uncertain or contradictory
 
-Ask: "Czy to wygląda kompletnie? Czy coś umknęło — jakieś obiekt albo akcja o której nie rozmawialiśmy?"
+Ask: "Does this look complete? Did anything slip by — some object or action we didn't discuss?"
 
 ## Writing the documentation
 

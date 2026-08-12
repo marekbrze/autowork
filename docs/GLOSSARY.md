@@ -4,66 +4,66 @@ Terms and concepts specific to this project. Used across all project skills to m
 
 | Term | Code Name | Definition | Avoid saying |
 |------|-----------|------------|--------------|
-| Stresor (stresująca rzecz) | `Stressor` | Pojedyncza rzecz wpisana w brain dumpie — coś, co teraz stresuje. Surowy materiał wejściowy lejka, zanim zostanie rozbity na akcje. | "zadanie" (zadanie = `Task`/`NextAction` po procesowaniu), "problem" |
-| Brain dump | `BrainDump` | Pierwszy krok: wyrzucenie z głowy wszystkich stresorów, jeden po drugim, bez oceny. | "lista", "wpisywanie" |
-| Rotujący banner-prompt | `PromptBanner` | Interaktywny banner w brain dumpie, zmieniający się co kilka sekund; podsuwa kategorie / przykłady stresorów („finanse", „A rata kredytu?"), żeby wyciągnąć to, co umyka. Klikalny — pomaga wypełnić pole. | "podpowiedzi", "tooltip" |
-| Ranking stresu | `StressRanking` | Krok 2: ułożenie stresorów od najbardziej do najmniej stresującego. Decyduje o kolejności przetwarzania. | "sortowanie", "priorytet" (priorytet wynika ze stresu) |
-| Parowanie (ranking parami) | `Pairing` | Opcjonalna metoda ranking: zobowiązany ciąg porównań parami („który bardziej stresuje: A czy B?"); po przejściu całości mądry algorytm (np. insertion/merge sort, ranking ELO) układa finalną kolejność. Obok ręcznego układania listy. | "głosowanie", "sortowanie" |
-| Motywacja (materiał motywacyjny) | `Motivation` | WHY w `decompose`: powody, dla których stresor jest ważny, + wizja efektu. „Ładuje baterię", którą `focus` zużywa później jako przypomnienie „po co to robisz". | "opis", "komentarz" |
-| Powód (motywacyjny) | `Reason` | Pojedynczy powód, dla którego stresor jest dla usera ważny. Niesie walencję: pozytywną (zysk) lub negatywną (uniknięcie bólu). Kilka na stresor. | "zaleta", "minus" |
-| Walencja motywacji | `Valence` | Rodzaj motywacji: `positive` (approach — zysk) lub `negative` (avoidance — uniknięcie bólu). | "dodatnia/ujemna" |
-| Wizja efektu | `DoneVision` | Pozytywna wizualizacja zrobionego stanu stresora — żywy, zmysłowy opis (tekst + emoji). Payoff. | "cel", "marzenie" |
-| Next-action (krok do przodu) | `NextAction` | Konkretna akcja pod stresorem, która pchnie go do przodu — **zapisana aktywnym, konkretnym językiem** (czasownik, wykonalne). Jednego stresora może być kilka. Prawdopodobnie stają się jednostkami na liście focus. | "krok" (zbyt ogólne), "podzadanie" |
-| Procesowanie (inbox / GTD) | `Processing` | Krok 4: nadanie każdemu zadaniu kontekstu, energii i czasu — styl inboxa GTD (jak w aplikacji *dopadone*). | "sortowanie", "tagowanie" |
-| Kontekst | `Context` | Miejsce / tryb, w którym zadanie można wykonać. Kategorie do wyboru (patrz niżej). Multi-select przy wyborze sesji. | "tag", "kategoria", "etykieta" |
-| — telefon | `Context.Phone` | Zadanie do zrobienia przez telefon. | |
-| — wiadomość | `Context.Message` | Zadanie polegające na wysłaniu wiadomości. | |
-| — kreatywne | `Context.Creative` | Zadanie wymagające myślenia twórczego. | |
-| — chore (errands) | `Context.Errands` | Zadania na mieście / sprawunki (termin GTD). | |
-| — dom | `Context.Home` | Zadanie do zrobienia w domu. | |
-| — miasto | `Context.City` | Zadanie wymagające wyjścia do miasta. | |
-| Energia | `Energy` | Ilość energii / sił potrzebna do zadania. Skala **1–3** (Low / Medium / High), renderowana jako **bateryjki** (1 = jedna bateryjka, 3 = trzy). Używana jako filtr sesji (**wielokrotny** wybór poziomów). | "trudność", "wysiłek" |
-| Czas (szacowany) | `EstimatedTime` | Szacowany czas potrzebny na zadanie. Źródło wartości timera w sesji focus. | "czas", "deadline" |
-| Łączny czas szacunkowy | `EstimatedTotal` | Suma `EstimatedTime` po **wyestymowanych** taskach Runa — rozmiar pracy w całym przejeździe. Wyprowadzana na żywo (`estimatedTotalMin`); pokazywana na dashboardzie (dominująca karta), w `RunStatTiles` (Szczegóły) i w filtrze sesji focus (suma po `matchedTasks`). | "czas spędzony" (to `timeSpent`), "suma czasu" |
-| Pozostały czas szacunkowy | `EstimatedRemaining` | Suma `EstimatedTime` po taskach **jeszcze nie-zrobionych** (stan ∉ `completed`/`dismissed`) — ile szacunkowo zostało. `estimatedRemainingMin`; sub-linia na Szczegółach Runa. | "zostało" (to licznik tasków), "czas spędzony" |
-| Wybór sesji / filtr | `SessionFilter` | Krok 5: wybór kontekstu(ów) i energii, który filtruje długą listę do zestawu na tę sesję. | "filtrowanie", "ustawienia" |
-| Sesja focus | `FocusSession` | Krok 6: przechodzenie przez wyfiltrowany zestaw, jedno zadanie na ekranie, pod timerem. | "tryb pracy", "pomidor" |
-| Timer | `Timer` | Licznik na ekranie focus — liczy **w górę od 0:00**; `EstimatedTime` to próg, po którego przekroczeniu renderuje się czerwono (model B, ADR 0016). Działa w tle i **zawsze jest poprawny po powrocie** (timestamp-based, nie ticki); podczas sesji czas pokazuje też w **title karty** (`12:34 — Autowork`, + `· paused` / `· over`); ekran trzyma **Wake Lock**, tick w tle napędza **Web Worker** (ADR 0053). | "stoper", "zegar" |
-| Skip | `Skip` | Odłożenie bieżącego zadania — zostaje na liście na później. | "pomiń na zawsze", "usuń" |
-| Done (ukończone) | `Complete` / `Completed` | Zadanie zrobione; kolejne startuje automatycznie. | "zamknij", "usuń" (usuwanie to `ClearCompleted`) |
-| Nieaktualne (odrzucone) | `Dismiss` / `dismissed` | Task, który stracił sens (zdezaktualizowany, ktoś inny załatwił, okoliczności się zmieniły) — oznaczony w `focus` jako nie do zrobienia. Osobny od `Skip` (odłożone na później) i `Done`. Nie wraca w kolejnych sesjach, ma undo, liczy do progresem, w `SessionSummary` osobną sekcją (ADR 0017). | "usunięte" (usuwanie = `ClearCompleted`), "anulowane" |
-| "Usuń skończone" | `ClearCompleted` | Akcja na ekranie podsumowania: usunięcie zrobionych zadań. Moment celebracji. | "archiwizuj" (jeśli coś innego) |
-| Celebracja / podsumowanie | `SessionSummary` | Ekran na końcu sesji: lista zrobionych zadań + łączny czas spędzony na zadaniach + `ClearCompleted`. | "raport", "statystyki" |
+| Stressor (a stressful thing) | `Stressor` | A single thing entered in the brain dump — something that's stressing you right now. The raw input of the funnel, before it gets broken into actions. | "task" (task = `Task`/`NextAction` after processing), "problem" |
+| Brain dump | `BrainDump` | First step: emptying your head of all stressors, one after another, without judgment. | "list", "entry" |
+| Rotating prompt banner | `PromptBanner` | An interactive banner in the brain dump that changes every few seconds; it suggests categories / example stressors ("finances", "What about a loan payment?") to draw out what slips away. Clickable — helps fill the field. | "hints", "tooltip" |
+| Stress ranking | `StressRanking` | Step 2: ordering stressors from most to least stressful. Determines the processing order. | "sorting", "priority" (priority follows from stress) |
+| Pairing (pairwise ranking) | `Pairing` | Optional ranking method: a committed sequence of pairwise comparisons ("which is more stressful: A or B?"); once you go through it all, a smart algorithm (e.g. insertion/merge sort, ELO ranking) produces the final order. Alongside manual list ordering. | "voting", "sorting" |
+| Motivation (motivational material) | `Motivation` | The WHY in `decompose`: the reasons this stressor matters + a vision of the outcome. "Charges the battery" that `focus` later spends as a reminder of "why you're doing this". | "description", "comment" |
+| (Motivational) reason | `Reason` | A single reason this stressor matters to the user. Carries a valence: positive (gain) or negative (avoiding pain). Several per stressor. | "pro", "con" |
+| Motivation valence | `Valence` | The type of motivation: `positive` (approach — gain) or `negative` (avoidance — avoiding pain). | "positive/negative" |
+| Done vision | `DoneVision` | A positive visualization of the stressor's completed state — a vivid, sensory description (text + emoji). The payoff. | "goal", "dream" |
+| Next-action (a step forward) | `NextAction` | A concrete action under a stressor that will push it forward — **written in active, concrete language** (a verb, doable). A stressor can have several. They likely become the units on the focus list. | "step" (too generic), "subtask" |
+| Processing (inbox / GTD) | `Processing` | Step 4: giving each task a context, energy, and time — a GTD inbox style (like in the *dopadone* app). | "sorting", "tagging" |
+| Context | `Context` | The place / mode in which a task can be done. Categories to pick from (see below). Multi-select when choosing a session. | "tag", "category", "label" |
+| — phone | `Context.Phone` | A task to do by phone. | |
+| — message | `Context.Message` | A task that involves sending a message. | |
+| — creative | `Context.Creative` | A task that requires creative thinking. | |
+| — errands | `Context.Errands` | Tasks around town / shopping (a GTD term). | |
+| — home | `Context.Home` | A task to do at home. | |
+| — city | `Context.City` | A task that requires going out into the city. | |
+| Energy | `Energy` | The amount of energy / effort a task needs. A **1–3** scale (Low / Medium / High), rendered as **batteries** (1 = one battery, 3 = three). Used as a session filter (**multiple** levels selectable). | "difficulty", "effort" |
+| (Estimated) time | `EstimatedTime` | The estimated time a task needs. The source of the timer value in a focus session. | "time", "deadline" |
+| Estimated total time | `EstimatedTotal` | The sum of `EstimatedTime` across a Run's **estimated** tasks — the size of the work in the whole run. Derived live (`estimatedTotalMin`); shown on the dashboard (dominant card), in `RunStatTiles` (Details), and in the focus session filter (sum over `matchedTasks`). | "time spent" (that's `timeSpent`), "time sum" |
+| Estimated remaining time | `EstimatedRemaining` | The sum of `EstimatedTime` across tasks **not yet done** (state ∉ `completed`/`dismissed`) — how much is estimated to be left. `estimatedRemainingMin`; a sub-line on Run Details. | "left" (that's the task counter), "time spent" |
+| Session selection / filter | `SessionFilter` | Step 5: picking context(s) and energy, which filters the long list down to a set for this session. | "filtering", "settings" |
+| Focus session | `FocusSession` | Step 6: going through the filtered set, one task on screen at a time, under a timer. | "work mode", "pomodoro" |
+| Timer | `Timer` | The counter on the focus screen — counts **up from 0:00**; `EstimatedTime` is the threshold beyond which it renders red (model B, ADR 0016). Runs in the background and **is always correct when you come back** (timestamp-based, not ticks); during a session the time also shows in the **tab title** (`12:34 — Autowork`, + `· paused` / `· over`); the screen holds a **Wake Lock**, and the background tick is driven by a **Web Worker** (ADR 0053). | "stopwatch", "clock" |
+| Skip | `Skip` | Setting the current task aside — it stays on the list for later. | "skip forever", "delete" |
+| Done (completed) | `Complete` / `Completed` | The task is done; the next one starts automatically. | "close", "delete" (deleting is `ClearCompleted`) |
+| Stale (dismissed) | `Dismiss` / `dismissed` | A task that no longer makes sense (outdated, someone else handled it, circumstances changed) — marked in `focus` as not-to-do. Separate from `Skip` (set aside for later) and `Done`. It doesn't come back in later sessions, has undo, counts toward progress, and gets its own section in `SessionSummary` (ADR 0017). | "deleted" (deleting = `ClearCompleted`), "cancelled" |
+| "Clear completed" | `ClearCompleted` | An action on the summary screen: remove the completed tasks. A moment of celebration. | "archive" (if it means something else) |
+| Celebration / summary | `SessionSummary` | The screen at the end of a session: list of completed tasks + total time spent on tasks + `ClearCompleted`. | "report", "statistics" |
 
-| Run (przebieg) | `Run` | Jeden pełny przejazd lejka (brain dump → celebracja). **Widoczny obiekt ze statystykami** (ADR 0020): trwały, wznawialny, z progresem (`(completed + dismissed) / total`), czasem spędzonym i opcjonalną nazwą (domyślnie data/godzina). Wiele runów żyje równolegle, **każdy z własnym zestawem stresorów/zadań**; stany `in_progress` \| `archived`. Historia runów służy porównywaniu i motywacji. | "sesja" (sesja = `FocusSession`), "przejście" |
-| Aktywny Run | `activeRunId` | Run, którego lejka (stresory, zadania, …) user aktualnie widzi w ekranach `capture`/`decompose`/`process`/`focus`. Ustawiany przy **Create / Continue**; wyczyszczany przy Delete/Archive aktywnego (→ Dashboard). Switching = przez Dashboard (Continue innego Runa). ADR 0044. | "zaznaczony run", "otwarty run" |
-| Task (zadanie) | `Task` | Atomiczna, wykonywalna jednostka — element listy focus. Powstaje z `NextAction` (rozbicie 1..N; konkretny NextAction = 1 Task). Nosi `Context`, `Energy`, `EstimatedTime`. | "krok" (zbyt ogólne), "zadanie" ogólnie |
-| Stan taska | `TaskState` | Cykl: `pending` → `active` → `completed` \| `skipped` \| `dismissed`. `Skip` wraca do `pending` przy następnej sesji; `Back` reaktywuje poprzedni (`active`); `Dismiss` = terminalnie nieaktualny (nie wraca, undo, liczy do progresem — ADR 0017). | "status" |
-| Ręczny porządek kolejki | `TaskOrder` | Jeden współdzielony model kolejności zadań w Runie (uporządkowana lista ID). Default (pusty / po resecie) = rank stresora; ręczne przełożenie (drag / ↑↓) go nadpisuje. Ten sam porządek widać w filtrze focus, w kolejce sesji i na liście zadań Szczegółów Runa. Win = elastyczność (grupowanie powiązanych, sekwencjonowanie zależności), nie nudge. ADR 0036. | "sortowanie", "kolejność domyślna" |
-| Lista zadań Runa | `RunTaskList` | Widok wszystkich zadań z prawdziwym stanem na Szczegółach Runa — pogrupowane stanem (To do / Done / Not relevant), sortowane wewnątrz grupy po `TaskOrder`. Akcje z listy: done / not-relevant (moduł `run` mutuje stany tasków). ADR 0037. | "lista tasków", "statystyki" (to są agregaty) |
-| Status taska (na liście akcji) | `TaskStatusIndicator` | Read-only znacznik stanu taska przy jego wpisie w bloku HOW `decompose`: `completed` → ✓, `dismissed` → ⊘ + „not relevant" (muted, neutralnie — nie na czerwono). Stan mutowany w `focus`/`run`; `decompose` go tylko pokazuje. ADR 0057. | "badge", "etykieta stanu" |
-| Załatwiony next-action | `ResolvedNextAction` | Next-action, którego **wszystkie** taski są `completed`/`dismissed` — w bloku HOW `decompose` dostaje strike-through + muted (de-emphasis) i licznik `X/N done`; nadal edytowalny (read-only dotyczy stanu tasków, nie CRUD). ADR 0057. | "ukończony", "zrobiony next-action" |
-| Dashboard | `Dashboard` | Ekran wejściowy / launcher (pas startowy): dominująca karta ostatnio-pracowanego runa (progres na pierwszym planie) + aktywne runy + wejście do archiwum. W jednym kliku wraca do roboty; motywacja = głównie momentum progresem. | "panel", "strona główna", "lista runów" |
-| Review-on-resume | `Review` | Przegląd Runa: idziesz przez stresory / taski i decydujesz, co nadal obowiązuje (relevant), a co usunąć (stale / przeterminowane). **Tylko ręcznie** ze Szczegółów — nie uruchamiany automatycznie przy resume (ADR 0023). | "czyszczenie", "archiwizacja" |
-| Kontynuuj (wznów) | `Continue` | Smart-routing resume Runa z dashboardu do najdalszego kroku lejka z pracą (zapauzowana sesja → wznów • ≥1 task → focus • brak → process/decompose/ranking/brain dump • wszystko done → szczegóły). Atrybuty nie bramkują (ADR 0013). ADR 0022. | "start", "otwórz" |
-| Szczegóły Runa | `RunDetails` | Ekran statystyk i zarządzania pojedynczym Runem: czas spędzony (suma z focusa), wykonane (`completed + dismissed`), zostało, progress % + akcje (rename, review, archive/unarchive, delete). | "panel runa", "statystyki" |
-| Archiwizacja | `Archive` / `archived` | Stan Runa: schowany z aktywnych na dashboardzie, ale zostaje w archiwum/historii (statystyki + porównanie widoczne, możliwy do rozarchiwizowania). Ręczny, odwracalny. ADR 0021. | "zakończ", "ukryj" |
-| Rozarchiwizowanie | `Un-archive` | Przywrócenie zarchiwizowanego Runa do aktywnych (można znów Kontynuować). ADR 0021. | "przywróć" |
-| Krok lejka | `FunnelStep` | Poziom osiągnięty w lejku (brain dump → ranking → decompose → process → focus → celebracja); trzymany na Runie jako `lastReachedStep`, steruje routingiem Kontynuuj. | "etap", "faza" |
-| Klikalny stepper lejka | `FunnelStepper` | Pasek 5 kroków lejka (Stresory › Ranking › Akcje › Procesowanie › Focus) na ekranach funnel — **klikalna nawigacja** po krokach aktywnego Runa (swobodny skok; bieżący = no-op; wyjście z aktywnej sesji focus → ConfirmDialog, sesja pauzuje i przetrwa do wznowienia). Supersede „prowadzony lejek bez breadcrumbs" (ADR 0001); ADR 0048. | "breadcrumbs", "menu kroków" |
+| Run | `Run` | One full run through the funnel (brain dump → celebration). A **visible object with statistics** (ADR 0020): durable, resumable, with progress (`(completed + dismissed) / total`), time spent, and an optional name (defaults to date/time). Many runs live in parallel, **each with its own set of stressors/tasks**; states `in_progress` \| `archived`. Run history serves comparison and motivation. | "session" (session = `FocusSession`), "pass" |
+| Active Run | `activeRunId` | The Run whose funnel (stressors, tasks, …) the user currently sees on the `capture`/`decompose`/`process`/`focus` screens. Set on **Create / Continue**; cleared when the active one is Deleted/Archived (→ Dashboard). Switching happens via the Dashboard (Continue a different Run). ADR 0044. | "selected run", "open run" |
+| Task | `Task` | An atomic, executable unit — an item on the focus list. Comes from a `NextAction` (a 1..N breakdown; a concrete NextAction = 1 Task). Carries `Context`, `Energy`, `EstimatedTime`. | "step" (too generic), "task" generically |
+| Task state | `TaskState` | Cycle: `pending` → `active` → `completed` \| `skipped` \| `dismissed`. `Skip` returns to `pending` at the next session; `Back` reactivates the previous one (`active`); `Dismiss` = terminally stale (doesn't come back, undo, counts toward progress — ADR 0017). | "status" |
+| Manual queue order | `TaskOrder` | One shared model of task ordering within a Run (an ordered list of IDs). Default (empty / after reset) = stressor rank; manual reordering (drag / ↑↓) overrides it. The same order is visible in the focus filter, the session queue, and the task list on Run Details. Win = flexibility (grouping related tasks, sequencing dependencies), not a nudge. ADR 0036. | "sorting", "default order" |
+| Run task list | `RunTaskList` | A view of all tasks with their real state on Run Details — grouped by state (To do / Done / Not relevant), sorted within each group by `TaskOrder`. Actions from the list: done / not-relevant (the `run` module mutates task states). ADR 0037. | "task list", "statistics" (those are aggregates) |
+| Task status (on the action list) | `TaskStatusIndicator` | A read-only task-state marker next to its entry in the `decompose` HOW block: `completed` → ✓, `dismissed` → ⊘ + "not relevant" (muted, neutral — not red). State is mutated in `focus`/`run`; `decompose` only displays it. ADR 0057. | "badge", "state label" |
+| Resolved next-action | `ResolvedNextAction` | A next-action whose **all** tasks are `completed`/`dismissed` — in the `decompose` HOW block it gets strike-through + muted (de-emphasis) and an `X/N done` counter; still editable (read-only refers to task state, not CRUD). ADR 0057. | "completed", "done next-action" |
+| Dashboard | `Dashboard` | The entry screen / launcher (launch runway): a dominant card for the most recently worked-on run (progress in the foreground) + active runs + an entrance to the archive. One click returns you to work; motivation = mostly progress momentum. | "panel", "home page", "list of runs" |
+| Review-on-resume | `Review` | A Run review: you go through the stressors / tasks and decide what still applies (relevant) and what to remove (stale / outdated). **Only manually** from Details — not launched automatically on resume (ADR 0023). | "cleanup", "archiving" |
+| Continue (resume) | `Continue` | Smart-routing resume of a Run from the dashboard to the furthest funnel step that has work (paused session → resume • ≥1 task → focus • none → process/decompose/ranking/brain dump • everything done → details). Attributes don't gate (ADR 0013). ADR 0022. | "start", "open" |
+| Run Details | `RunDetails` | The statistics and management screen for a single Run: time spent (sum from focus), completed (`completed + dismissed`), remaining, progress % + actions (rename, review, archive/unarchive, delete). | "run panel", "statistics" |
+| Archive | `Archive` / `archived` | Run state: hidden from active runs on the dashboard, but kept in the archive/history (statistics + comparison visible, can be un-archived). Manual, reversible. ADR 0021. | "finish", "hide" |
+| Un-archive | `Un-archive` | Restoring an archived Run to active (you can Continue it again). ADR 0021. | "restore" |
+| Funnel step | `FunnelStep` | A level reached in the funnel (brain dump → ranking → decompose → process → focus → celebration); held on the Run as `lastReachedStep`, drives Continue routing. | "stage", "phase" |
+| Clickable funnel stepper | `FunnelStepper` | A bar of 5 funnel steps (Stressors › Ranking › Actions › Processing › Focus) on the funnel screens — **clickable navigation** across the steps of the active Run (free jumps; current = no-op; leaving an active focus session → ConfirmDialog, the session pauses and survives to be resumed). Supersedes "guided funnel without breadcrumbs" (ADR 0001); ADR 0048. | "breadcrumbs", "step menu" |
 
-## Moduły projektowe (code namespaces)
+## Project modules (code namespaces)
 
-Nazwy modułów = foldery / przestrzenie nazw w kodzie. Szczegóły: `docs/MODULES.md`.
+Module names = folders / namespaces in code. Details: `docs/MODULES.md`.
 
-| Moduł | Co pokrywa |
+| Module | What it covers |
 |------|-----------|
-| `capture` | Brain dump + ranking stresu (`Stressor`). |
-| `decompose` | WHY (motywacja: powody + wizja efektu) i HOW (next-actiony → taski) — `Reason`, `DoneVision`, `NextAction`, `Task`. |
-| `process` | Procesowanie GTD — kontekst / energia / czas (`Task`). |
-| `focus` | Filtrowanie sesji + sesja focus + timer + podsumowanie (`FocusSession`, `Timer`, `SessionSummary`). |
-| `run` | Cykl życia Runa — tworzenie / resume / progres / review (`Run`). |
-| `dashboard` | Historia runów, progres, porównanie / motywacja. |
+| `capture` | Brain dump + stress ranking (`Stressor`). |
+| `decompose` | WHY (motivation: reasons + done vision) and HOW (next-actions → tasks) — `Reason`, `DoneVision`, `NextAction`, `Task`. |
+| `process` | GTD processing — context / energy / time (`Task`). |
+| `focus` | Session filtering + focus session + timer + summary (`FocusSession`, `Timer`, `SessionSummary`). |
+| `run` | Run lifecycle — creation / resume / progress / review (`Run`). |
+| `dashboard` | Run history, progress, comparison / motivation. |
 
-## Zewnętrzne referencje
-- **dopadone** — aplikacja-inspiracja dla stylu procesowania (inbox GTD). Nie jest częścią kodu; wzorzec UX kroku 4.
+## External references
+- **dopadone** — the inspiration app for the processing style (GTD inbox). Not part of the code; a UX reference for step 4.

@@ -14,14 +14,14 @@ function makeStressors(texts: string[]): Stressor[] {
 }
 
 const STRESSORS = makeStressors([
-  'samochód do naprawy',
-  'wypowiedzenie umowy najmu',
-  'rozmowa z szefem o podwyżce',
-  'zaległe podatki',
-  'remont łazienki',
+  'the car needs fixing',
+  'canceling the lease',
+  'talking to the boss about a raise',
+  'overdue taxes',
+  'bathroom renovation',
 ]);
 
-/** Stan mid-sequence: 2 stresory już ułożone, 3. wstawiany, 3 pytania za nami. */
+/** Mid-sequence state: 2 stressors already ordered, the 3rd being inserted, 3 questions behind us. */
 const COMPARE_STATE: PairingState = {
   phase: 'compare',
   sorted: STRESSORS.slice(0, 2),
@@ -60,20 +60,20 @@ export default meta;
 
 type Story = StoryObj<typeof PairingFlow>;
 
-/** Ekran startowy parowania. */
+/** Pairing start screen. */
 export const Intro: Story = {};
 
-/** Mid-sequence — widać licznik postępu (Pytanie N, Stresor X z Y). */
+/** Mid-sequence — the progress counter is visible (Question N, Stressor X of Y). */
 export const MidSequence: Story = {
   args: { initialState: COMPARE_STATE },
 };
 
-/** Potwierdzenie przerwania mid-sequence — postęp by przepadł. */
+/** Mid-sequence abandon confirmation — progress would be lost. */
 export const AbandonConfirm: Story = {
   args: { initialState: COMPARE_STATE, initialConfirmAbandon: true },
 };
 
-/** Ukończone parowanie — finalna kolejność + Zastosuj. */
+/** Completed pairing — final order + Apply. */
 export const Done: Story = {
   args: { initialState: DONE_STATE },
 };

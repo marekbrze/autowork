@@ -3,22 +3,22 @@ import type { Task } from '@/modules/decompose/types/task';
 import type { FunnelStep, RunStats } from './types/run';
 
 /**
- * Wyprowadzanie statystyk i kroku resume Runa **na żywo** z globalnych danych lejka
- * (ADR 0020 — faza integracji cross-module). Do tej pory `run.stats` / `lastReachedStep`
- * były wpisane raz przy tworzeniu i nigdy nie synchronizowane (zob. docs/changes/
- * dashboard-run-stats-disconnected.md). Lejek trzyma dane w osobnych storach
- * (`capture:stressors`, `decompose:tasks`, …); te funkcje agregują je do postaci,
- * jakiej oczekuje warstwa widoku Runa.
+ * Deriving Run statistics and the resume step **live** from global funnel data
+ * (ADR 0020 — cross-module integration phase). Previously `run.stats` / `lastReachedStep`
+ * were written once at creation and never synchronized (see docs/changes/
+ * dashboard-run-stats-disconnected.md). The funnel keeps data in separate stores
+ * (`capture:stressors`, `decompose:tasks`, …); these functions aggregate it into the
+ * shape the Run view layer expects.
  *
- * Uwaga: dane lejka są scope'owane per-Run (`runId`, ADR 0044) — `useLiveRuns` czyta
- * store danego Runa, więc każda karta/Szczegóły pokazuje swój zestaw statystyk.
+ * Note: funnel data is scoped per-Run (`runId`, ADR 0044) — `useLiveRuns` reads a given
+ * Run's store, so each card/Details shows its own set of stats.
  */
 
 /**
- * Liczy statystyki Runa z tasków. Mianownik = wszystkie taski; licznik (done) =
- * `completed` + `dismissed` (ADR 0017); `skipped` NIE liczy się (wraca w kolejnej sesji).
- * Czas = suma `timerElapsed` po zrobionych taskach. Łączny/pozostały szacunek = suma
- * `EstimatedTime` (po wyestymowanych); remaining = nie-zrobione, spójne z `doneCount` (ADR 0060).
+ * Computes a Run's stats from its tasks. Denominator = all tasks; numerator (done) =
+ * `completed` + `dismissed` (ADR 0017); `skipped` does NOT count (it comes back next session).
+ * Time = sum of `timerElapsed` over done tasks. Total/remaining estimate = sum of
+ * `EstimatedTime` (over estimated tasks); remaining = not-done, consistent with `doneCount` (ADR 0060).
  */
 export function deriveRunStats(tasks: Task[]): RunStats {
   const totalTasks = tasks.length;
@@ -35,8 +35,8 @@ export function deriveRunStats(tasks: Task[]): RunStats {
       doneCount += 1;
       dismissedCount += 1;
     }
-    // `EstimatedTime` opcjonalne (nullable, przypinane w `process`); liczymy tylko wyestymowane.
-    // Remaining = stany ∉ completed/dismissed (pending/active/skipped — jeszcze do zrobienia).
+    // `EstimatedTime` is optional (nullable, attached in `process`); we only count estimated tasks.
+    // Remaining = states ∉ completed/dismissed (pending/active/skipped — still to do).
     if (t.estimatedTime != null) {
       estimatedTotalMin += t.estimatedTime;
       if (t.state !== 'completed' && t.state !== 'dismissed') {
@@ -54,26 +54,26 @@ export function deriveRunStats(tasks: Task[]): RunStats {
   };
 }
 
-/** Sygnały lejka, z których wyprowadzamy krok resume (Kontynuuj, ADR 0022). */
+/** Funnel signals we derive the resume step from (Continue, ADR 0022). */
 export interface FunnelSignals {
   stressorCount: number;
   nextActionCount: number;
   taskCount: number;
   /** `completed + dismissed`. */
   doneCount: number;
-  /** Zapauzowana sesja focus możliwa do wznowienia (snapshot z niepustą kolejką). */
+  /** A paused focus session that can be resumed (a snapshot with a non-empty queue). */
   hasResumableSession: boolean;
 }
 
 /**
- * Wyprowadza najdalszy osiągnięty krok lejka z obecności danych (run.md §Continue).
- * Reguły od najbardziej konkretnych:
- *   wszystko rozwiązane → celebration · zapauzowana sesja → focus · ≥1 task → focus ·
- *   next-actiony (bez tasków) → process · stresory (bez rozbicia) → ranking · pusto → brain-dump.
+ * Derives the furthest reached funnel step from the presence of data (run.md §Continue).
+ * Rules, from most specific first:
+ *   everything resolved → celebration · paused session → focus · ≥1 task → focus ·
+ *   next-actions (no tasks) → process · stressors (no breakdown) → ranking · empty → brain-dump.
  *
- * Ograniczenie: nie rozróżniamy „zrankowane vs nierankingowane" stresory (kolejność jest
- * implikowana pozycją w tablicy, bez flagi), więc stresory-bez-rozbicia kierują do rankingu
- * (najbezpieczniejszy „następny krok"). Zgłoszony przypadek (stresory + taski) → focus.
+ * Limitation: we don't distinguish "ranked vs unranked" stressors (order is implied by
+ * position in the array, with no flag), so stressors-without-breakdown are routed to ranking
+ * (the safest "next step"). Reported case (stressors + tasks) → focus.
  */
 export function deriveLastReachedStep(s: FunnelSignals): FunnelStep {
   if (s.taskCount > 0 && s.doneCount >= s.taskCount) return 'celebration';

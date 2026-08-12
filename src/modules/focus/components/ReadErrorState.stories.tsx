@@ -12,5 +12,5 @@ export default meta;
 
 type Story = StoryObj<typeof ReadErrorState>;
 
-/** #10 — awaria odczytu storage: jasny stan błędu zamiast mylnego empty-state listy. */
+/** #10 — storage read failure: a clear error state instead of a misleading list empty-state. */
 export const Default: Story = {};

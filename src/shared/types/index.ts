@@ -5,8 +5,8 @@ export interface BaseEntity {
 }
 
 export function generateId(): string {
-  // crypto.randomUUID wymaga secure context (https / localhost). Na plain-HTTP
-  // poza localhost jest undefined → fallback, żeby addStressor nie rzucił.
+  // crypto.randomUUID requires a secure context (https / localhost). On plain-HTTP
+  // outside localhost it is undefined → fallback, so addStressor doesn't throw.
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();
   }
@@ -14,16 +14,16 @@ export function generateId(): string {
 }
 
 /**
- * Walencja motywacji (`Reason` w `decompose`).
- * - `positive` — approach (zysk): co user zyska, gdy skończy.
- * - `negative` — avoidance (uniknięcie bólu): co usera czeka, gdy tego nie zrobi.
+ * Motivation valence (`Reason` in `decompose`).
+ * - `positive` — approach (gain): what the user gains when they finish.
+ * - `negative` — avoidance (pain relief): what awaits the user if they don't do it.
  */
 export type Valence = 'positive' | 'negative';
 
 /**
- * Pozytywna wizja zrobionego stanu stresora (`doneVision` na `Stressor`).
- * Żywy, zmysłowy opis payoffu — tekst + emoji. Opcjonalne, 0..1 na stresor.
- * Tworzone w `decompose`, konsumowane w `focus` („pamiętaj, po co to robisz").
+ * Positive vision of the stressor's done state (`doneVision` on `Stressor`).
+ * A vivid, sensory description of the payoff — text + emoji. Optional, 0..1 per stressor.
+ * Created in `decompose`, consumed in `focus` ("remember why you're doing this").
  */
 export interface DoneVision {
   text: string;

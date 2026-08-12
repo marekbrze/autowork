@@ -1,13 +1,13 @@
 import type { Context, Energy } from '@/modules/decompose/types/task';
 
-/** Ekrany `focus`: wybór filtra → sesja → podsumowanie. */
+/** `focus` screens: filter selection → session → summary. */
 export type FocusScreen = 'filter' | 'session' | 'summary';
 
 /**
- * Snapshot przerwanej sesji — persystowany, by można było wznowić (Exit / refresh /
- * browser-back). Przechowujemy kolejkę + pozycję; `timerElapsed` pamięta per task
- * (na encji Task). Best-effort: utrata bookmarka = brak wznowienia (nieutrata danych),
- * dlatego zapis snapshotu NIE jest bramkowany w akcjach (różnica vs zapisy stanów Task).
+ * Snapshot of an interrupted session — persisted so it can be resumed (Exit / refresh /
+ * browser-back). Stores the queue + position; `timerElapsed` is remembered per task
+ * (on the Task entity). Best-effort: losing the bookmark = no resume (no data loss),
+ * so the snapshot write is NOT gated in actions (unlike Task state writes).
  */
 export interface SessionSnapshot {
   queue: string[];
@@ -15,8 +15,8 @@ export interface SessionSnapshot {
 }
 
 /**
- * Filtr sesji (krok 5). Konteksty i energie są **wielokrotne** (≥1 z each);
- * dopasowuje taski, których kontekst ∈ contexts i energia ∈ energies.
+ * Session filter (step 5). Contexts and energies are **multi-select** (≥1 of each);
+ * matches tasks whose context ∈ contexts and energy ∈ energies.
  */
 export interface FilterSelection {
   contexts: Context[];
@@ -25,7 +25,7 @@ export interface FilterSelection {
 
 export const EMPTY_FILTER: FilterSelection = { contexts: [], energies: [] };
 
-/** Etykiety kontekstów GTD — lokalna kopia (współdzielone znaczenie z `process`). */
+/** GTD context labels — local copy (shared meaning with `process`). */
 export const CONTEXT_LABELS: Record<Context, string> = {
   Phone: 'Phone',
   Message: 'Message',
@@ -46,8 +46,8 @@ export const ENERGY_LABELS: Record<Energy, string> = {
 export const ENERGY_ORDER: Energy[] = [1, 2, 3];
 
 /**
- * Format sekund → `M:SS` (lub `H:MM:SS` powyżej godziny). Timer focus liczy
- * w górę (model B, ADR 0016), więc wartości mogą przekraczać próg oszacowania.
+ * Format seconds → `M:SS` (or `H:MM:SS` above an hour). The focus timer counts
+ * up (model B, ADR 0016), so values may exceed the estimate threshold.
  */
 export function formatClock(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds));

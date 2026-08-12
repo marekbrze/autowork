@@ -12,10 +12,10 @@ import {
 import type { AppData } from './types';
 
 /**
- * Pełny scenariusz — aktywna praca + historia (archiwum). Bogaty lejek (stressors + WHY/HOW +
- * atrybuowane taski + zapamiętany filtr) przypisany do dominującego Runa `run-finanse`, żeby
- * Kontynuuj prowadziło do realnego focusa (per-Run własność, ADR 0044). Pozostałe Runy na
- * liście pokazują 0% (bez własnych tasków) — dev-only uproszczenie bogactwa scenariusza.
+ * Full scenario — active work + history (archive). A rich funnel (stressors + WHY/HOW +
+ * attributed tasks + remembered filter) is assigned to the dominant Run `run-finanse`, so that
+ * Continue leads to a real focus screen (per-Run ownership, ADR 0044). The other Runs in the
+ * list show 0% (without their own tasks) — a dev-only simplification of the scenario's richness.
  */
 const RUN_ID = 'run-finanse';
 
@@ -33,7 +33,7 @@ export function fullScenario(): AppData {
     [nextActionsKey(RUN_ID)]: focus.nextActions,
     [tasksKey(RUN_ID)]: focus.tasks,
     [doneVisionsKey(RUN_ID)]: Object.fromEntries(focus.doneVisions),
-    // Zapamiętany filtr sesji — punkt startowy przy kontynuacji Runu.
+    // Remembered session filter — the starting point when continuing the Run.
     [focusFilterKey(RUN_ID)]: { contexts: ['Phone', 'Message'], energies: [1, 2] },
     'run:runs': runsFull,
     'run:active': RUN_ID,

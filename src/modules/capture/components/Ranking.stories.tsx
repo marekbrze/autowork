@@ -39,11 +39,11 @@ export const WithData: Story = {
         'capture:stressors',
         JSON.stringify(
           makeStressors([
-            'samochód do naprawy',
-            'wypowiedzenie umowy najmu',
-            'rozmowa z szefem o podwyżce',
-            'zaległe podatki',
-            'remont łazienki',
+            'the car needs fixing',
+            'canceling the lease',
+            'talking to the boss about a raise',
+            'overdue taxes',
+            'bathroom renovation',
           ]),
         ),
       );
@@ -57,7 +57,7 @@ export const SingleStressor: Story = {
     (Story) => {
       localStorage.setItem(
         'capture:stressors',
-        JSON.stringify(makeStressors(['rozmowa z szefem o podwyżce'])),
+        JSON.stringify(makeStressors(['talking to the boss about a raise'])),
       );
       return <Story />;
     },

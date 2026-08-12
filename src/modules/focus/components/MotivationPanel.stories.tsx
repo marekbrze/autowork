@@ -15,10 +15,10 @@ const TS = '2026-06-28T00:00:00.000Z';
 
 export const Full: Story = {
   args: {
-    doneVision: { text: 'samochód jedzie gładko i milczy, jazda bez napięcia', emoji: '😌' },
+    doneVision: { text: 'the car runs smoothly and quietly, driving without tension', emoji: '😌' },
     reasons: [
-      { id: 'r1', runId: 'story', stressorId: 's1', text: 'wrócę bezpiecznie do domu każdej nocy', valence: 'positive', createdAt: TS, updatedAt: TS },
-      { id: 'r2', runId: 'story', stressorId: 's1', text: 'auto zepsuje się w trasie', valence: 'negative', createdAt: TS, updatedAt: TS },
+      { id: 'r1', runId: 'story', stressorId: 's1', text: 'I get home safely every night', valence: 'positive', createdAt: TS, updatedAt: TS },
+      { id: 'r2', runId: 'story', stressorId: 's1', text: 'the car will break down on the road', valence: 'negative', createdAt: TS, updatedAt: TS },
     ],
   },
 };
@@ -26,7 +26,7 @@ export const Full: Story = {
 export const ReasonsOnly: Story = {
   args: {
     reasons: [
-      { id: 'r1', runId: 'story', stressorId: 's1', text: 'spokój — urząd przestanie wisieć nad głową', valence: 'positive', createdAt: TS, updatedAt: TS },
+      { id: 'r1', runId: 'story', stressorId: 's1', text: 'peace of mind — the tax office stops hanging over my head', valence: 'positive', createdAt: TS, updatedAt: TS },
     ],
   },
 };

@@ -13,7 +13,7 @@ import {
 
 const MIGRATED_FLAG = 'run:migrated-v1';
 
-/** Stare globalne klucze lejka (przed per-Run, ADR 0044). */
+/** Old global funnel keys (before per-Run, ADR 0044). */
 const OLD_KEYS = {
   stressors: 'capture:stressors',
   nextActions: 'decompose:nextActions',
@@ -60,12 +60,12 @@ function readJson<T>(key: string): T | null {
 }
 
 /**
- * Jednorazowa migracja starych globalnych kluczy lejka (przed-ADR-0044) do modelu per-Run.
- * Idempotentna (flaga `run:migrated-v1`). Wywoływana raz przed renderem apki (main.tsx), żeby
- * hooki czytały już namespaced klucze zmigrowanych danych.
+ * One-time migration of old global funnel keys (pre-ADR-0044) to the per-Run model.
+ * Idempotent (flag `run:migrated-v1`). Called once before the app renders (main.tsx) so that
+ * hooks read the namespaced keys of the migrated data.
  *
- * Decyzja usera (PR-7): wszystkie stare globalne dane lądują w JEDNYM Runie (najnowszym
- * aktywnym z `run:runs`, lub utworzonym „Imported run") — nie da się ich rozdzielić między runy.
+ * User decision (PR-7): all old global data lands in a SINGLE Run (the most recent active one
+ * from `run:runs`, or a newly created "Imported run") — it cannot be split across runs.
  */
 export function migrateGlobalFunnelData(): void {
   try {
@@ -78,7 +78,7 @@ export function migrateGlobalFunnelData(): void {
       return;
     }
 
-    // Cel: najnowszy aktywny Run z `run:runs`, lub nowy „Imported run".
+    // Target: the most recent active Run from `run:runs`, or a new "Imported run".
     const runs = readJson<Run[]>('run:runs') ?? [];
     const target = runs.find((r) => r.state === 'in_progress');
     let targetId: string;
@@ -101,7 +101,7 @@ export function migrateGlobalFunnelData(): void {
       window.localStorage.setItem('run:runs', JSON.stringify([imported, ...runs]));
     }
 
-    // Przenieś każdy stary klucz do per-run klucza (encje dostają runId).
+    // Move each old key to its per-run key (entities get a runId).
     (Object.keys(OLD_KEYS) as OldKey[]).forEach((name) => {
       const raw = window.localStorage.getItem(OLD_KEYS[name]);
       if (raw == null) return;
@@ -109,7 +109,7 @@ export function migrateGlobalFunnelData(): void {
       try {
         value = JSON.parse(raw);
       } catch {
-        return; // uszkodzony — zostaw (hooki zignorują)
+        return; // corrupted — leave it (hooks will ignore)
       }
       if (ENTITY_ARRAYS.has(name) && Array.isArray(value)) {
         value = (value as Array<Record<string, unknown>>).map((e) => ({ ...e, runId: targetId }));
@@ -121,6 +121,6 @@ export function migrateGlobalFunnelData(): void {
     window.localStorage.setItem('run:active', JSON.stringify(targetId));
     window.localStorage.setItem(MIGRATED_FLAG, '1');
   } catch {
-    // migracja best-effort — nie blokuj startu apki
+    // migration is best-effort — do not block app startup
   }
 }

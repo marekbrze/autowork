@@ -23,9 +23,9 @@ export function BrainDump() {
   const [draft, setDraft] = useState('');
   const [focusedId, setFocusedId] = useState<string | null>(null);
 
-  // Stos undo: kilka szybkich usunięć jest all cofnalnych (nie tylko ostatnie).
-  // Ref jest źródłem prawdy dla restore (unikamy efektów ubocznych w updaterze),
-  // state odbija stan dla rendera.
+  // Undo stack: several rapid deletions are all undoable (not just the last one).
+  // The ref is the source of truth for restore (we avoid side effects in the updater),
+  // and the state mirrors it for rendering.
   const [undoStack, setUndoStack] = useState<UndoEntry[]>([]);
   const undoStackRef = useRef<UndoEntry[]>([]);
 
@@ -63,7 +63,7 @@ export function BrainDump() {
         setUndoStack([]);
       }, 6000);
     }
-    // po commicie przenieś focus na sąsiada (lub wróć do pola)
+    // after committing, move focus to a neighbor (or return to the field)
     window.setTimeout(() => {
       const el = rowEls.current.get(idx) ?? rowEls.current.get(idx - 1);
       if (el) el.focus();
@@ -84,8 +84,8 @@ export function BrainDump() {
     }
   }, [restoreStressor]);
 
-  // Ctrl/Cmd+Z = cofnij ostatnie usunięcie (ADR 0004). W polu tekstowym zostawiamy
-  // natywne undo (cofanie wpisywania), żeby nie kolidować z edycją.
+  // Ctrl/Cmd+Z = undo the last deletion (ADR 0004). In text fields we keep
+  // the native undo (undoing input) so it doesn't collide with editing.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const isUndo =

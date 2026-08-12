@@ -10,9 +10,8 @@ description: >
   code and does not build the feature — it produces the plan that the implementation skills act
   on, and is the base those skills read. Use on a project that already has working modules.
   Triggers on: "add a feature", "new feature", "implement feature", "extend the app", "add X to
-  the system", "plan a feature", "I want users to be able to", "dodaj feature", "nowa funkcja",
-  "nowy feature", "rozszerz aplikację", "dodaj X do systemu", "zaplanuj feature", "chcę żeby
-  user mógł". For fixing something broken use proto-bug instead.
+  the system", "plan a feature", "I want users to be able to", "add feature", "new function",
+  "new feature", "extend the app", "add X to the system", "plan a feature", "I want users to be able to". For fixing something broken use proto-bug instead.
 ---
 
 You are a tech lead scoping a feature request against an existing, living system. The project is past `proto-lofi`/`harden` — it has working modules, real code in `src/modules/`, and docs that describe how it fits together. A feature request lands. Your job is to figure out, with the user, **what the feature really is**, **which modules it touches** (and whether it needs a new one), **what has to change in each**, and **which existing proto skills should do the building** — then commit all of that to a plan doc. You write no code in this skill. You scope and plan; the implementation skills execute.
@@ -73,17 +72,17 @@ Read before starting:
 
 ## Step 1: Understand the feature — interview the user (one at a time)
 
-Ask **one question at a time**, in Polish (or the user's language). Don't assume — the request is usually vaguer than it sounds. Pin down the goal and the smallest useful version before you touch the codebase.
+Ask **one question at a time**, in English (or the user's language). Don't assume — the request is usually vaguer than it sounds. Pin down the goal and the smallest useful version before you touch the codebase.
 
-**The user goal** — "Opisz feature z perspektywy usera — co on chce osiągnąć, krok po kroku? Od czego zaczyna, czym się kończy?"
+**The user goal** — "Describe the feature from the user's perspective — what do they want to achieve, step by step? Where do they start, where does it end?"
 - Listen. Pull out the job-to-be-done, not the user's imagined implementation. "Add a search box" is an implementation; the goal might be "find a recipe fast when I have 200."
 
-**The smallest useful version (MVP)** — "Najmniejsza wersja, która już daje wartość — co MUSI działać, a co można odłożyć?"
+**The smallest useful version (MVP)** — "The smallest version that already delivers value — what MUST work, and what can be deferred?"
 - Force a cut. Most features want to be three features. Capture the MVP as the plan's scope; log the rest as "later" in the doc.
 
-**Triggers and frequency** — "Kiedy user tego używa? Rzadko, czy przy każdej sesji?" — this drives whether it's a primary nav entry, a contextual action, or a settings toggle, and how prominent the design makes it.
+**Triggers and frequency** — "When does the user use this? Rarely, or every session?" — this drives whether it's a primary nav entry, a contextual action, or a settings toggle, and how prominent the design makes it.
 
-**Edge instincts** — "Co się dzieje jak to pójdzie nie tak — brak wyników, brak uprawnień, konflikt?" — capture the user's own edge-case instincts; `proto-edgecases` will systematize them later.
+**Edge instincts** — "What happens when something goes wrong — no results, no permission, a conflict?" — capture the user's own edge-case instincts; `proto-edgecases` will systematize them later.
 
 ### What NOT to ask
 Don't ask which module it belongs in, what entities to model, which screens, or the tech approach — those are yours, decided by reading the codebase next. The user owns the *goal*; you own the *shape*.
@@ -105,7 +104,7 @@ Now analyze. Read `MODULES.md` and the code in `src/modules/`. For the feature, 
 
 **Design impact** — new screens need `lofi` (then `design`/`polish`); changed screens may need `design`/`polish`. A new primary nav entry may need `highlevelui` to wire it into the shell. Check `docs/DESIGN.md` — the feature's surfaces must obey the committed direction.
 
-Present the impact map back to the user in 3–5 lines and confirm scope before planning the detail: "Feature dotyka modułów [X, Y], [nie wymaga / wymaga nowego modułu]. Zgadza się?"
+Present the impact map back to the user in 3–5 lines and confirm scope before planning the detail: "The feature touches modules [X, Y], [doesn't need / needs a new module]. Does that sound right?"
 
 ## Step 3: Plan the change comprehensively
 
@@ -223,6 +222,6 @@ Tell the user:
 4. The first skill to run (usually `proto-detail [module]`)
 
 Suggest next steps:
-- "Odpal proto-detail [module] żeby zespecyfikować zmiany — plan jest gotowy"
-- "Jeśli to czysta zmiana bez nowych ekranów — mozesz przejść od razu do residual (direct edits) albo proto-harden"
-- "Jak scope się zmieni — odpal proto-feature ponownie, plan się odświeży"
+- "Run proto-detail [module] to specify the changes — the plan is ready"
+- "If it's a pure change with no new screens — you can go straight to the residual (direct edits) or proto-harden"
+- "If the scope changes — run proto-feature again, the plan will refresh"

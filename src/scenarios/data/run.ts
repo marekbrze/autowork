@@ -1,12 +1,12 @@
 import type { Run } from '@/modules/run/types/run';
 
 /**
- * Mockowane Runy do scenariuszy. `stats` to ziarno (wartości poglądowe) — w apce
- * `useLiveRuns` i tak re-deriwuje je na żywo z tasków danego Runa (ADR 0044). Realistyczne
- * wartości, żeby testujący nie widział lorem ipsum.
+ * Mocked Runs for scenarios. `stats` is just a seed (placeholder values) — in the app,
+ * `useLiveRuns` re-derives them live from the Run's tasks anyway (ADR 0044). Realistic
+ * values, so the tester doesn't see lorem ipsum.
  */
 
-/** Minimalny zestaw — jeden aktywny Run na start lejka. */
+/** Minimal set — one active Run to start the funnel. */
 export const runsMinimal: Run[] = [
   {
     id: 'run-min-1',
@@ -21,7 +21,7 @@ export const runsMinimal: Run[] = [
   },
 ];
 
-/** Pełny zestaw — aktywna praca + historia (archiwum) do porównania. */
+/** Full set — active work + history (archive) for comparison. */
 export const runsFull: Run[] = [
   {
     id: 'run-finanse',

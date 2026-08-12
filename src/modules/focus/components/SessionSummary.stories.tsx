@@ -15,17 +15,17 @@ type Story = StoryObj<typeof SessionSummary>;
 export const WithData: Story = {
   args: {
     completed: [
-      { id: 't1', text: 'Znajdź numer telefonu do warsztatu', seconds: 312 },
-      { id: 't2', text: 'Zadzwoń i umów wizytę na ten tydzień', seconds: 645 },
+      { id: 't1', text: 'Find the phone number for the repair shop', seconds: 312 },
+      { id: 't2', text: 'Call and book an appointment for this week', seconds: 645 },
     ],
-    dismissed: [{ id: 't3', text: 'Wypełnij formularz PIT w e-Urzędzie' }],
+    dismissed: [{ id: 't3', text: 'Fill out the PIT form in the e-Office' }],
     totalSeconds: 957,
   },
 };
 
 export const OnlyCompleted: Story = {
   args: {
-    completed: [{ id: 't1', text: 'Sprawdź stawki rynkowe', seconds: 480 }],
+    completed: [{ id: 't1', text: 'Check market rates', seconds: 480 }],
     dismissed: [],
     totalSeconds: 480,
   },
@@ -38,7 +38,7 @@ export const Empty: Story = {
 export const OnlyDismissed: Story = {
   args: {
     completed: [],
-    dismissed: [{ id: 't3', text: 'Wypełnij formularz PIT w e-Urzędzie' }],
+    dismissed: [{ id: 't3', text: 'Fill out the PIT form in the e-Office' }],
     totalSeconds: 0,
   },
 };

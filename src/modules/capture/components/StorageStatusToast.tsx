@@ -3,20 +3,20 @@ import { AlertTriangle, RefreshCw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface StorageStatusToastProps {
-  /** Nie udał się ostatni zapis (quota/disabled). */
+  /** The last write failed (quota/disabled). */
   writeError: boolean;
-  /** Nie udało się odczytać danych przy starcie. */
+  /** Reading data at startup failed. */
   readError: boolean;
   onRetry: () => void;
   onDismiss: () => void;
-  /** Czego dotyczył odczyt (w komunikacie read-error). Domyślnie „danych". */
+  /** What the read concerned (in the read-error message). Defaults to "data". */
   entityLabel?: string;
 }
 
 /**
- * Komunikat stanu persystencji — toast (nie banner) wg decyzji designu.
- * Pokazuje się TYLKO gdy jest błąd zapisu/odczytu; w p.p. nic nie renderuje.
- * Współdzielony przez moduły persystujące do LocalStorage (capture, decompose, …).
+ * Persistence-status message — a toast (not a banner) per the design decision.
+ * Shows ONLY when there is a read/write error; otherwise it renders nothing.
+ * Shared by modules that persist to LocalStorage (capture, decompose, …).
  */
 export function StorageStatusToast({
   writeError,

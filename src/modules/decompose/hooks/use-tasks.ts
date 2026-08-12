@@ -23,7 +23,7 @@ function bareTask(nextActionId: string, stressorId: string, runId: string, text:
   };
 }
 
-/** Taski aktywnego Runa (lub `runId`, jeśli podano — np. RunDetails scope'uje po URL `:runId`). */
+/** Tasks of the active Run (or `runId`, if provided — e.g. RunDetails scopes by the URL `:runId`). */
 export function useTasks(runId?: string) {
   const activeRunId = useActiveRunId(runId);
   const rid = activeRunId ?? '__none__';
@@ -51,13 +51,13 @@ export function useTasks(runId?: string) {
   );
 
   /**
-   * Zastępuje zestaw tasków pod next-actionem (rozbicie w `decompose`).
-   * HARDEN: diff po tekście zamiast pełnego replace'u — taski o niezmiennym tekście
-   * zachowują identyczność (id + ew. przyszłe atrybuty `context`/`energy`/… z
-   * `process`/`focus`); dopasowanie pierwsze-wolne. Brakujące teksty → nowe taski,
-   * nieobecne → usuwane. Dziś (process = placeholder) taski nie mają atrybutów, więc
-   * zmiana jest obserwacyjnie neutralna; chroni przed zmatywaniem atrybutów przy
-   * ponownym rozbiciu, gdy `process`/`focus` powstaną (decompose-edgecases #7).
+   * Replaces the set of tasks under a next-action (the breakdown in `decompose`).
+   * HARDEN: diff by text instead of a full replace — tasks whose text is unchanged
+   * keep their identity (id + any future `context`/`energy`/… attributes from
+   * `process`/`focus`); first-free matching. Missing texts → new tasks,
+   * absent ones → deleted. Today (process = placeholder) tasks have no attributes, so
+   * the change is observationally neutral; it guards against scrambling attributes on
+   * re-breakdown once `process`/`focus` exist (decompose-edgecases #7).
    */
   const replaceTasksForNextAction = useCallback(
     (nextAction: NextAction, texts: string[]) => {
@@ -81,8 +81,8 @@ export function useTasks(runId?: string) {
   );
 
   /**
-   * Safety-net przy „Dalej": każdy next-action bez tasków materializuje się
-   * jako 1 konkretny task (spójnie z ADR 0006 — konkretny next-action = 1 task).
+   * Safety-net on "Next": every next-action without tasks materializes
+   * as 1 concrete task (consistent with ADR 0006 — a concrete next-action = 1 task).
    */
   const materializeBareNextActions = useCallback(
     (nextActions: NextAction[]) => {
@@ -103,7 +103,7 @@ export function useTasks(runId?: string) {
     deleteTasksByNextAction,
     replaceTasksForNextAction,
     materializeBareNextActions,
-    /** Status persystencji (błędy zapisu/odczytu + retry). */
+    /** Persistence status (read/write errors + retry). */
     storage: storage as LocalStorageStatus,
   };
 }

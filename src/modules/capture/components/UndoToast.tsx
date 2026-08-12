@@ -1,16 +1,16 @@
 import { Button } from '@/components/ui/button';
 
 interface UndoToastProps {
-  /** Tekst ostatnio usuniętego stresora. */
+  /** Text of the most recently deleted stressor. */
   text: string;
-  /** Ile usuniętych wpisów jest jeszcze do cofnięcia (łącznie z tym pokazywanym). */
+  /** How many deleted entries are still undoable (including the one shown). */
   remaining: number;
   onUndo: () => void;
 }
 
 /**
- * Toast „cofnij usunięcie" — obsługuje stos szybkich usunięć: pokazuje najnowszy,
- * a po jego cofnięciu pojawia się kolejny. `remaining` > 1 sygnalizuje więcej w stosie.
+ * "Undo delete" toast — handles a stack of rapid deletions: shows the most recent one,
+ * and after undoing it the next one appears. `remaining` > 1 signals more in the stack.
  */
 export function UndoToast({ text, remaining, onUndo }: UndoToastProps) {
   return (

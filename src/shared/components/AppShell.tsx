@@ -39,7 +39,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               Dashboard
             </NavLink>
           </nav>
-          {/* Aktywny Run — display-only (switching przez Dashboard); PR-10, ADR 0044 */}
+          {/* Active Run — display-only (switching via Dashboard); PR-10, ADR 0044 */}
           <ActiveRunChip className="ml-auto" />
         </div>
       </header>

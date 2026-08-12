@@ -26,8 +26,8 @@ export function useRuns() {
 
   const getRun = useCallback((id: string): Run | undefined => runs.find((r) => r.id === id), [runs]);
 
-  /** Tworzy nowy Run (nazwa = data/godzina, krok brain-dump, zerowe statystyki) i ustawia go aktywnym.
-   *  Zwraca Run | null (null = awaria zapisu). */
+  /** Creates a new Run (name = date/time, brain-dump step, zeroed stats) and makes it the active one.
+   *  Returns Run | null (null = write failure). */
   const createRun = useCallback(
     (name?: string): Run | null => {
       const now = new Date().toISOString();
@@ -43,7 +43,7 @@ export function useRuns() {
         lastActiveAt: now,
       };
       const ok = setRuns((prev) => [run, ...prev]);
-      if (ok) setActiveRun(run.id); // nowy Run staje się aktywnym → jego lejek od teraz widać (ADR 0044)
+      if (ok) setActiveRun(run.id); // the new Run becomes active → its funnel is now visible (ADR 0044)
       return ok ? run : null;
     },
     [setRuns, setActiveRun],
@@ -66,7 +66,7 @@ export function useRuns() {
       const ok = setRuns((prev) =>
         prev.map((r) => (r.id === id ? { ...r, state: 'archived', updatedAt: new Date().toISOString() } : r)),
       );
-      if (ok && activeRunId === id) setActiveRun(null); // archiwizacja aktywnego → brak aktywnego (ADR 0044)
+      if (ok && activeRunId === id) setActiveRun(null); // archiving the active run → no active run (ADR 0044)
       return ok;
     },
     [setRuns, activeRunId, setActiveRun],
@@ -86,15 +86,15 @@ export function useRuns() {
     (id: string): boolean => {
       const ok = setRuns((prev) => prev.filter((r) => r.id !== id));
       if (ok) {
-        clearRunFunnelData(id); // kaskada: usuń dane lejka tego Runa (ADR 0044)
-        if (activeRunId === id) setActiveRun(null); // usunięto aktywnego → brak aktywnego
+        clearRunFunnelData(id); // cascade: delete this Run's funnel data (ADR 0044)
+        if (activeRunId === id) setActiveRun(null); // active run deleted → no active run
       }
       return ok;
     },
     [setRuns, activeRunId, setActiveRun],
   );
 
-  /** Oznacza pozycję w przeglądzie jako aktualną (relevant) lub przeterminowaną (stale). */
+  /** Marks a review item as relevant or stale. */
   const setReviewItemStale = useCallback(
     (runId: string, itemId: string, stale: boolean): boolean =>
       setRuns((prev) =>
@@ -111,7 +111,7 @@ export function useRuns() {
     [setRuns],
   );
 
-  /** Usuwa z przeglądu wszystkie pozycje oflagowane jako przeterminowane. Zwraca liczbę usuniętych. */
+  /** Removes all items flagged as stale from the review. Returns the number removed. */
   const clearStaleReviewItems = useCallback(
     (runId: string): number => {
       let removed = 0;
@@ -131,7 +131,7 @@ export function useRuns() {
     [setRuns],
   );
 
-  /** Dodaje pozycję do przeglądu (przydatne do mockowania / testów). */
+  /** Adds an item to the review (useful for mocking / tests). */
   const addReviewItem = useCallback(
     (runId: string, item: Omit<ReviewItem, 'id'>): boolean => {
       const full: ReviewItem = { ...item, id: generateId() };
@@ -157,7 +157,7 @@ export function useRuns() {
     setReviewItemStale,
     clearStaleReviewItems,
     addReviewItem,
-    /** Status persystencji (błędy zapisu/odczytu + retry). */
+    /** Persistence status (write/read errors + retry). */
     storage: storage as LocalStorageStatus,
   };
 }

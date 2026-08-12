@@ -8,7 +8,7 @@ description: >
   prioritizes what to fix. Produces docs/AUDIT.md. This skill does NOT write code — it
   captures a diagnosis. Run before proto-simplify (which acts on it). Triggers on: "audit",
   "audit project", "what's wrong with this design", "where is the visual chaos", "review the
-  UI", "przejrzyj projekt", "audyt", "co jest nie tak", "diagnoza projektu". Use whenever the
+  UI", "review the project", "audit", "what's wrong", "project diagnosis". Use whenever the
   user has an existing codebase (any stack) that feels chaotic, generic, or broken, and wants
   a structured diagnosis before fixing it.
 ---
@@ -60,7 +60,7 @@ This skill does not write code and does not make visual decisions.
 
 Ask the user one question:
 
-**"Chcesz przeskanować cały projekt, czy konkretne moduły/ekrany/strony?"**
+**"Do you want to scan the whole project, or specific modules/screens/pages?"**
 
 Default to the whole project. If the user points at specific areas, focus the audit there but still note cross-cutting issues (typography, color, spacing) that affect everything.
 
@@ -227,5 +227,5 @@ Tell the user:
 3. The biggest source of chaos (usually the token layer or color), so they know where the visual mess comes from
 
 Suggest next steps:
-- "Odpal proto-simplify żeby uproszyć projekt do czystego prototypu — audyt jest już gotowy"
-- "Jeśli wolisz najpierw naprawić konkretne rzeczy ręcznie — priority list w AUDIT.md mówi co daje największy efekt"
+- "Run proto-simplify to reduce the project to a clean prototype — the audit is ready"
+- "If you prefer to fix specific things manually first — the priority list in AUDIT.md says what gives the biggest effect"

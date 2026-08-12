@@ -30,11 +30,11 @@ User-facing strings across all 6 modules are Polish. Representative examples (al
 
 | Where | Polish string |
 |---|---|
-| `src/shared/components/ModulePlaceholder.tsx:28-30,33` | "Moduł … — ekrany do zbudowania w `proto-lofi`.", "← Wróć do Dashboardu" |
-| `src/shared/components/ConfirmDialog.tsx:26` (+ defaults) | `confirmLabel = 'Usuń'`, "Anuluj" |
-| `src/modules/dashboard/components/DominantRunCard.tsx:42,53,84,89,108` | "Kontynuuj, gdzie skończyłeś", "Przejazd ukończony", "Jeszcze bez tasków — zacznij od brain dumpu", "zrobione · zostały", "Szczegóły" |
+| `src/shared/components/ModulePlaceholder.tsx:28-30,33` | "Module … — screens to build in `proto-lofi`.", "← Back to Dashboard" |
+| `src/shared/components/ConfirmDialog.tsx:26` (+ defaults) | `confirmLabel = 'Usuń'`, "Cancel" |
+| `src/modules/dashboard/components/DominantRunCard.tsx:42,53,84,89,108` | "Continue where you left off", "Run completed", "No tasks yet — start with a brain dump", "done · remaining", "Details" |
 | `src/modules/dashboard/components/DashboardView.tsx` | runway headings + empty states |
-| `src/modules/capture/components/*` | "Co cię teraz stresuje?" brain-dump prompt, ranking copy |
+| `src/modules/capture/components/*` | "What's stressing you right now?" brain-dump prompt, ranking copy |
 | `src/modules/decompose`, `process`, `focus`, `run/*` | WHY/HOW labels, battery/energy copy, timer labels, summaries, toasts |
 
 Polish appears in ~68 files under `src/modules/` (count includes code comments — comments need not be translated; only the rendered strings do). The reference UX, `marekbrze/dopadone` (see memory), is the English-language baseline to match tone with.

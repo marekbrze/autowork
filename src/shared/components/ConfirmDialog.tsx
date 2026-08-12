@@ -13,11 +13,11 @@ interface ConfirmDialogProps {
 }
 
 /**
- * AlertDialog-style potwierdzenie akcji niszczącej. Hand-built, w stylu modali
- * w projekcie: Escape i klik w tło = anuluj; fokus trafia na pierwszy przycisk
- * („Anuluj" — najmniej destruktywna akcja, Enter nie usuwa). Współdzielony przez
- * moduły (decompose, process). Wybór designu: potwierdzenie, nie undo (odmiennie
- * niż capture/ADR 0004). `useId` zapewnia unikalne aria-id w wielu instancjach.
+ * AlertDialog-style confirmation for a destructive action. Hand-built, in the style of the
+ * project's modals: Escape and backdrop click = cancel; focus lands on the first button
+ * ("Cancel" — the least destructive action, Enter does not delete). Shared across
+ * modules (decompose, process). Design choice: confirm, not undo (unlike
+ * capture/ADR 0004). `useId` guarantees a unique aria-id across multiple instances.
  */
 export function ConfirmDialog({
   open,
@@ -33,14 +33,14 @@ export function ConfirmDialog({
   const titleId = `${reactId}-title`;
   const descId = `${reactId}-desc`;
 
-  // Przenieś fokus do dialogu (na „Anuluj") przy otwarciu.
+  // Move focus into the dialog (onto "Cancel") on open.
   useEffect(() => {
     if (!open) return;
     const id = window.setTimeout(() => panelRef.current?.querySelector('button')?.focus(), 0);
     return () => window.clearTimeout(id);
   }, [open]);
 
-  // Escape = anuluj (spójnie z resztą modali w projekcie).
+  // Escape = cancel (consistent with the rest of the project's modals).
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -57,7 +57,7 @@ export function ConfirmDialog({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       role="presentation"
       onClick={(e) => {
-        // Klik w tło (nie w panel) = anuluj; klik w panelu się nie propaguje.
+        // Backdrop click (not on the panel) = cancel; clicks inside the panel do not bubble.
         if (e.target === e.currentTarget) onCancel();
       }}
     >

@@ -13,7 +13,7 @@ const meta: Meta<typeof UndoToast> = {
     ),
   ],
   args: {
-    text: 'wypowiedzenie umowy najmu',
+    text: 'canceling the lease',
     remaining: 1,
     onUndo: () => {},
   },
@@ -23,12 +23,12 @@ export default meta;
 
 type Story = StoryObj<typeof UndoToast>;
 
-/** Jedno usunięcie w stosie undo. */
+/** A single deletion in the undo stack. */
 export const Single: Story = {
   args: { remaining: 1 },
 };
 
-/** Kilka szybkich usunięć — wszystkie cofnalne, pokazuje licznik pozostałych. */
+/** Several rapid deletions — all undoable, shows a remaining counter. */
 export const Multiple: Story = {
   args: { remaining: 3 },
 };

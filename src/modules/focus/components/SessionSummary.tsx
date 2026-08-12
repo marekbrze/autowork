@@ -23,12 +23,12 @@ interface SessionSummaryProps {
 }
 
 /**
- * Ekran podsumowania (krok 7 — celebracja). Zrobione taski + łączny czas +
- * „Nieaktualne" w osobnej sekcji + „Usuń skończone" (czyści completed i
- * dismissed — ADR 0017). Prezentacyjny.
+ * Summary screen (step 7 — celebration). Completed tasks + total time +
+ * "Not relevant" in a separate section + "Delete finished" (clears completed
+ * and dismissed — ADR 0017). Presentational.
  *
- * DESIGN: moment sygnaturowy — przy ≥1 zrobionym tasku pixel „LEVEL UP!" na
- * zielonym arcade-banerze + animacja `celebrate` (reduced-motion → instant).
+ * DESIGN: signature moment — with ≥1 completed task, a pixel "LEVEL UP!" on a
+ * green arcade banner + `celebrate` animation (reduced-motion → instant).
  */
 export function SessionSummary({ completed, dismissed, totalSeconds, onClearCompleted, onNewSession }: SessionSummaryProps) {
   const hasResolved = completed.length > 0 || dismissed.length > 0;

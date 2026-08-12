@@ -10,9 +10,9 @@ import type { Run } from '@/modules/run/types/run';
 import type { AppData } from './types';
 
 /**
- * Scenariusz `focus` — pełny payoff lejka: 3 stresory z atrybuowanymi taskami
- * (Context/Energy/EstimatedTime) i materiałem motywacyjnym, gotowe do filtrowania
- * sesji. Wybierany z DevToolbar (na dole ekranu). Per-Run (ADR 0044).
+ * `focus` scenario — the full funnel payoff: 3 stressors with attributed tasks
+ * (Context/Energy/EstimatedTime) and motivational material, ready to filter a
+ * session. Selected from the DevToolbar (at the bottom of the screen). Per-Run (ADR 0044).
  */
 const RUN_ID = 'run-focus-1';
 const TS = '2026-06-28T00:00:00.000Z';

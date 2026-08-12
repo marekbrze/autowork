@@ -20,7 +20,7 @@ Each Run is its own object with its own stats, so you can see what you actually 
 - **Local-first, single-user.** No account, no sync by default; your data stays in the browser.
 - **Funnel, not a flat list.** The point is to narrow down, not to collect.
 - **Pairwise ranking.** Optional comparison-based sorting when drag-ordering isn't enough.
-- **Documented architecture.** 48+ architecture decision records under `docs/adr/` (in Polish).
+- **Documented architecture.** 48+ architecture decision records under `docs/adr/`.
 
 ## Tech
 
@@ -28,4 +28,4 @@ React, Vite, TypeScript, Tailwind, Base UI. Component work happens in **Storyboo
 
 ## Status
 
-In active development. Design docs (`docs/`) are in Polish.
+In active development. Design docs live under `docs/`.

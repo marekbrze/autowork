@@ -48,9 +48,9 @@ export const WithData: Story = {
         'capture:stressors',
         JSON.stringify(
           makeStressors([
-            'samochód do naprawy',
-            'wypowiedzenie umowy najmu',
-            'rozmowa z szefem o podwyżce',
+            'the car needs fixing',
+            'canceling the lease',
+            'talking to the boss about a raise',
           ]),
         ),
       );

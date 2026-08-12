@@ -8,7 +8,7 @@ import type { Valence } from '@/shared/types';
 
 import type { Reason } from '../types/reason';
 
-/** Powody aktywnego Runa (lub `runId`, jeśli podano). */
+/** Reasons of the active Run (or `runId`, if provided). */
 export function useReasons(runId?: string) {
   const activeRunId = useActiveRunId(runId);
   const key = reasonsKey(activeRunId ?? '__none__');
@@ -53,7 +53,7 @@ export function useReasons(runId?: string) {
     addReason,
     updateReason,
     deleteReason,
-    /** Status persystencji (błędy zapisu/odczytu + retry). */
+    /** Persistence status (read/write errors + retry). */
     storage: storage as LocalStorageStatus,
   };
 }
