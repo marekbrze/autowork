@@ -5,10 +5,10 @@
 **Status**: Accepted
 
 ## Context
-Prototyp `run` (zbudowany w `proto-lofi`) obsługiwał happy paths i podstawy (empty states, potwierdzenia usunięcia, toast persystencji, stany „nie znaleziono"), ale nie był jeszcze poddany systematycznemu stresstestowi edge case'ów.
+The `run` prototype (built in `proto-lofi`) handled happy paths and the basics (empty states, delete confirmations, a persistence toast, "not found" states), but it hadn't yet been systematically stress-tested for edge cases.
 
 ## Decision
-Przeprowadzono audyt do `docs/modules/run-edgecases.md`. Znaleziono **16 luk** (🔴 0 · 🟡 9 · 🟢 7). Największa grupa to **architektoniczne odłączenie Runa od realnych danych lejka** (statystyki mock, `lastReachedStep` nigdy nie advance'owany, review-items bez źródła z UI) — CM-1/CM-2/CM-3. Pozostałe 🟡: mylny empty-state przy błędzie odczytu storage (LE-1), rename-do-pustego bez walidacji (FI-1), brak celebracji/nudge dla ukończonych Runów (ST-1), bulk-usuwanie przeterminowanych bez potwierdzenia/undo (AO-2), guard niezapisanego rename (FI-2), brak feedbacku sukcesu archive (AO-1).
+An audit was run into `docs/modules/run-edgecases.md`. **16 gaps** found (🔴 0 · 🟡 9 · 🟢 7). The biggest group is the **architectural disconnection of the Run from real funnel data** (mock stats, `lastReachedStep` never advanced, review-items with no UI source) — CM-1/CM-2/CM-3. The remaining 🟡: a misleading empty-state on a storage read error (LE-1), rename-to-empty with no validation (FI-1), no celebration/nudge for completed Runs (ST-1), bulk-remove stale with no confirmation/undo (AO-2), no unsaved-rename guard (FI-2), no archive success feedback (AO-1).
 
 ## Impact
-`proto-harden` wdroży listę priorytetów. Najpierw wymagana **decyzja scope z designerem** dla CM-1/2/3: spiąć prawdziwą derywację danych lejka (cross-module) czy zostawić statystyki ilustracyjne + je oznaczyć. Po zmianach w prototypie uruchomić `proto-edgecases` ponownie dla świeżego baseline'u.
+`proto-harden` will implement the priority list. First a **scope decision with the designer** is required for CM-1/2/3: wire real funnel-data derivation (cross-module), or leave the stats illustrative + mark them. After the prototype changes, re-run `proto-edgecases` for a fresh baseline.

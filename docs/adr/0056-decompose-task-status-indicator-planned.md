@@ -3,20 +3,20 @@
 **Status**: Accepted
 
 ## Context
-A feature request on the living system: na ekranie **Next actions** (`decompose`, blok HOW) user chce widzieć, że task został już oznaczony `completed` (done) lub `dismissed` (irrelevant) — bo dziś każdy task renderuje się jako nagi bullet niezależnie od stanu. Wymagał impact scopingu przed implementacją.
+A feature request on the living system: on the **Next actions** screen (`decompose`, the HOW block) the user wants to see that a task has already been marked `completed` (done) or `dismissed` (irrelevant) — because today every task renders as a bare bullet regardless of state. It needed impact scoping before implementation.
 
 ## Decision
 Zaplanowane w `docs/changes/decompose-task-status-indicator.md`.
 
-- **Zasięg (potwierdzony z userem):** read-only (bez zmiany stanu z `decompose`); tylko `completed` + `dismissed`; licznik postępu `{resolved}/{total} done` przy next-actionie + de-emphasis next-actionu w pełni załatwionego.
-- **Moduł:** rozszerza **tylko `decompose`**. `NextActionItem` **już dostaje pełne obiekty `Task` z `state`** — pole jest w danych, tylko się go nie wyświetla.
-- **Nowy moduł:** nie.
+- **Scope (confirmed with the user):** read-only (no state change from `decompose`); only `completed` + `dismissed`; a `{resolved}/{total} done` progress counter by the next-action + de-emphasis of a fully handled next-action.
+- **Module:** extends **only `decompose`**. `NextActionItem` **already receives full `Task` objects with `state`** — the field is in the data, it's just not displayed.
+- **New module:** no.
 - **Cross-module:** brak nowej integracji — czysty odczyt istniejącego pola (stan ustawiają `focus`/`run`; ten sam byt `Task`).
-- **MVP:** 3 punkty; odłożone: akcje zmiany stanu z decompose, stany `skipped`/`active`, hi-fi (decompose jeszcze neutralny).
-- **Routing:** `proto-detail decompose` (light) → **residual direct-edit w `NextActionItem.tsx`** (trzon) → `proto-edgecases` → `proto-harden` (głównie a11y); `proto-design`/`polish` odłożone do hi-fi decompose.
+- **MVP:** 3 points; deferred: state-change actions from decompose, the `skipped`/`active` states, hi-fi (decompose is still neutral).
+- **Routing:** `proto-detail decompose` (light) → **a residual direct-edit in `NextActionItem.tsx`** (the core) → `proto-edgecases` → `proto-harden` (mainly a11y); `proto-design`/`polish` deferred to decompose's hi-fi.
 - **Residual:** 1 plik (`NextActionItem.tsx`) — znacznik stanu taska + licznik + de-emphasis.
 
 Niskie ryzyko — cienki, read-only slice na jednym komponencie.
 
 ## Impact
-`proto-detail`/`edgecases`/`harden` działają na planie; trzon implementuje residual edit. Constraint z DESIGN.md: `dismissed` neutralne (anti-ref „harsh red alarm"), jeden akcent. Re-run `proto-feature`, jeśli scope się zmieni (np. dodanie akcji zmiany stanu lub stanów skipped/active).
+`proto-detail`/`edgecases`/`harden` work off the plan; the residual edit implements the core. A DESIGN.md constraint: `dismissed` is neutral (anti-ref "harsh red alarm"), one accent. Re-run `proto-feature` if the scope changes (e.g. adding a state-change action or the skipped/active states).

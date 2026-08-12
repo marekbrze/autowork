@@ -5,7 +5,7 @@
 **Status**: Accepted
 
 ## Context
-Podczas detailing `decompose` user doprecyzował odbiorcę: **osoba z ADHD jest głównym odbiorcą**, a oprócz niej każdy **overwhelmed** (przytłoczony). Do tej pory `PROJECT.md` opisywał target jedynie jako „autor projektu / przytłoczony zadaniami", bez wyciągnięcia konsekwencji projektowych z konkretnej neurotypowości.
+During `decompose` detailing the user refined the audience: **a person with ADHD is the main audience**, and besides them anyone **overwhelmed**. Until now `PROJECT.md` described the target only as "project author / overwhelmed by tasks", without drawing design consequences from a specific neurotype.
 
 ## Decision
 Take **ADHD / overwhelmed** as the primary design persona and document the consequences:

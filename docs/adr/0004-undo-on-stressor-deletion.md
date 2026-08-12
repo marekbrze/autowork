@@ -5,11 +5,11 @@
 **Status**: Accepted
 
 ## Context
-User podkreślił, że w brain dumpie musi być łatwo usuwać źle wpisane rzeczy — i że nawigacja / usuwanie ma być **z klawiatury** (Enter / strzałki / Backspace). Przy szybkim kasowaniu z klawiatury rośnie ryzyko wywalenia czegoś omyłkowo. Przyjęto decyzję o undo.
+The user stressed that in the brain dump it must be easy to delete mistyped things — and that navigation / deletion should be **from the keyboard** (Enter / arrows / Backspace). With fast keyboard deletion the risk of accidentally removing something grows. An undo decision was adopted.
 
 ## Decision
-Undo przy usuwaniu stresora **domyślnie włączone** (Ctrl+Z — przywraca ostatnio usunięty wpis). Zaktualizować akcję „Delete Stressor" w `ACTIONS.md` (dodać notkę o obsłudze klawiatury i undo).
+Undo on stressor deletion **enabled by default** (Ctrl+Z — restores the most recently deleted entry). Update the "Delete Stressor" action in `ACTIONS.md` (add a note about keyboard handling and undo).
 
 ## Impact
-- `ACTIONS.md`: notka przy „Delete Stressor" — obsługa klawiatury (Backspace/Usuń) + undo (Ctrl+Z).
-- Zmniejsza koszt omyłkowego usunięcia przy szybkim brain dumpie.
+- `ACTIONS.md`: a note by "Delete Stressor" — keyboard handling (Backspace/Delete) + undo (Ctrl+Z).
+- Lowers the cost of an accidental deletion during a fast brain dump.

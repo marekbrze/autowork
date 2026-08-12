@@ -4,17 +4,17 @@
 **Status**: Accepted
 
 ## Context
-Feature `run-estimated-time-totals` (plan: `docs/changes/run-estimated-time-totals.md`, ADR 0059) dodaje do Runa widoczny **łączny czas szacunkowy** — rozmiar pracy w przejeździe (suma `EstimatedTime`). `Run` jest już „widocznym obiektem ze statystykami" (ADR 0020), a jego statystyki (`timeSpent`, `progress`, …) są **wyprowadzane na żywo** z tasków w `deriveRunStats` (`run/stats.ts`). Nowy agregat musi wejść tym samym kanałem — jedno źródło prawdy, konsumowane przez Szczegóły, dashboard i filtr focus.
+The `run-estimated-time-totals` feature (plan: `docs/changes/run-estimated-time-totals.md`, ADR 0059) adds a visible **total estimated time** to a Run — the size of the work in a pass (sum of `EstimatedTime`). `Run` is already a "visible object with stats" (ADR 0020), and its stats (`timeSpent`, `progress`, …) are **derived live** from tasks in `deriveRunStats` (`run/stats.ts`). The new aggregate must enter through the same channel — one source of truth, consumed by Details, the dashboard, and the focus filter.
 
 ## Decision
-Dodać do `RunStats` (`src/modules/run/types/run.ts`) dwa pola liczone w `deriveRunStats` (`src/modules/run/stats.ts`), w tej samej pętli co dziś `timeSpent`/`doneCount`:
+Add to `RunStats` (`src/modules/run/types/run.ts`) two fields computed in `deriveRunStats` (`src/modules/run/stats.ts`), in the same loop as today's `timeSpent`/`doneCount`:
 
 - **`estimatedTotalMin`** — suma `t.estimatedTime` po taskach z `estimatedTime != null` (wszystkie stany). Rozmiar pracy.
-- **`estimatedRemainingMin`** — suma `t.estimatedTime` po taskach z `estimatedTime != null` **i** stanie ∈ {`pending`, `active`, `skipped`} (czyli ∉ `completed`/`dismissed`). Definicja „nie-zrobionego" spójna z `doneCount` (completed+dismissed); `skipped` liczy się jako remaining („nie teraz", wraca do puli).
+- **`estimatedRemainingMin`** — sum of `t.estimatedTime` over tasks with `estimatedTime != null` **and** state ∈ {`pending`, `active`, `skipped`} (i.e. ∉ `completed`/`dismissed`). The "not done" definition is consistent with `doneCount` (completed+dismissed); `skipped` counts as remaining ("not now", returns to the pool).
 
 Jednostka = **minuty** (jak `EstimatedTime`, preset 5/15/30/45/60) — inna niż `timeSpentSec` (sekundy). Display przez `formatMinutes` (ADR 0061). Brak persystencji — czysto wyprowadzane, więc `useLiveRuns` rozda je automatycznie (już today spreads `deriveRunStats(tasks)`).
 
-**Shared docs zaktualizowane**: `ENTITY_MAP.md` (atrybuty Run + diagram), `GLOSSARY.md` (`EstimatedTotal`, `EstimatedRemaining`), `docs/modules/run.md` (Vision, flow „View Details", ekran RunDetails, edge „brak szacunków", integration).
+**Shared docs updated**: `ENTITY_MAP.md` (Run attributes + diagram), `GLOSSARY.md` (`EstimatedTotal`, `EstimatedRemaining`), `docs/modules/run.md` (Vision, the "View Details" flow, the RunDetails screen, the "no estimates" edge, integration).
 
 ## Impact
-`RunStats` rośnie z 4 do 6 pól. `deriveRunStats` + interfejs zmienione (residual edit, rozpisany w planie). Stany display przy braku szacunków (`estimatedTotalMin === 0` → kafel `—`, segment na karcie pominięty) trasowane do `proto-harden`. Nie dotyka persystencji ani innych encji — czysty agregat read-only.
+`RunStats` grows from 4 to 6 fields. `deriveRunStats` + the interface change (a residual edit, written up in the plan). The display states when there are no estimates (`estimatedTotalMin === 0` → a `—` tile, the card segment omitted) are routed to `proto-harden`. It doesn't touch persistence or other entities — a pure read-only aggregate.
