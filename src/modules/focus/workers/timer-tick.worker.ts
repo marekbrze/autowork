@@ -1,12 +1,12 @@
 /**
- * Worker tykający co 1 s dla `use-focus-timer`. W nieaktywnej karcie timer głównego
- * wątku jest dławiony (Edge: throttling / Sleeping Tabs); tick z Workera budzi się
- * niezabroniony, więc `document.title` i licznik aktualizują się też w tle. Wartość
- * licznika liczona jest ze znacznika czasu po stronie głównej, więc sam tick tylko
- * „budzi" — nawet jeśli przepuści sekundę, wynik zawsze snapuje poprawnie.
+ * A Worker ticking every 1 s for `use-focus-timer`. In an inactive tab the main-thread
+ * timer is throttled (Edge: throttling / Sleeping Tabs); the Worker's tick wakes up
+ * unhindered, so `document.title` and the counter update in the background too. The
+ * counter value is computed from the timestamp on the main side, so the tick itself only
+ * "wakes" — even if it drops a second, the result always snaps correctly.
  *
- * `self` zashadowowane typem lokalnym, by uniezależnić się od libów (brak WebWorker
- * w tsconfig). Terminowany przez główny wątek (`worker.terminate()`) przy pauzie.
+ * `self` shadowed with a local type, to decouple from libs (no WebWorker
+ * in tsconfig). Terminated by the main thread (`worker.terminate()`) on pause.
  */
 declare const self: {
   setInterval: (handler: () => void, timeout?: number) => number;

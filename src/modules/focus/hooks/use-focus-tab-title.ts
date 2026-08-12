@@ -15,14 +15,14 @@ const SUFFIX_SEP = ' — ';
 
 /**
  * Pokazuje live elapsed timera w `document.title` podczas aktywnej sesji focus
- * (ADR 0053): `${clock}${ · paused}${ · over} — <tytuł bazowy>`. Poza sesją /
- * w podsumowaniu oraz przy unmount wraca do tytułu bazowego (czytanego przy starcie).
- * Dzięki temu user widzi czas rzutem oka w pasku Edge'a bez wracania na kartę.
+ * (ADR 0053): `${clock}${ · paused}${ · over} — <base title>`. Outside a session /
+ * in the summary, and on unmount, it returns to the base title (read on start).
+ * This way the user sees the time at a glance in Edge's tab bar without returning to the tab.
  */
 export function useFocusTabTitle({ active, clock, paused, over }: UseFocusTabTitleArgs) {
   const baseRef = useRef(document.title);
 
-  // Zapamiętaj tytuł bazowy przy starcie; przywróć go przy unmount.
+  // Remember the base title on start; restore it on unmount.
   useEffect(() => {
     baseRef.current = document.title;
     return () => {

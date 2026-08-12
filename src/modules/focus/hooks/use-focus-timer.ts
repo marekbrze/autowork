@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface UseFocusTimerArgs {
-  /** Sekundy już policzone (persystowane na tasku) — start/wznowienie stąd. */
+  /** Seconds already counted (persisted on the task) — start/resume from here. */
   initialElapsed: number;
-  /** Id bieżącego taska — reset licznika TYLKO przy jego zmianie (FT-1). */
+  /** Current task id — reset the counter ONLY when it changes (FT-1). */
   taskKey: string | null;
   /** Czy licznik tyka. */
   running: boolean;
-  /** Persystuj elapsed na tasku. Wołane throttled (co ~5s) + przy unmount. */
+  /** Persist elapsed on the task. Called throttled (every ~5s) + on unmount. */
   onPersist: (elapsedSeconds: number) => void;
 }
 
-/** Minimalny kształt Wake Lock Sentinela (API nie wszędzie dostępne / nie w lib.dom). */
+/** Minimal shape of a Wake Lock Sentinel (the API isn't available everywhere / not in lib.dom). */
 interface WakeLockSentinelHandle {
   release: () => Promise<void>;
   addEventListener: (type: 'release', listener: () => void) => void;
@@ -25,18 +25,18 @@ interface WakeLockNavigator {
 const wakeLockSupported = typeof navigator !== 'undefined' && 'wakeLock' in navigator;
 
 /**
- * Licznik sesji `focus` — liczy **w górę** od `initialElapsed` (model B, ADR 0016).
+ * The `focus` session counter — counts **up** from `initialElapsed` (model B, ADR 0016).
  *
  * Mechanizm **timestamp-based** (ADR 0053): liczymy wall-clock od wznowienia, a nie
- * akumulujemy ticki. Dzięki temu timer jest **zawsze poprawny po powrocie** z tła /
- * uśpionej karty (Edge Sleeping Tabs) — nawet jeśli ticki zostały porzucone, wartość
- * snapuje do właściwego czasu przy kolejnym recompute (co sekundę lub na
- * `visibilitychange`). Tykaniem napędza **Web Worker** (jego timer jest dławiony
- * słabiej w tle niż main-thread), z fallbackiem na `setInterval`. Wake Lock trzyma
- * ekran przy życiu, gdy karta jest widoczna i licznik leci.
+ * we accumulate ticks. Thanks to this the timer is **always correct on return** from the background /
+ * a sleeping tab (Edge Sleeping Tabs) — even if ticks were dropped, the value
+ * snaps to the correct time on the next recompute (every second or on
+ * `visibilitychange`). Ticking is driven by a **Web Worker** (its timer is throttled
+ * less in the background than the main thread), with a fallback to `setInterval`. A Wake Lock keeps
+ * the screen alive when the tab is visible and the counter is running.
  *
- * `onPersist` wołane throttled (co ~5 s); przy przejściach stanów (Done/Skip/Dismiss/
- * Exit) wołać ręcznie `flush()`. Flushuje też przy unmount.
+ * `onPersist` is called throttled (every ~5 s); on state transitions (Done/Skip/Dismiss/
+ * Exit) call `flush()` manually. It also flushes on unmount.
  */
 export function useFocusTimer({ initialElapsed, taskKey, running, onPersist }: UseFocusTimerArgs) {
   const [elapsed, setElapsed] = useState(initialElapsed);
@@ -44,7 +44,7 @@ export function useFocusTimer({ initialElapsed, taskKey, running, onPersist }: U
   onPersistRef.current = onPersist;
   const lastFlushRef = useRef(initialElapsed);
 
-  // Model timestamp-based: `baseRef` = sekundy zamrożone przy pauzie/zmianie taska;
+  // Timestamp-based model: `baseRef` = seconds frozen on pause/task-change;
   // `resumedAtRef` = ms (wall-clock) ostatniego wznowienia, `null` gdy zapauzowane.
   const baseRef = useRef(initialElapsed);
   const resumedAtRef = useRef<number | null>(null);
@@ -55,16 +55,16 @@ export function useFocusTimer({ initialElapsed, taskKey, running, onPersist }: U
   const fallbackIdRef = useRef<number | null>(null);
   const wakeLockRef = useRef<WakeLockSentinelHandle | null>(null);
 
-  /** Bieżący elapsed policzony ze znacznika czasu (zawsze poprawny, bez dryftu). */
+  /** Current elapsed computed from the timestamp (always correct, no drift). */
   const compute = useCallback(() => {
     if (resumedAtRef.current == null) return baseRef.current;
-    // FT-2: clamp od dołu — cofnięcie zegara systemowego (NTP / user) przy ukrytej
-    // karcie nie może sprawić, by timer odliczał poniżej zamrożonego `baseRef`.
+    // FT-2: lower clamp — a system clock rollback (NTP / user) on a hidden
+    // tab must not make the timer count below the frozen `baseRef`.
     const next = baseRef.current + Math.floor((Date.now() - resumedAtRef.current) / 1000);
     return Math.max(baseRef.current, next);
   }, []);
 
-  /** Throttled flush — persystuj co ~5 s (wołane z każdego ticku i resyncu). */
+  /** Throttled flush — persist every ~5 s (called from every tick and resync). */
   const maybeFlush = useCallback((next: number) => {
     if (next - lastFlushRef.current >= 5) {
       lastFlushRef.current = next;
@@ -95,7 +95,7 @@ export function useFocusTimer({ initialElapsed, taskKey, running, onPersist }: U
     stopFallback();
   }, [stopFallback]);
 
-  /** Uruchom tykanie — preferuj Workera, przy porażce fallback na main-thread. */
+  /** Start ticking — prefer the Worker, fall back to main-thread on failure. */
   const ensureTick = useCallback(() => {
     if (workerRef.current || fallbackIdRef.current != null) return;
     try {
@@ -124,7 +124,7 @@ export function useFocusTimer({ initialElapsed, taskKey, running, onPersist }: U
     try {
       await handle.release();
     } catch {
-      // już zwolniony — ignoruj
+      // already released — ignore
     }
   }, []);
 
@@ -137,19 +137,19 @@ export function useFocusTimer({ initialElapsed, taskKey, running, onPersist }: U
       const handle = await nav.wakeLock!.request('screen');
       wakeLockRef.current = handle;
       handle.addEventListener('release', () => {
-        // system zwolnił (np. karta ukryta) — zaznacz, by re-acquire na powrót
+        // system released (e.g. tab hidden) — mark to re-acquire on return
         if (wakeLockRef.current === handle) wakeLockRef.current = null;
       });
     } catch {
-      wakeLockRef.current = null; // odmowa / niedostępne — cicha degradacja
+      wakeLockRef.current = null; // refused / unavailable — silent degradation
     }
   }, []);
 
-  // FT-1: reset TYLKO przy zmianie bieżącego taska (`taskKey` = id), a nie przy każdej
-  // zmianie `initialElapsed` — ten update'uje się co flush (self-broadcast) oraz cross-tab
-  // (`storage`), co key'ując na wartości powodowało cofnięcie timera w multi-tab. Dlatego
-  // `initialElapsed` czytamy z closure (wartość z renderu zmiany taska) i celowo NIE ma go
-  // w deps — to właśnie eliminuje re-fire na flush.
+  // FT-1: reset ONLY when the current task changes (`taskKey` = id), not on every
+  // change to `initialElapsed` — that updates every flush (self-broadcast) and cross-tab
+  // (`storage`), so keying on the value rolled the timer back in multi-tab. Therefore
+  // `initialElapsed` is read from the closure (the value from the task-change render) and is deliberately NOT
+  // in deps — that's what eliminates the re-fire on flush.
   useEffect(() => {
     baseRef.current = initialElapsed;
     lastFlushRef.current = initialElapsed;
@@ -158,7 +158,7 @@ export function useFocusTimer({ initialElapsed, taskKey, running, onPersist }: U
     // `initialElapsed` celowo poza deps — patrz komentarz nad efektem (FT-1).
   }, [taskKey]);
 
-  // Start/stop tykania + Wake Locka przy przejściach `running`.
+  // Start/stop ticking + Wake Lock on `running` transitions.
   useEffect(() => {
     if (running) {
       resumedAtRef.current = Date.now();
@@ -167,7 +167,7 @@ export function useFocusTimer({ initialElapsed, taskKey, running, onPersist }: U
       void acquireWakeLock();
     } else {
       if (resumedAtRef.current != null) {
-        baseRef.current = compute(); // zamroź bieżącą wartość
+        baseRef.current = compute(); // freeze the current value
         resumedAtRef.current = null;
       }
       setElapsed(baseRef.current);
@@ -180,8 +180,8 @@ export function useFocusTimer({ initialElapsed, taskKey, running, onPersist }: U
     };
   }, [running, compute, ensureTick, acquireWakeLock, stopTick, releaseWakeLock]);
 
-  // Resync przy powrocie do karty — snap do właściwego czasu nawet jeśli ticki
-  // zostały całkowicie porzucone przez uśpioną kartę. + re-acquire Wake Locka.
+  // Resync on return to the tab — snap to the correct time even if ticks
+  // were entirely dropped by a sleeping tab. + re-acquire the Wake Lock.
   useEffect(() => {
     const onVisibility = () => {
       if (document.visibilityState !== 'visible') return;
@@ -196,12 +196,12 @@ export function useFocusTimer({ initialElapsed, taskKey, running, onPersist }: U
     return () => document.removeEventListener('visibilitychange', onVisibility);
   }, [compute, maybeFlush, acquireWakeLock]);
 
-  // Flush przy unmount — ostatnia wartość (precyzyjna, ze znacznika) nie ginie.
+  // Flush on unmount — the last value (precise, from the timestamp) isn't lost.
   useEffect(() => {
     return () => onPersistRef.current(compute());
   }, [compute]);
 
-  /** Wymuś flush bieżącej wartości (przy Done/Skip/Dismiss/Exit). */
+  /** Force a flush of the current value (on Done/Skip/Dismiss/Exit). */
   const flush = useCallback(() => {
     const value = compute();
     onPersistRef.current(value);
