@@ -7,7 +7,7 @@ const nextAction: NextAction = {
   id: 'na-1',
   runId: 'story',
   stressorId: 'stressor-1',
-  text: 'Zadzwoń do warsztatu i umów termin',
+  text: 'Call the shop and book a time',
   createdAt: '2026-06-28T00:00:00.000Z',
   updatedAt: '2026-06-28T00:00:00.000Z',
 };
@@ -34,6 +34,6 @@ export const Empty: Story = {
 
 export const WithSteps: Story = {
   args: {
-    initialSteps: ['Znajdź numer telefonu do warsztatu', 'Zadzwoń i umów wizytę na ten tydzień'],
+    initialSteps: ['Find the shop\'s phone number', 'Call and book a visit this week'],
   },
 };

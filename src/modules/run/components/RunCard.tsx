@@ -6,13 +6,13 @@ import type { Run } from '../types/run';
 
 interface RunCardProps {
   run: Run;
-  /** Przyciski akcji (Kontynuuj / Szczegóły / Un-archive / Delete) — komponuje lista. */
+  /** Action buttons (Continue / Details / Un-archive / Delete) — composed by the list. */
   actions?: ReactNode;
 }
 
 /**
- * Karta Runa na listach (aktywne / archiwum). Nazwa linkuje do Szczegółów;
- * mini-progres + podpowiedź kroku resume. Akcje wstrzykiwane przez `actions`.
+ * A Run card on lists (active / archive). The name links to Details;
+ * mini-progress + a resume-step hint. Actions injected via `actions`.
  */
 export function RunCard({ run, actions }: RunCardProps) {
   const progress = runProgress(run);

@@ -26,14 +26,14 @@ type Story = StoryObj<typeof RunCard>;
 const ActiveActions = (
   <>
     <Button size="sm">Kontynuuj</Button>
-    <Button size="sm" variant="outline">Szczegóły</Button>
+    <Button size="sm" variant="outline">Details</Button>
   </>
 );
 
 const ArchivedActions = (
   <>
     <Button size="sm" variant="outline">Rozarchiwizuj</Button>
-    <Button size="sm" variant="destructive">Usuń</Button>
+    <Button size="sm" variant="destructive">Delete</Button>
   </>
 );
 

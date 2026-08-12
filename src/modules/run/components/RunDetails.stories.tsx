@@ -7,10 +7,10 @@ import { runsFull } from '@/scenarios/data/run';
 import { RunDetails } from './RunDetails';
 import type { Run } from '../types/run';
 
-/** Ukończony Run (100%, aktywny) → stan celebracji + CTA archiwizuj (ST-1). */
+/** A completed Run (100%, active) → celebration state + an archive CTA (ST-1). */
 const completedRun: Run = {
   id: 'run-done',
-  name: 'Ukończony projekt',
+  name: 'Completed project',
   state: 'in_progress',
   lastReachedStep: 'celebration',
   stats: { timeSpentSec: 5400, doneCount: 10, dismissedCount: 1, totalTasks: 10, estimatedTotalMin: 300, estimatedRemainingMin: 0 },

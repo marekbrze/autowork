@@ -53,13 +53,13 @@ export const WithData: Story = {
   decorators: [
     (Story) => {
       const stressors = makeStressors([
-        'samochód do naprawy',
+        'car to fix',
         'wypowiedzenie umowy najmu',
-        'rozmowa z szefem o podwyżce',
+        'talk to the boss about a raise',
       ]);
       localStorage.setItem('capture:stressors', JSON.stringify(stressors));
 
-      // wypełniony WHY + HOW dla pierwszego stresora
+      // filled-in WHY + HOW for the first stressor
       const seed = buildDecomposeSeedFull('stressor-1', 'story');
       localStorage.setItem('decompose:reasons', JSON.stringify(seed.reasons));
       localStorage.setItem('decompose:nextActions', JSON.stringify(seed.nextActions));

@@ -7,16 +7,16 @@ import type { NextAction } from '../types/next-action';
 
 interface DecomposeModalProps {
   nextAction: NextAction;
-  /** Teksty istniejących tasków tego next-actionu (do edycji). */
+  /** Text of this next-action's existing tasks (for editing). */
   initialSteps: string[];
-  /** Zastępuje zestaw tasków (N tekstów = N tasków; skip = 1 tekst). */
+  /** Replaces the task set (N texts = N tasks; skip = 1 text). */
   onSave: (texts: string[]) => void;
   onClose: () => void;
 }
 
 /**
  * Modal rozbicia next-actionu na taski (HOW w `decompose`). Prompt
- * „Jak to możesz robić?" + Enter dodaje mniejsze kroki; „Pomiń" = 1 task
+ * "How can you do this?" + Enter adds smaller steps; "Skip" = 1 task
  * (konkretny next-action). Wzorzec nudge (prompt + skip), ADR 0006.
  */
 export function DecomposeModal({ nextAction, initialSteps, onSave, onClose }: DecomposeModalProps) {

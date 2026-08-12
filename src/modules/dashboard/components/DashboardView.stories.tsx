@@ -11,11 +11,11 @@ function seed(runs: Run[]) {
   return runs;
 }
 
-/** Tylko zarchiwizowane Runy → stan „brak aktywnych" + wejście do archiwum. */
+/** Only archived Runs → the "no active" state + the archive entry. */
 const archivedOnly: Run[] = [
   {
     id: 'run-arc-1',
-    name: 'Wiosenne porządki',
+    name: 'Spring cleaning',
     state: 'archived',
     lastReachedStep: 'celebration',
     stats: { timeSpentSec: 7200, doneCount: 15, dismissedCount: 2, totalTasks: 15, estimatedTotalMin: 450, estimatedRemainingMin: 0 },
@@ -79,7 +79,7 @@ export const AllArchived: Story = {
   ],
 };
 
-/** Ukończony run jako dominant → primary CTA = Archiwizuj (harden #1). */
+/** A completed run as the dominant → primary CTA = Archive (harden #1). */
 const completedDominant: Run[] = runsFull
   .filter((r) => r.state === 'in_progress')
   .map((r) => (r.id === 'run-finanse' ? { ...r, stats: { ...r.stats, doneCount: r.stats.totalTasks } } : r));
@@ -96,7 +96,7 @@ export const CompletedDominant: Story = {
 export const ReadError: Story = {
   decorators: [
     (Story) => {
-      // Uszkodzony JSON → readError → stan błędu zamiast mylnego empty-state.
+      // Corrupt JSON → readError → an error state instead of a misleading empty-state.
       localStorage.setItem('run:runs', '{not valid json');
       return <Story />;
     },

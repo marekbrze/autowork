@@ -18,15 +18,15 @@ interface DominantRunCardProps {
   run: Run;
   onContinue: () => void;
   onStartNew: () => void;
-  /** Archiwizacja ukończonego dominantu (harden #1). */
+  /** Archiving a completed dominant (harden #1). */
   onArchive: () => void;
 }
 
 /**
- * Dominująca karta ostatnio-pracowanego Runa — serce „pasa startowego" dashboardu
- * (ADR 0026). Progres na pierwszym planie (duży pasek + % + rozbicie), Kontynuuj
- * jako primary CTA, Szczegóły secondary, „+ nowy przejazd" obok jako akcja trzecia.
- * Kafelki statystyk celowo pominięte — to runway, nie strona statystyk (to Szczegóły).
+ * The dominant card of the most-recently-worked Run — the heart of the dashboard's "runway"
+ * (ADR 0026). Progress front and center (a large bar + % + breakdown), Continue
+ * as the primary CTA, Details secondary, "+ new run" next to it as a third action.
+ * Stat tiles deliberately omitted — this is a runway, not a stats page (that's Details).
  */
 export function DominantRunCard({ run, onContinue, onStartNew, onArchive }: DominantRunCardProps) {
   const progress = runProgress(run);
@@ -60,7 +60,7 @@ export function DominantRunCard({ run, onContinue, onStartNew, onArchive }: Domi
         </p>
       </div>
 
-      {/* Progres na pierwszym planie — główny motywator (ADR 0026). */}
+      {/* Progress front and center — the main motivator (ADR 0026). */}
       <div className="space-y-2">
         <div className="flex items-baseline justify-between gap-2">
           <span className="text-sm text-muted-foreground">Progress</span>
@@ -80,7 +80,7 @@ export function DominantRunCard({ run, onContinue, onStartNew, onArchive }: Domi
           />
         </div>
         {run.stats.totalTasks === 0 ? (
-          // harden #3: świeży run bez tasków — zapraszająca linijka zamiast rozbicia zer.
+          // harden #3: a fresh run with no tasks — an inviting line instead of a zero-breakdown.
           <p className="text-sm text-muted-foreground">
             No tasks yet — <span className="font-medium text-foreground">start with a brain dump</span>.
           </p>
@@ -99,7 +99,7 @@ export function DominantRunCard({ run, onContinue, onStartNew, onArchive }: Domi
         )}
       </div>
 
-      {/* harden #1: ukończony dominant → Archiwizuj (primary); inaczej Kontynuuj (primary). */}
+      {/* harden #1: a completed dominant → Archive (primary); otherwise Continue (primary). */}
       <div className="flex flex-wrap items-center gap-2">
         {completed ? (
           <Button size="lg" onClick={onArchive}>

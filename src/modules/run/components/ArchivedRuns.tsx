@@ -13,8 +13,8 @@ import { RunReadError } from './RunStates';
 
 /** Ekran archiwum (historia) — zarchiwizowane Runy z rozarchiwizowaniem / usuwaniem. */
 export function ArchivedRuns() {
-  // Statystyki wyprowadzane na żywo z lejka (use-live-runs.ts); zarchiwizowane Runy
-  // pokazują bieżący globalny progres (caveat prototypu — dane lejka nie są per-Run).
+  // Stats derived live from the funnel (use-live-runs.ts); archived Runs
+  // show the current global progress (a prototype caveat — funnel data isn't per-Run).
   const { runs, unarchiveRun, deleteRun, storage } = useLiveRuns();
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
@@ -86,7 +86,7 @@ export function ArchivedRuns() {
         description="The run will be permanently deleted — including from stats and history. This action can't be undone."
         confirmLabel="Delete permanently"
         onConfirm={() => {
-          // AO-3: honest persistence — zamykaj dialog tylko po udanym usunięciu.
+          // AO-3: honest persistence — close the dialog only after a successful deletion.
           // Przy awarii zapisu Run zostaje, toast retry zostaje widoczny.
           if (confirmId && deleteRun(confirmId)) setConfirmId(null);
         }}

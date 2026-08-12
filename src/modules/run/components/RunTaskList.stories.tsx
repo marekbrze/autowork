@@ -55,7 +55,7 @@ export const AllStates: Story = { args: { tasks } };
 
 export const Empty: Story = { args: { tasks: [] } };
 
-/** Ręczny porządek (TaskOrder) podnosi „Draft the launch announcement" na pierwsze miejsce. */
+/** A manual order (TaskOrder) raises "Draft the launch announcement" to the first spot. */
 export const ManualOrder: Story = {
   args: { tasks, taskOrder: ['2', '1'] },
 };

@@ -43,7 +43,7 @@ export const InProgress: Story = {
 export const Completed: Story = {
   args: {
     run: base({
-      name: 'Wiosenne porządki',
+      name: 'Spring cleaning',
       stats: { timeSpentSec: 7200, doneCount: 15, dismissedCount: 2, totalTasks: 15, estimatedTotalMin: 450, estimatedRemainingMin: 0 },
     }),
   },

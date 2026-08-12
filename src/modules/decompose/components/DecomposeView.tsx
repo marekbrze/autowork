@@ -20,7 +20,7 @@ type SubStep = 'A' | 'B';
 
 /**
  * Ekran pojedynczego stresora w `decompose` (krok 3 lejka). Po jednym
- * stresorze naraz (od najbardziej stresującego), w dwóch pod-krokach:
+ * one stressor at a time (from the most stressful), in two sub-steps:
  * A — DLACZEGO (motywacja) ‖ B — JAK (next-actiony → taski). Prowadzenie
  * licznikiem + wstecz/dalej; „Dalej" gating ≥1 next-action.
  */
@@ -39,8 +39,8 @@ export function DecomposeView() {
   } = useTasks();
   const { getDoneVision, setDoneVision, storage: visionStorage } = useDoneVisions();
 
-  // Cztery niezależne store'y decompose → jeden łączny status persystencji dla toastu
-  // (błąd dowolnego z nich = komunikat z retry; retry/dismiss woła wszystkie — no-op bez pending).
+  // Four independent decompose stores → one combined persistence status for the toast
+  // (an error on any = a retry message; retry/dismiss calls all — a no-op without pending).
   const storageWriteError =
     reasonStorage.writeError ||
     nextActionStorage.writeError ||
@@ -99,7 +99,7 @@ export function DecomposeView() {
   };
 
   // Zmiana stresora zawsze zaczyna od pod-kroku A (DLACZEGO) — inaczej `subStep`
-  // przeciekałby do następnego stresora i pomijał blok WHY.
+  // would leak to the next stressor and skip the WHY block.
   const goToStressor = (nextIndex: number) => {
     setIndex(nextIndex);
     setSubStep('A');
@@ -107,7 +107,7 @@ export function DecomposeView() {
 
   const proceed = () => {
     if (!canProceed) return;
-    // safety-net: każdy „goły" next-action → 1 konkretny task (ADR 0006)
+    // safety-net: every "bare" next-action → 1 concrete task (ADR 0006)
     materializeBareNextActions(nextActionsForStressor);
     if (isLast) {
       navigate('/process');
@@ -140,7 +140,7 @@ export function DecomposeView() {
         </Button>
       </div>
 
-      {/* Przełącznik pod-kroków A / B */}
+      {/* A / B sub-step switch */}
       <div role="group" aria-label="Decomposition step" className="inline-flex rounded-lg border p-0.5">
         {(['A', 'B'] as const).map((step) => {
           const active = subStep === step;
@@ -162,7 +162,7 @@ export function DecomposeView() {
         })}
       </div>
 
-      {/* Blok aktywnego pod-kroku (key resetuje lokalny stan draftów per stresor) */}
+      {/* The active sub-step block (key resets local draft state per stressor) */}
       {subStep === 'A' ? (
         <WhyBlock
           key={stressor.id}
@@ -186,7 +186,7 @@ export function DecomposeView() {
         />
       )}
 
-      {/* Footer zależny od pod-kroku */}
+      {/* Footer depends on the sub-step */}
       <div className="flex items-center justify-between gap-2 pt-1">
         {subStep === 'A' ? (
           <>

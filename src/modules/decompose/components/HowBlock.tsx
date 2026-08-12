@@ -7,8 +7,8 @@ import { NextActionItem } from './NextActionItem';
 import type { NextAction } from '../types/next-action';
 import type { Task } from '../types/task';
 
-/** Przykłady modelujące aktywny, konkretny język (ADR 0006).
- *  Wartość z końcową spacją ląduje w polu (gotowa do dokończenia);
+/** Examples modeling active, concrete language (ADR 0006).
+ *  A value with a trailing space lands in the field (ready to complete);
  *  wielokropek doklejamy tylko do etykiety chipa. */
 const ACTION_EXAMPLES = ['Call ', 'Send ', 'Pay ', 'Book '];
 
@@ -23,8 +23,8 @@ interface HowBlockProps {
 }
 
 /**
- * KROK B — JAK to mądrze popchnąć (HOW). Dodawanie next-actionów (Enter),
- * przykłady aktywnego języka, lista z rozbiciem na taski. „Dalej" (w rodzicu)
+ * STEP B — HOW to push it forward smartly (HOW). Adding next-actions (Enter),
+ * active-language examples, a list split into tasks. "Next" (in the parent)
  * aktywowany przy ≥1 next-actionie.
  */
 export function HowBlock({

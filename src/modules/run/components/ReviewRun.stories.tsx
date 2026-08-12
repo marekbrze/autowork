@@ -30,8 +30,8 @@ export default meta;
 
 type Story = StoryObj<typeof ReviewRun>;
 
-/** run-finanse ma pozycje do przeglądu (jedna oflagowana jako stale). */
+/** run-finances has items to review (one flagged as stale). */
 export const WithItems: Story = { decorators: routeFor('/run/run-finanse/review') };
 
-/** run-przeprowadzka ma pusty przegląd. */
+/** run-move has an empty review. */
 export const Empty: Story = { decorators: routeFor('/run/run-przeprowadzka/review') };

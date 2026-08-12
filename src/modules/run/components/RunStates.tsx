@@ -3,9 +3,9 @@ import { AlertTriangle, Archive, CheckCircle2, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 /**
- * Stany pomocnicze `run` wydzielone jako komponenty prezentacyjne — żeby każdy
- * miał osobną story (read-error / completed). Neutralne shadcn — celebracyjna
- * oprawa wizualna to przyszły `proto-design`.
+ * Auxiliary `run` states split out as presentational components — so each
+ * has its own story (read-error / completed). Neutral shadcn — a celebratory
+ * visual treatment is a future `proto-design`.
  */
 
 interface RunReadErrorProps {
@@ -13,9 +13,9 @@ interface RunReadErrorProps {
 }
 
 /**
- * Stan błędu odczytu storage (LE-1). Gdy `readError`, hook fallbackuje do `[]`,
- * co bez tego stanu pokazywało mylny empty-state listy („brak runów"). Tu: jasny
- * komunikat awarii + odśwież (localStorage czytany raz, przy starcie).
+ * A storage read-error state (LE-1). On `readError`, the hook falls back to `[]`,
+ * which without this state showed a misleading list empty-state ("no runs"). Here: a clear
+ * failure message + refresh (localStorage read once, on start).
  */
 export function RunReadError({ onReload }: RunReadErrorProps) {
   return (
@@ -41,9 +41,9 @@ interface RunCompletedProps {
 }
 
 /**
- * Stan ukończonego Runa (ST-1). Wszystkie taski zrobione → celebracja + naturalna
- * następna akcja (archiwizuj). Zastępuje sekcję „Kontynuuj" na Szczegółach, bo
- * kontynuacja nie ma sensu, gdy nie ma już nic do zrobienia.
+ * The completed-Run state (ST-1). All tasks done → celebration + a natural
+ * next action (archive). It replaces the "Continue" section on Details, because
+ * continuing makes no sense when there's nothing left to do.
  */
 export function RunCompleted({ onArchive }: RunCompletedProps) {
   return (

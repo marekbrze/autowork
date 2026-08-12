@@ -35,7 +35,7 @@ export function NextActionItem({ nextAction, tasks, onUpdate, onDelete, onReplac
 
   const commit = () => {
     const text = draft.trim();
-    // Pusty draft = anuluj edycję (zostaw oryginał). Usuwanie to osobna, jawna akcja
+    // An empty draft = cancel the edit (keep the original). Deletion is a separate, explicit action
     // (✕ → potwierdzenie) — czyszczenie pola nie usuwa next-actionu po cichu (ADR capture #8).
     if (text && text !== nextAction.text) onUpdate(nextAction.id, text);
     setEditing(false);

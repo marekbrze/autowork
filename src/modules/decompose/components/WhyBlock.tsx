@@ -17,9 +17,9 @@ interface WhyBlockProps {
 }
 
 /**
- * KROK A — DLACZEGO to jest ważne (WHY). Dwie kolumny walencji
+ * STEP A — WHY this matters (WHY). Two valence columns
  * (co zyskam ‖ co mnie czeka) + opcjonalna wizja efektu (tekst + emoji).
- * Blok opcjonalny/skippowalny (ADR 0005) — nigdy nie blokuje przejścia.
+ * An optional/skippable block (ADR 0005) — never blocks the transition.
  */
 export function WhyBlock({
   stressorId,
@@ -32,8 +32,8 @@ export function WhyBlock({
   const [visionText, setVisionText] = useState(doneVision?.text ?? '');
   const [visionEmoji, setVisionEmoji] = useState(doneVision?.emoji ?? '✨');
 
-  // Re-sync lokalnego draftu, gdy wizja zmieni się z zewnątrz (np. inna karta —
-  // warstwa storage synchronizuje się zdarzeniem `storage`). decompose #13.
+  // Re-sync the local draft when the vision changes from the outside (e.g. another tab —
+  // the storage layer syncs via a `storage` event). decompose #13.
   useEffect(() => {
     setVisionText(doneVision?.text ?? '');
     setVisionEmoji(doneVision?.emoji ?? '✨');

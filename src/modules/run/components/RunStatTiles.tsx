@@ -7,8 +7,8 @@ interface RunStatTilesProps {
 }
 
 /**
- * Kafelki dużych liczb — rdzeń „widocznego obiektu ze statystykami" (ADR 0020):
- * czas w focus · wykonane/zostało · progres %, plus pasek progresem i rozbicie.
+ * Big-number tiles — the core of the "visible object with stats" (ADR 0020):
+ * time in focus · done/left · progress %, plus a progress bar and a breakdown.
  */
 export function RunStatTiles({ run }: RunStatTilesProps) {
   const progress = runProgress(run);
@@ -25,8 +25,8 @@ export function RunStatTiles({ run }: RunStatTilesProps) {
           label="done"
         />
         <Tile value={`${progress}%`} label="progress" />
-        {/* Łączny czas szacunkowy — rozmiar pracy (ADR 0060). Brak szacunków → „—" + tooltip
-            wyjaśniający (ET-3 a11y/clarity; czytnik inaczej czyta „estimated dash"). */}
+        {/* Total estimated time — the size of the work (ADR 0060). No estimates → "—" + a tooltip
+            explaining it (ET-3 a11y/clarity; otherwise a screen reader reads "estimated dash"). */}
         <Tile
           value={totalEst > 0 ? formatMinutes(totalEst) : '—'}
           label="estimated"
@@ -56,9 +56,9 @@ export function RunStatTiles({ run }: RunStatTilesProps) {
         <span className="font-medium text-foreground">{remaining}</span> left
       </p>
 
-      {/* Pozostały szacunek — ile pracy zostało (ADR 0060). Guard `remEst > 0` (ET-1): ukryj, gdy
-          nie ma już wyestymowanej pracy (Run ukończony / wszystkie wyestymowane done). Prefiks
-          „Estimated:" scope'uje linię (ET-2) — odróżnia od licznika tasków „N left" wyżej. */}
+      {/* Remaining estimate — how much work is left (ADR 0060). Guard `remEst > 0` (ET-1): hide when
+          there's no estimated work left (Run completed / all estimated done). The
+          "Estimated:" prefix scopes the line (ET-2) — distinguishes it from the "N left" task counter above. */}
       {totalEst > 0 && remEst > 0 && (
         <p className="text-sm text-muted-foreground tabular-nums">
           Estimated: ~<span className="font-medium text-foreground">{formatMinutes(remEst)}</span> left of ~

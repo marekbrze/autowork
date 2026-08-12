@@ -16,14 +16,14 @@ import { DominantRunCard } from './DominantRunCard';
 
 /**
  * Dashboard — pas startowy apki (ADR 0026). W jednym kliku wrzuca usera z powrotem
- * do roboty: dominująca karta ostatnio-pracowanego Runa (progres na pierwszym planie,
- * Kontynuuj primary) + obok „nowy przejazd"; poniżej mniejsze aktywne runy; na końcu
- * listy wejście do archiwum/historii. Porównanie runów wyrzucone z MVP (ADR 0027).
+ * to do: the dominant card of the most-recently-worked Run (progress front and center,
+ * Continue primary) + a "new run" next to it; below, smaller active runs; at the end of
+ * the list, the archive/history entry. Run comparison is out of the MVP (ADR 0027).
  * Aktywne runy sortowane po `lastActiveAt` desc (ADR 0028).
  */
 export function DashboardView() {
-  // `useLiveRuns` scalia statystyki i krok resume wyprowadzane na żywo z danych lejka
-  // (zob. run/hooks/use-live-runs.ts) — bez tego karty czytałyby zamrożone zera.
+  // `useLiveRuns` merges the stats and the resume step derived live from the funnel data
+  // (see run/hooks/use-live-runs.ts) — without it the cards would read frozen zeros.
   const { runs, createRun, archiveRun, storage } = useLiveRuns();
   const { setActiveRun } = useActiveRun();
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ export function DashboardView() {
     () =>
       runs
         .filter((r) => r.state === 'in_progress')
-        // harden #6: wtórny klucz (createdAt desc) — deterministyczny wybór dominantu przy remisie.
+        // harden #6: a secondary key (createdAt desc) — a deterministic dominant pick on a tie.
         .sort(
           (a, b) =>
             b.lastActiveAt.localeCompare(a.lastActiveAt) || b.createdAt.localeCompare(a.createdAt),
@@ -44,19 +44,19 @@ export function DashboardView() {
   const dominant = active[0];
   const rest = active.slice(1);
 
-  // Start new → tworzy Run (z pustym lejkiem — per-Run własność, ADR 0044), ustawia go aktywnym
-  // (w `useRuns`) i prowadzi do brain dumpa. harden #2: strażnik double-submit — createRun jest
-  // sync, ale dwa szybkie kliknięcia mogłyby stworzyć osierocony run. Ref blokuje drugie wołanie.
+  // Start new → creates a Run (with an empty funnel — per-Run ownership, ADR 0044), sets it active
+  // (in `useRuns`) and leads to the brain dump. harden #2: a double-submit guard — createRun is
+  // sync, but two fast clicks could create an orphan run. The ref blocks the second call.
   const creatingRef = useRef(false);
   const handleStartNew = () => {
     if (creatingRef.current) return;
     creatingRef.current = true;
     const run = createRun();
     if (run) navigate('/capture');
-    else creatingRef.current = false; // awaria zapisu — pozwól retry (toast zostaje widoczny)
+    else creatingRef.current = false; // write failure — allow retry (the toast stays visible)
   };
 
-  // Continue ustawia Run aktywnym (jego lejek od teraz widać w ekranach funnel) + route do kroku.
+  // Continue sets the Run active (its funnel is now visible in the funnel screens) + routes to the step.
   const continueRun = (runId: string, step: keyof typeof STEP_ROUTE) => {
     setActiveRun(runId);
     navigate(STEP_ROUTE[step]);
@@ -117,7 +117,7 @@ export function DashboardView() {
           )}
         </>
       ) : archivedCount > 0 ? (
-        // Brak aktywnych, ale jest archiwum — zaproś do nowego + wejście do historii poniżej.
+        // No active ones, but there's an archive — invite to a new one + the history entry below.
         <section className="space-y-4 rounded-lg border border-dashed p-10 text-center">
           <p className="text-sm text-muted-foreground">You don't have an active run right now.</p>
           <Button size="lg" onClick={handleStartNew}>
@@ -125,7 +125,7 @@ export function DashboardView() {
           </Button>
         </section>
       ) : (
-        // Pierwsze otwarcie — zero runów. Wielki, zachęcający do pracy button (ADR 0026).
+        // First open — zero runs. A large, work-inviting button (ADR 0026).
         <section className="space-y-5 rounded-xl border bg-card p-10 text-center">
           <div className="space-y-2">
             <h2 className="text-xl font-semibold tracking-tight">Where to start?</h2>
@@ -140,7 +140,7 @@ export function DashboardView() {
         </section>
       )}
 
-      {/* Wejście do archiwum — na końcu listy aktywnych runów (ADR 0026). */}
+      {/* Archive entry — at the end of the active-runs list (ADR 0026). */}
       {archivedCount > 0 && (
         <Link
           to="/run/archived"

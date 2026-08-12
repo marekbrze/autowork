@@ -25,12 +25,12 @@ export default meta;
 
 type Story = StoryObj<typeof StorageStatusToast>;
 
-/** Zapis reasons/nextActions/tasks/visions nie powiósł się (LocalStorage pełne) — z retry. */
+/** A reasons/nextActions/tasks/visions write failed (LocalStorage full) — with retry. */
 export const WriteError: Story = {
   args: { writeError: true },
 };
 
-/** Odczyt któregoś ze store'ów decompose nie powiódł się (uszkodzony JSON). */
+/** A read of one of the decompose stores failed (corrupt JSON). */
 export const ReadError: Story = {
   args: { readError: true },
 };

@@ -11,7 +11,7 @@ import { CONTEXT_LABELS, ENERGY_LABELS } from '@/modules/focus/types/focus';
 interface RunTaskListProps {
   /** Taski tego Runa (scope'owane per-Run, ADR 0044). */
   tasks: Task[];
-  /** Współdzielony ręczny porządek z focus (`focus:taskOrder`); default = rank stresora (ADR 0036). */
+  /** The shared manual order with focus (`focus:taskOrder`); default = stressor rank (ADR 0036). */
   taskOrder: string[];
   stressors: Stressor[];
   /** Read-only (np. zarchiwizowany Run) — ukrywa akcje Done / Not relevant (R2-3). */
@@ -35,10 +35,10 @@ function groupOf(state: Task['state']): Group {
 }
 
 /**
- * Sekcja „Tasks" na Szczegółach Runa (ADR 0035/0037). Lista wszystkich tasków z prawdziwym
- * stanem — pogrupowana (To do / Done / Not relevant), sortowana wewnątrz grupy po tym samym
- * `TaskOrder` co kolejka focus (ADR 0036). Akcje z listy: Done / Not relevant (moduł `run`
- * mutuje stany tasków cross-module przez `updateTask` z `decompose`). Lo-fi — rytm/plakietki
+ * The "Tasks" section on Run Details (ADR 0035/0037). A list of all tasks with their real
+ * state — grouped (To do / Done / Not relevant), sorted within a group by the same
+ * `TaskOrder` as the focus queue (ADR 0036). List actions: Done / Not relevant (the `run` module
+ * mutates task states cross-module via `updateTask` from `decompose`). Lo-fi — rhythm/badges
  * do dopracowania w `proto-design`/`proto-polish`.
  */
 export function RunTaskList({ tasks, taskOrder, stressors, readOnly = false, onDone, onNotRelevant }: RunTaskListProps) {

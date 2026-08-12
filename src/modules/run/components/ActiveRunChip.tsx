@@ -3,13 +3,13 @@ import { useRuns } from '../hooks/use-runs';
 import { cn } from '@/lib/utils';
 
 /**
- * Chip aktywnego Runa w nagłówku shellu (ADR 0044, PR-10). **Display-only** — pokazuje,
- * którym Runem user aktualnie pracuje w lejku, żeby nie musiał wracać na Dashboard, by
- * się upewnić. Switching odbywa się przez Dashboard (Create/Continue); in-funnel switcher
- * odłożony (Later).
+ * The active-Run chip in the shell header (ADR 0044, PR-10). **Display-only** — it shows
+ * which Run the user is currently working on in the funnel, so they don't have to return to the Dashboard to
+ * confirm. Switching happens via the Dashboard (Create/Continue); an in-funnel switcher
+ * is deferred (Later).
  *
- * Brak aktywnego Runa → chip się nie renderuje (Dashboard jest miejscem wyboru).
- * Długa nazwa → `truncate` + `title` (hover) — PR-15.
+ * No active Run → the chip doesn't render (the Dashboard is where you pick).
+ * A long name → `truncate` + `title` (hover) — PR-15.
  *
  * Token: `--brand-400` (DESIGN.md: „chips, selected states" z ciemnym tekstem), pill
  * `rounded-full`, Nunito (pixel face tylko dla celebrcji).

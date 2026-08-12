@@ -11,7 +11,7 @@ const meta: Meta<typeof ActiveRunChip> = {
   decorators: [
     (Story) => (
       <ActiveRunProvider>
-        {/* ramka nagłówka — żeby chip czytać w kontekście shella */}
+        {/* a header frame — so the chip reads in the shell's context */}
         <div className="flex h-14 items-center gap-2 border-b bg-background px-4">
           <span className="font-semibold tracking-tight">Autowork</span>
           <Story />

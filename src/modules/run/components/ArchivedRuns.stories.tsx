@@ -47,7 +47,7 @@ export const Empty: Story = {
 export const ReadError: Story = {
   decorators: [
     (Story) => {
-      // Uszkodzony JSON → readError → stan błędu zamiast mylnego empty-state (LE-1).
+      // Corrupt JSON → readError → an error state instead of a misleading empty-state (LE-1).
       localStorage.setItem('run:runs', '{not valid json');
       return <Story />;
     },

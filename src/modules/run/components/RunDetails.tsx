@@ -22,15 +22,15 @@ import { RunTaskList } from './RunTaskList';
 import { RunCompleted } from './RunStates';
 
 /**
- * Szczegóły Runa („widoczny obiekt ze statystykami"): kafelki statystyk +
+ * Run Details (the "visible object with stats"): stat tiles +
  * Kontynuuj (routing wg kroku) + rename (inline) + Review + archive/unarchive + delete.
  */
 export function RunDetails() {
   const { runId } = useParams<{ runId: string }>();
   const { getRun, renameRun, archiveRun, unarchiveRun, deleteRun, storage } = useLiveRuns();
-  // Dane scope'owane po URL `:runId` (Details to widok zarządczy dowolnego Runa, nie tylko
-  // aktywnego). Lokalne hooki dają reaktywne dane → statystyki/Continue przeliczają się na żywo
-  // po akcjach z listy (R2-1). Współdzielony `TaskOrder` z focus sortuje listę (ADR 0036), per-Run.
+  // Data scoped by the URL `:runId` (Details is the management view of any Run, not only
+  // the active one). Local hooks give reactive data → stats/Continue recompute live
+  // after list actions (R2-1). A shared `TaskOrder` with focus sorts the list (ADR 0036), per-Run.
   const { tasks, updateTask, storage: taskStorage } = useTasks(runId);
   const { stressors } = useStressors(runId);
   const { nextActions } = useNextActions(runId);
@@ -67,7 +67,7 @@ export function RunDetails() {
   );
   const continueRun = () => {
     if (!run) return;
-    setActiveRun(run.id); // Continue ustawia aktywny Run → jego lejek od teraz widać (ADR 0044)
+    setActiveRun(run.id); // Continue sets the active Run → its funnel is now visible (ADR 0044)
     navigate(STEP_ROUTE[resumeStep]);
   };
 
@@ -76,13 +76,13 @@ export function RunDetails() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  // Reset draft przy zmianie Runa (ten sam komponent, różne :runId).
+  // Reset the draft on Run change (same component, different :runId).
   useEffect(() => {
     setDraft(run?.name ?? '');
     setEditing(false);
   }, [run?.id, run?.name]);
 
-  // Fokus w polu nazwy przy wejściu w tryb edycji (bez `autoFocus` — a11y).
+  // Focus the name field on entering edit mode (without `autoFocus` — a11y).
   useEffect(() => {
     if (!editing) return;
     const id = window.setTimeout(() => nameInputRef.current?.focus(), 0);
@@ -103,7 +103,7 @@ export function RunDetails() {
   const completed = isRunCompleted({ ...run, stats });
   const archived = run.state === 'archived';
   const staleCount = run.reviewItems.filter((it) => it.stale).length;
-  // FI-1: walidacja rename — nazwa nie może być pusta (same spacje = nieważna).
+  // FI-1: rename validation — the name can't be empty (whitespace-only = invalid).
   const nameValid = draft.trim().length > 0;
 
   const saveRename = () => {
@@ -122,7 +122,7 @@ export function RunDetails() {
         </Link>
       </div>
 
-      {/* Nagłówek: nazwa (edytowalna) + badge stanu */}
+      {/* Header: name (editable) + state badge */}
       <header className="space-y-2">
         {editing ? (
           <form
@@ -183,7 +183,7 @@ export function RunDetails() {
         <RunStatTiles run={{ ...run, stats }} />
       </section>
 
-      {/* Kontynuuj / resume — lub stan ukończony (ST-1), lub zarchiwizowany */}
+      {/* Continue / resume — or the completed state (ST-1), or archived */}
       {completed && !archived ? (
         <RunCompleted onArchive={() => archiveRun(run.id)} />
       ) : (
@@ -206,7 +206,7 @@ export function RunDetails() {
         </section>
       )}
 
-      {/* Akcje zarządzania */}
+      {/* Management actions */}
       <section className="grid gap-2 sm:grid-cols-2">
         <Link
           to={`/run/${run.id}/review`}
@@ -228,8 +228,8 @@ export function RunDetails() {
         </Button>
       </section>
 
-      {/* Tasks — lista zadań z prawdziwym stanem + akcje z listy (ADR 0035/0037). */}
-      {/* R2-3: zarchiwizowany Run = lista read-only (mutacje w „ukończonym" Runie niepożądane). */}
+      {/* Tasks — a task list with real state + list actions (ADR 0035/0037). */}
+      {/* R2-3: an archived Run = a read-only list (mutations in a "completed" Run are unwanted). */}
       <section aria-label="Run tasks" className="space-y-2">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-medium">Tasks</h3>

@@ -11,19 +11,19 @@ interface ReasonColumnProps {
   valence: Valence;
   title: string;
   hint: string;
-  /** Powody już przefiltrowane na tę walencję (i stresor). */
+  /** Reasons already filtered to this valence (and stressor). */
   reasons: Reason[];
   onAdd: (text: string) => void;
   onDelete: (id: string) => void;
 }
 
 /**
- * Jedna kolumna powodów w bloku WHY — dla jednej walencji. Enter dodaje
- * powód, każdy wiersz ma znak walencji (+ zysk / − ból) i usuwanie.
+ * One reason column in the WHY block — for one valence. Enter adds
+ * a reason; each row has a valence sign (+ gain / − pain) and deletion.
  */
 export function ReasonColumn({ valence, title, hint, reasons, onAdd, onDelete }: ReasonColumnProps) {
   const [draft, setDraft] = useState('');
-  // ID powodu czekającego na potwierdzenie usunięcia (null = dialog zamknięty).
+  // The id of the reason awaiting delete confirmation (null = dialog closed).
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const positive = valence === 'positive';
 

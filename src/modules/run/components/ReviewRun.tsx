@@ -9,7 +9,7 @@ import { StorageStatusToast } from '@/modules/capture/components/StorageStatusTo
 
 import { useRuns } from '../hooks/use-runs';
 
-/** Ręczny przegląd Runa (ADR 0023): każda pozycja → aktualna (relevant) / do usunięcia (stale). */
+/** A manual Run review (ADR 0023): each item → current (relevant) / to remove (stale). */
 export function ReviewRun() {
   const { runId } = useParams<{ runId: string }>();
   const { getRun, setReviewItemStale, clearStaleReviewItems, storage } = useRuns();
@@ -69,7 +69,7 @@ export function ReviewRun() {
                   </span>
                 </div>
 
-                {/* Toggle: Aktualne / Do usunięcia */}
+                {/* Toggle: Current / To remove */}
                 <div className="flex shrink-0 overflow-hidden rounded-md border">
                   <button
                     type="button"
