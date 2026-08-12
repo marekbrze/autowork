@@ -1,29 +1,29 @@
-# 0036 - TaskOrder: jeden współdzielony model kolejności zadań
+# 0036 - TaskOrder: one shared model for task ordering
 
 **Date**: 2026-06-30
 **Module**: focus, run
 **Status**: Accepted
 
 ## Context
-Feature `session-queue-order-and-run-task-list` (ADR 0035) wprowadza ręczne przekładanie kolejki w filtrze `focus` oraz listę zadań na Szczegółach `run`. Plan feature'u zostawił **otwarte pytanie**: jak sortować listę na run — po ranku stresora, czy po manualnym porządku z focusa? Dodatkowo: czy porządek filtra i porządek listy run to **dwie niezależne rzeczy**, czy **jeden model**?
+The `session-queue-order-and-run-task-list` feature (ADR 0035) introduces manual queue reordering in the `focus` filter and a task list on `run` Details. The feature plan left an **open question**: how to sort the run list — by stressor rank, or by the manual order from focus? Additionally: are the filter order and the run-list order **two independent things**, or **one model**?
 
-W wywiadzie `proto-detail` user rozstrzygnął: porządek ma służyć **elastyczności** — grupowanie powiązanych zadań obok siebie oraz sekwencjonowanie zależności (jedno musi być wcześniej, bo z niego wynika drugie). Nie chodzi o „łatwe najpierw" ani „najgorsze najpierw".
+In the `proto-detail` interview the user decided: the order should serve **flexibility** — grouping related tasks together and sequencing dependencies (one has to come earlier because another depends on it). It's not about "easy first" or "worst first".
 
 ## Decision
-Wprowadzamy **`TaskOrder`** — uporządkowaną listę ID tasków — jako **jeden współdzielony model kolejności** w całej aplikacji:
+We introduce **`TaskOrder`** — an ordered list of task IDs — as **one shared ordering model** across the whole app:
 
-- **Default** (pusty `TaskOrder` / po resecie) = kolejność po ranku stresora (najbardziej stresujący → pierwsze), jak dotąd (`FocusView.attributed`).
-- **Ręczne przełożenie** (drag / ↑↓ na liście dopasowanych w filtrze `focus`) **nadpisuje** default.
-- Ten sam `TaskOrder` decyduje o kolejności w **trzech miejscach**: liście dopasowanych w filtrze `focus`, kolejce sesji po Starcie, oraz liście zadań na Szczegółach `run` (sort wewnątrz grup stanu).
-- **Reset do defaultu** dostępny w filtrze `focus` (i dziedziczony przez listę `run`).
-- W prototypie `TaskOrder` jest **globalne** (dane lejka bez `runId`, ADR 0020); w intencji per-Run — przy przyszłym spięciu per-Run staje się per-Run bez zmiany modelu.
+- **Default** (empty `TaskOrder` / after reset) = order by stressor rank (most stressful → first), as so far (`FocusView.attributed`).
+- **Manual reordering** (drag / ↑↓ on the matched list in the `focus` filter) **overrides** the default.
+- The same `TaskOrder` decides the order in **three places**: the matched list in the `focus` filter, the session queue after Start, and the task list on `run` Details (sort within state groups).
+- **Reset to default** available in the `focus` filter (and inherited by the `run` list).
+- In the prototype `TaskOrder` is **global** (funnel data without `runId`, ADR 0020); per-Run in intent — with future per-Run wiring it becomes per-Run with no model change.
 
-**Win = elastyczność, nie nudge.** Oddajemy userowi panowanie nad kolejnością; nie sugerujemy żadnej konkretnej logiki.
+**Win = flexibility, not a nudge.** We hand the user control over the order; we don't suggest any specific logic.
 
 ## Impact
-- `ENTITY_MAP.md`: dodano `TaskOrder` (typ wartości / relacja `Run 1—1 TaskOrder 1—* Task`) + notka o współdzielonym modelu.
-- `GLOSSARY.md`: dodano termin `Ręczny porządek kolejki` (`TaskOrder`).
+- `ENTITY_MAP.md`: added `TaskOrder` (a value type / `Run 1—1 TaskOrder 1—* Task` relation) + a note about the shared model.
+- `GLOSSARY.md`: added the term `Manual queue order` (`TaskOrder`).
 - `focus.md`: ekran filtra dwuczęściowy (filtry + lista dopasowanych z drag/↑↓ + reset); Start buduje kolejkę w porządku `TaskOrder`.
 - `run.md`: lista zadań na Szczegółach sortowana wewnątrz grup stanu po `TaskOrder`.
 - Nowe akcje: `Reorder queue`, `Reset queue order` (→ ADR 0037).
-- Otwarte (→ `edgecases`/`harden`): taski dodane po nadaniu `TaskOrder`; `TaskOrder` wskazujący usunięte taski (prune) lub taski spoza bieżącego filtru; reset (confirm vs undo).
+- Open (→ `edgecases`/`harden`): tasks added after `TaskOrder` is set; `TaskOrder` pointing to deleted tasks (prune) or tasks outside the current filter; reset (confirm vs undo).

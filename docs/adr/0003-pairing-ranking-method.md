@@ -1,17 +1,17 @@
-# 0003 - Parowanie jako metoda ranking stresorów
+# 0003 - Pairing as a stressor-ranking method
 
 **Date**: 2026-06-28
 **Module**: capture
 **Status**: Accepted
 
 ## Context
-W dokach ranking stresorów był pojedynczą akcją („Rank Stressor") bez opisanej mechaniki. User zaproponował hybrydę: domyślnie ręczne układanie listy, a opcjonalnie **proces parowania** — zobowiązany ciąg porównań parami („który bardziej stresuje: A czy B?"), z którego „mądry algorytm" układa finalną kolejność. Cel: każda decyzja jest mniejsza (para vs cała lista) — w duchu „zdejmij ciężar decydowania".
+In the docs, stressor ranking was a single action ("Rank Stressor") with no described mechanics. The user proposed a hybrid: by default, manually arranging the list, and optionally a **pairing process** — a committed series of pairwise comparisons ("which is more stressful: A or B?"), from which a "smart algorithm" arranges the final order. Goal: each decision is smaller (a pair vs the whole list) — in the spirit of "lift the burden of deciding".
 
 ## Decision
-Wprowadzono **`Pairing`** — opcjonalną metodę ranking: user startuje ciąg porównań parami, przerabia wszystkie pary, a po pełnym przejściu algorytm (do ustalenia w `proto-lofi`/impl — np. insertion/merge sort albo ranking ELO) układa finalną kolejność. Zobowiązany ciąg — nie da się wyjść w połowie. Ranking **zostaje w module `capture`**. Dodać termin do `GLOSSARY.md`, akcję „Run Pairing" do `ACTIONS.md`, doprecyzować akcję „Rank Stressor" (ręcznie lub przez `Pairing`) i doprecyzować `rank` Stressora w `ENTITY_MAP.md`.
+Introduced **`Pairing`** — an optional ranking method: the user starts a series of pairwise comparisons, goes through all the pairs, and after a full pass an algorithm (to decide in `proto-lofi`/impl — e.g. insertion/merge sort or an ELO ranking) arranges the final order. A committed series — you can't leave halfway. Ranking **stays in the `capture` module**. Add the term to `GLOSSARY.md`, a "Run Pairing" action to `ACTIONS.md`, refine the "Rank Stressor" action (manually or via `Pairing`), and refine the Stressor's `rank` in `ENTITY_MAP.md`.
 
 ## Impact
 - `GLOSSARY.md`: nowy wiersz `Pairing`.
 - `ACTIONS.md`: nowa akcja „Run Pairing"; doprecyzowane „Rank Stressor".
-- `ENTITY_MAP.md`: doprecyzowane `rank` Stressora (ustalany ręcznie lub przez `Pairing`).
-- Parowanie wymaga ≥2 stresorów; ranking trywialny przy jednym.
+- `ENTITY_MAP.md`: refined the Stressor's `rank` (set manually or via `Pairing`).
+- Pairing requires ≥2 stressors; ranking is trivial with one.

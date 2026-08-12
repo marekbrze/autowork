@@ -5,16 +5,16 @@
 **Status**: Accepted
 
 ## Context
-Detailing pass (`proto-detail focus`) dla feature'u z ADR 0053 (timer żywy w tle + czas w title karty). Trzeba ująć nowe zachowania w specu modułu i shared docs, by implementacja (residual direct-edits) miała pisemne odniesienie. Decyzje produktowe (live tick w tle, title = czas + nazwa appa) padły w `proto-feature`; w tym skillu potwierdzono dodatkowo suffix `· over` w title.
+Detailing pass (`proto-detail focus`) for the ADR 0053 feature (live background timer + time in the tab title). The new behaviors must be captured in the module spec and shared docs, so the implementation (residual direct-edits) has a written reference. Product decisions (live background tick, title = time + app name) were made in `proto-feature`; in this skill the `· over` suffix in the title was additionally confirmed.
 
 ## Decision
 Zespecyfikowano delty feature'u:
-- `docs/modules/focus.md` — Vision (timer działa w tle, zawsze poprawny; czas w title karty), notka w akcjach Timera, nowy Edge case „Karta w tle / uśpiona karta (Edge Sleeping Tabs)".
-- `docs/ENTITY_MAP.md` — encja `Timer`: dopisek o mechanizmie timestamp-based + poprawność w tle + Web Worker / Wake Lock / title.
+- `docs/modules/focus.md` — Vision (the timer runs in the background, always correct; the time in the tab title), a note in the Timer actions, a new Edge case "Background tab / sleeping tab (Edge Sleeping Tabs)".
+- `docs/ENTITY_MAP.md` — the `Timer` entity: an addendum on the timestamp-based mechanism + background correctness + Web Worker / Wake Lock / title.
 - `docs/ACTIONS.md` — nowa akcja systemowa Timera „(stays accurate in background)".
-- `docs/GLOSSARY.md` — rozszerzona definicja `Timer` (tło, title, Wake Lock, Web Worker).
+- `docs/GLOSSARY.md` — an expanded `Timer` definition (background, title, Wake Lock, Web Worker).
 
 Title format: `12:34 — Autowork` (+ `· paused` w pauzie, + `· over` po przekroczeniu oszacowania — `· over` potwierdzone z userem).
 
 ## Impact
-Spec modułu + shared docs odzwierciedlają feature przed implementacją. Implementacja (residual: przepisanie `use-focus-timer.ts` na timestamp + nowy Worker + Wake Lock + hook title) realizuje to, co tu zapisano. Następnie `proto-edgecases focus` diagnozuje przypadki brzegowe tła/widoczności, a `proto-harden` weryfikuje robustność.
+The module spec + shared docs reflect the feature before implementation. The implementation (residual: rewriting `use-focus-timer.ts` to timestamp + a new Worker + Wake Lock + a title hook) realizes what's written here. Next, `proto-edgecases focus` diagnoses the background/visibility edge cases, and `proto-harden` verifies robustness.

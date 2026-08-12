@@ -11,7 +11,7 @@ The dashboard prototype (`DashboardView` + `DominantRunCard`) handled happy path
 Implemented 4 edge-case states:
 - **Completed dominant** — when the last-worked run is 100% done (not archived), the dominant card's primary CTA swaps from „Kontynuuj" to „Archiwizuj ten przejazd" (consistent with `RunDetails`' completed-run pattern; designer confirmed).
 - **Double-click on „Start new"** — `useRef` guard prevents a second synchronous `createRun` from creating an orphan run.
-- **Zero-task dominant** — a fresh run (`totalTasks === 0`) shows „Jeszce bez tasków — zacznij od brain dumpu" instead of a meaningless „0 z 0 … zostały 0" breakdown.
+- **Zero-task dominant** — a fresh run (`totalTasks === 0`) shows "No tasks yet — start with a brain dump" instead of a meaningless "0 of 0 … 0 left" breakdown.
 - **`lastActiveAt` tie-break** — secondary sort key (`createdAt` desc) makes dominant-card selection deterministic.
 
 Deferred (with reasons):

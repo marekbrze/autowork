@@ -5,14 +5,14 @@
 **Status**: Accepted
 
 ## Context
-User chce móc **archiwizować** skończone runy — schować je z aktywnych, ale zachować w historii (statystyki + porównanie do motywacji). Dotychczas Run miał tylko stan `in_progress` i jedną operację niszczącą (`Delete`). Potrzebny stan pośredni + decyzja o odwracalności i triggerze.
+The user wants to be able to **archive** finished runs — hide them from active, but keep them in history (stats + comparison for motivation). Previously a Run had only the `in_progress` state and one destructive operation (`Delete`). An intermediate state is needed, plus a decision on reversibility and the trigger.
 
 ## Decision
 Nowy stan Runa: **`archived`**.
-- `in_progress` — aktywny, widoczny na liście aktywnych, wznawialny (Kontynuuj).
-- `archived` — schowany z aktywnych, widoczny w **archiwum/historii** (statystyki + porównanie nadal dostępne), **odwracalny** przez `Un-archive` (wraca do aktywnych, można Kontynuować).
-- `Delete` pozostaje **jedyną operacją terminalną** — usuwa Run na stałe (z historii/archiwum też).
-- Archiwizacja jest **wyłącznie ręczna** (ze Szczegółów) — brak auto-archive przy 100% done.
+- `in_progress` — active, visible in the active list, resumable (Continue).
+- `archived` — hidden from active, visible in the **archive/history** (stats + comparison still available), **reversible** via `Un-archive` (returns to active, can be Continued).
+- `Delete` remains **the only terminal operation** — it permanently removes the Run (from history/archive too).
+- Archiving is **manual only** (from Details) — no auto-archive at 100% done.
 
 ## Impact
 - `ENTITY_MAP.md`: stany Runa = `in_progress` | `archived`.
