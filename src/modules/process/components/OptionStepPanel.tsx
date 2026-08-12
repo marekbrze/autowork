@@ -6,7 +6,7 @@ import { BatteryIcon } from './BatteryIcon';
 
 /** Pojedyncza opcja w kroku atrybutu (kontekst / energia / czas). */
 export interface Opt {
-  /** Klawisz skrótu pokazany jako badge (np. „1”). */
+  /** The shortcut key shown as a badge (e.g. "1"). */
   key: string;
   label: string;
   /** For energy: how many batteries to draw. */
