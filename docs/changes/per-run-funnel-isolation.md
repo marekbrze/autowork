@@ -4,86 +4,86 @@
 Feature (planned by proto-feature)
 
 ## User goal
-Każdy Run ma być **osobnym zestawem stresorów i zadań** — tworząc nowy Run, user zaczyna od pustego brain dumpa, a nie widzi danych poprzedniego Runa. Switchowanie między Runami (przez Continue) pokazuje właściwy zestaw. *(Zgłoszone jako błąd w `docs/changes/runs-share-funnel-data.md`; zdiagnozowane jako odrooczona architektura — ADR 0020.)*
+Each Run should be **a separate set of stressors and tasks** — creating a new Run, the user starts from an empty brain dump, not from the previous Run's data. Switching between Runs (via Continue) shows the right set. *(Reported as a bug in `docs/changes/runs-share-funnel-data.md`; diagnosed as a deferred architecture — ADR 0020.)*
 
 ## MVP scope
-**MUST** (pełna izolacja lejka, potwierdzona z userem):
-- Każdy Run ma własne: stresory, next-actiony, zadania, powody, done-visions, sesję focus + task-order.
-- „Aktywny Run" — którego lejka widać w capture/decompose/process/focus — ustawiany przez **Create Run** i **Continue** (przez dashboard, bez nowego UI).
-- Nowy Run = pusty lejek (rozwiązuje zgłoszony błąd bezpośrednio).
-- Per-Run statystyki (każda karta Runa pokazuje tylko swój progres).
-- Kaskadowe usuwanie (`deleteRun` czyści dane lejka tego Runa).
-- Migracja istniejących globalnych danych → zseedowane do najnowszego Runa (jeśli brak — tworzony jeden „first run").
+**MUST** (full funnel isolation, confirmed with the user):
+- Each Run owns its own: stressors, next-actions, tasks, reasons, done-visions, focus session + task-order.
+- The "active Run" — whose funnel is visible in capture/decompose/process/focus — is set by **Create Run** and **Continue** (via the dashboard, with no new UI).
+- A new Run = an empty funnel (resolves the reported bug directly).
+- Per-Run stats (each Run card shows only its own progress).
+- Cascading deletion (`deleteRun` cleans that Run's funnel data).
+- Migration of existing global data → seeded into the newest Run (if none — create one "first run").
 
 **DEFERRED → Later**:
-- Switcher Runa w nagłówku/shellu (user wybrał model dashboard-driven).
-- Porównanie Runów (już poza MVP, ADR 0027).
-- Eksport/sharing Runa.
+- A Run switcher in the header/shell (the user chose a dashboard-driven model).
+- Run comparison (already out of MVP scope, ADR 0027).
+- Run export/sharing.
 
 ## Impact map
-- **New module?**: **nie** — rozszerza `run` (pojemnik + cykl życia) i re-scope'uje warstwę danych modułów lejka. Aktywny-Run żyje w `run` (lub shared).
-- **Modules affected**: **wszystkie 6** — `run` (aktywny Run, per-Run statystyki, kaskadowy delete, chip w nagłówku), `capture` (stresory per-Run), `decompose` (tasks/nextActions/reasons/doneVisions per-Run), `process` (czyta tasks — dziedziczy), `focus` (filter/session/taskOrder per-Run), `dashboard` (Create/Continue ustawia aktywny Run; dominująca karta z realnymi per-Run danymi).
-- **Cross-module integration** (ryzyko #1): dotychczas moduły lejka miały **zero sprzężenia** z `run` (grep `@/modules/run` w capture/decompose/process/focus → 0 hitów). Ten feature **odwraca to** — lejek musi wiedzieć, który Run jest aktywny (przez kontekst). To największe ryzyko planu: każdy czytnik danych lejka musi dostać per-Run wartości, inaczej izolacja nie zadziała.
-- **Shared-doc additions**: `ACTIONS.md` (Create/Continue teraz też „set active Run"), `ENTITY_MAP.md` (relacja `Run ||--o{ Stressor/Task` staje się realna; dotted „hosts" → solid; `TaskOrder` „globalny" → „per-Run"; nowy value `activeRunId`), `GLOSSARY.md` (termin **Active Run**).
+- **New module?**: **no** — extends `run` (container + lifecycle) and re-scopes the data layer of the funnel modules. The active-Run concept lives in `run` (or shared).
+- **Modules affected**: **all 6** — `run` (active Run, per-Run stats, cascading delete, header chip), `capture` (per-Run stressors), `decompose` (per-Run tasks/nextActions/reasons/doneVisions), `process` (reads tasks — inherits), `focus` (per-Run filter/session/taskOrder), `dashboard` (Create/Continue sets the active Run; dominant card with real per-Run data).
+- **Cross-module integration** (risk #1): until now the funnel modules had **zero coupling** with `run` (grep `@/modules/run` in capture/decompose/process/focus → 0 hits). This feature **reverses that** — the funnel must know which Run is active (via context). This is the plan's biggest risk: every funnel data reader must get per-Run values, or isolation won't work.
+- **Shared-doc additions**: `ACTIONS.md` (Create/Continue now also "set active Run"), `ENTITY_MAP.md` (the `Run ||--o{ Stressor/Task` relation becomes real; dotted "hosts" → solid; `TaskOrder` "global" → "per-Run"; a new `activeRunId` value), `GLOSSARY.md` (the **Active Run** term).
 
 ## Per-module changes
 
-### run (główny)
-- **Data**: nowy globalny wskaźnik `activeRunId` (`run:active` w localStorage). `deleteRun` (`use-runs.ts:77`) dostaje kaskadowe usuwanie danych lejka tego Runa.
-- **Actions**: **Create Run** i **Continue** dodatkowo **set active Run** (dziś tego nie robią: `DashboardView.tsx:53-56` tworzy+navigate, `:59` tylko navigate). Nie ma nowej akcji usera — switch jest implikowany przez Create/Continue.
-- **Screens & flows**: chip aktywnego Runa w nagłówku (`AppShell.tsx:41` — slot już zarezerwowany, dziś nieprzypięty) podpięty do realnego stanu. Reszta ekranów Runa bez zmian strukturalnych.
-- **States**: brak aktywnego Runa (świeża apka / aktywny usunięto) — guard na ekranach lejka; toast migracji przy pierwszym ładowaniu po upgrade.
-- **Edge cases**: aktywny Run usunięty/zarchiwizowany w trakcie pracy w lejku; wybór dominującej karty (ADR 0028 `lastActiveAt`) z realnymi per-Run danymi; migruj gdy zero Runów istnieje.
-- **Design**: chip aktywnego Runa — nowa mała powierzchnia w istniejącym shellu; respektuje `DESIGN.md`.
+### run (primary)
+- **Data**: a new global pointer `activeRunId` (`run:active` in localStorage). `deleteRun` (`use-runs.ts:77`) gets cascading deletion of that Run's funnel data.
+- **Actions**: **Create Run** and **Continue** additionally **set the active Run** (today they don't: `DashboardView.tsx:53-56` creates+navigates, `:59` only navigates). No new user action — the switch is implied by Create/Continue.
+- **Screens & flows**: the active-Run chip in the header (`AppShell.tsx:41` — slot already reserved, unassigned today) wired to real state. The rest of the Run screens unchanged structurally.
+- **States**: no active Run (fresh app / active deleted) — a guard on the funnel screens; a migration toast on first load after upgrade.
+- **Edge cases**: the active Run deleted/archived mid-funnel; dominant-card selection (ADR 0028 `lastActiveAt`) with real per-Run data; migrate when zero Runs exist.
+- **Design**: the active-Run chip — a small new surface in the existing shell; respects `DESIGN.md`.
 
 ### capture
-- **Data**: `Stressor` dostaje `runId` (`src/modules/capture/types/stressor.ts`). `useStressors` (`use-stressors.ts:8,16`) scope'uje po `activeRunId`.
-- **Actions**: bez zmian akcji; mutacje (add/update/delete/reorder) działają w obrębie aktywnego Runa.
-- **Edge cases**: niezapisany tekst brain dumpa przy switchu Runa (utrata?).
+- **Data**: `Stressor` gets `runId` (`src/modules/capture/types/stressor.ts`). `useStressors` (`use-stressors.ts:8,16`) scopes by `activeRunId`.
+- **Actions**: no action changes; mutations (add/update/delete/reorder) operate within the active Run.
+- **Edge cases**: unsaved brain-dump text on a Run switch (loss?).
 
 ### decompose
-- **Data**: `runId` na `NextAction` (`next-action.ts`), `Task` (`task.ts:31`), `Reason` (`reason.ts`); `DoneVision` namespacowane per-Run. `useTasks`/`useNextActions`/`useReasons`/`useDoneVisions` (`use-tasks.ts:9,26`, `use-next-actions.ts:8`, `use-reasons.ts:9`, `use-done-visions.ts:13`) scope'owane po `activeRunId`; `bareTask` (`use-tasks.ts:11`) stempluje `runId`.
-- **Edge cases**: reasons/doneVisions izolowane poprawnie (klucze po stressorId są globalnie unikalne, ale hook musi zwracać tylko wpisy aktywnego Runa).
+- **Data**: `runId` on `NextAction` (`next-action.ts`), `Task` (`task.ts:31`), `Reason` (`reason.ts`); `DoneVision` namespaced per-Run. `useTasks`/`useNextActions`/`useReasons`/`useDoneVisions` (`use-tasks.ts:9,26`, `use-next-actions.ts:8`, `use-reasons.ts:9`, `use-done-visions.ts:13`) scoped by `activeRunId`; `bareTask` (`use-tasks.ts:11`) stamps `runId`.
+- **Edge cases**: reasons/doneVisions isolated correctly (keys by stressorId are globally unique, but the hook must return only the active Run's entries).
 
 ### process
-- **Data**: czyta tasks z `decompose` — dziedziczy per-Run izolację bez własnych zmian store'a. Weryfikacja, że `ProcessView` czyta przez scope'owany hook.
+- **Data**: reads tasks from `decompose` — inherits per-Run isolation with no store changes of its own. Verify that `ProcessView` reads through the scoped hook.
 
 ### focus
-- **Data**: `focus:filter`, `focus:session` (`SessionSnapshot = {queue, cursor}`, `focus/types/focus.ts`), `focus:taskOrder` (`FocusView.tsx:62,72,77`) stają się per-Run (aktywny Run). Zapauzowana sesja należy do swojego Runa; resume Continue czyta właściwy snapshot.
-- **Edge cases**: zapauzowana sesja Runa A przy switche do Runa B i z powrotem — musi wznowić właściwą.
+- **Data**: `focus:filter`, `focus:session` (`SessionSnapshot = {queue, cursor}`, `focus/types/focus.ts`), `focus:taskOrder` (`FocusView.tsx:62,72,77`) become per-Run (the active Run). A paused session belongs to its Run; Continue-resume reads the right snapshot.
+- **Edge cases**: Run A's paused session when switching to Run B and back — must resume the right one.
 
 ### dashboard
-- **Data**: dominująca karta + „Other active" pokazują realne per-Run statystyki (dziś jedna globalna wartość mapowana na wszystkie — `use-live-runs.ts:35,49-52`).
-- **Actions**: Create/Continue ustawiają aktywny Run przed navigate.
-- **Edge cases**: dominujący wybór (ADR 0028) przy wielu Runach z realnymi danymi.
+- **Data**: the dominant card + "Other active" show real per-Run stats (today one global value mapped to all — `use-live-runs.ts:35,49-52`).
+- **Actions**: Create/Continue set the active Run before navigating.
+- **Edge cases**: dominant selection (ADR 0028) with multiple Runs of real data.
 
 ## Routing — which proto skill builds what
 | Step | Skill | Target | What it does |
 |------|-------|--------|--------------|
-| 0 | **(direct edit — residual)** | warstwa danych, cross-module | fundament: `runId` na encjach, re-scope hooków, store `run:active` + kontekst, per-Run statystyki, kaskadowy delete, migracja. **Inwersja typowej kolejności** — ten feature jest data-layer-led, nie screen-led; wszystko zależy od tego fundamentu. |
-| 1 | proto-detail | `run` (+ lekko capture/decompose/focus) | zespecyfikować koncept Active Run, per-Run ownership, kaskadowy delete; wpisać do `ACTIONS`/`ENTITY_MAP`/`GLOSSARY`; odświeżyć notki „dane globalne" w specach modułów. |
-| 2 | proto-lofi | `run` (cross-module aware) | podpiąć chip aktywnego Runa w nagłówku do realnego stanu; zapewić by Create/Continue ustawiały aktywny Run (części widoczne). |
-| 3 | proto-edgecases | `run` (+ capture/decompose/focus) | zdiagnozować nowe stany: switch mid-funnel, sesja przez switchami, migracja, sieroty po delete, dominująca karta, guard braku aktywnego Runa. |
-| 4 | proto-harden | `run` | wdrożyć stany z edgecases (guard no-active-run, toast migracji, redirect po usunięciu aktywnego). |
-| 5 | proto-design → polish | `run` | hi-fi chipa aktywnego Runa (nowa mała powierzchnia w shellu). |
+| 0 | **(direct edit — residual)** | data layer, cross-module | the foundation: `runId` on entities, re-scope hooks, a `run:active` store + context, per-Run stats, cascading delete, migration. **An inversion of the usual order** — this feature is data-layer-led, not screen-led; everything depends on this foundation. |
+| 1 | proto-detail | `run` (+ lightly capture/decompose/focus) | spec the Active Run concept, per-Run ownership, cascading delete; write into `ACTIONS`/`ENTITY_MAP`/`GLOSSARY`; refresh the "global data" notes in the module specs. |
+| 2 | proto-lofi | `run` (cross-module aware) | wire the active-Run chip in the header to real state; ensure Create/Continue set the active Run (parts visible). |
+| 3 | proto-edgecases | `run` (+ capture/decompose/focus) | diagnose the new states: mid-funnel switch, session across switches, migration, post-delete orphans, dominant card, no-active-Run guard. |
+| 4 | proto-harden | `run` | implement the states from edgecases (no-active-run guard, migration toast, redirect after deleting the active). |
+| 5 | proto-design → polish | `run` | hi-fi active-Run chip (a small new surface in the shell). |
 
 ## Residual — direct edits not covered by a proto skill
-Fundament warstwy danych (krok 0) — żadne proto-skill tego nie obejmuje; to czysta logika/data plumbing:
+The data-layer foundation (step 0) — no proto-skill covers this; it's pure logic/data plumbing:
 
-- **[typy encji]** dodaj `runId: string` do: `Stressor` (`src/modules/capture/types/stressor.ts`), `NextAction` (`src/modules/decompose/types/next-action.ts`), `Task` (`src/modules/decompose/types/task.ts:31`), `Reason` (`src/modules/decompose/types/reason.ts`). **Dlaczego**: brak `runId` to root cause błędu (`runs-share-funnel-data.md`); encje muszą wiedzieć, do kogo należą.
-- **[active-run store + hook]** nowy klucz `run:active` (`activeRunId | null`) + `useActiveRun()` (`src/modules/run/hooks/`) + `ActiveRunProvider` w root (`src/App.tsx`). **Dlaczego**: dziś nie istnieje pojęcie aktywnego Runa (grep → 0 hitów); lejek musi wiedzieć, którym Runem pracuje. Routing lejka (`App.tsx`) nie ma `runId` w URL → aktywny Run musi być w stanie.
-- **[re-scope hooków lejka]** `useStressors` (`use-stressors.ts:8,16`), `useTasks` (`use-tasks.ts:9,26,11`), `useNextActions` (`use-next-actions.ts:8`), `useReasons` (`use-reasons.ts:9`), `useDoneVisions` (`use-done-visions.ts:13`) — czytają `activeRunId` i zwracają/mutują tylko slice aktywnego Runa. **Decyzja projektowa (moja)**: **Design B** — `runId` na encjach + filtrowanie in-memory po `activeRunId` wewnątrz hooka (konsumenci nie zmieniają call-site'ów). **Dlaczego B nie A (key-per-run)**: `useLocalStorage` czyta key raz przy mount (`use-local-storage.ts:24-34`, `initRef`) — dynamiczny key przy switchu wymagałby rozbudowy hooka/remountu; Design B jest reaktywny bez zmian storage. Trade-off: globalne tablice trzymają wszystkie Runy (localStorage rośnie), delete filtruje — akceptowalne dla prototypu. Design A (key-per-run, twardsza izolacja, trywialny delete) jest alternatywą, jeśli zespół woli.
-- **[focus per-Run]** `focus:filter` / `focus:session` / `focus:taskOrder` (`FocusView.tsx:62,72,77`) scope'owane po aktywnym Runu. **Dlaczego**: zapauzowana sesja i ręczny porządek należą do jednego Runa (`TaskOrder` „w intencji per-Run", ADR 0036/`ENTITY_MAP.md:49`); dziś globalne.
-- **[Create/Continue ustawia aktywne]** `handleStartNew` (`DashboardView.tsx:53-56`) → `setActiveRun(run.id)` przed navigate; `continueRun` (`:59`) oraz Continue w `RunCard`/`RunDetails` → `setActiveRun(run.id)` przed navigate. **Dlaczego**: to jedyny sposób wejścia w lejek konkretnego Runa (model dashboard-driven, potwierdzone z userem).
-- **[per-Run statystyki]** `useLiveRuns` (`use-live-runs.ts:35,49-52`) — zamiast mapować jedną globalną `stats`/`lastReachedStep` na wszystkie Runy, grupuj tasks po `runId` i wyprowadzaj per-Run (`deriveRunStats` z tasks tego Runa). **Dlaczego**: dziś każda karta pokazuje identyczny progres (skutek uboczny fixu ADR 0033).
-- **[kaskadowy delete]** `deleteRun` (`use-runs.ts:77`) — po usunięciu Runa usuń jego stressory/tasks/nextActions/reasons/doneVisions/focus-data (w Design B: filtruj globalne tablice; usuń focus keys tego Runa). **Dlaczego**: inaczej dane sierocieają i zanieczyszczają localStorage.
-- **[migracja]** przy pierwszym ładowaniu po upgrade — jeśli istnieją stare globalne klucze bez `runId`, zseeduj je do najnowszego istniejącego Runa (lub utwórz jeden „first run" i ustaw aktywny). Prod jest zablokowany na scenario 'empty' (`loader.ts:31`), więc migracja dotyczy głównie dev/lokalnego localStorage — ale logika musi istnieć. **Dlaczego**: user (odpowiedź 3) chce zachować obecne dane, nie start od zera.
-- **[scenariusze]** `src/scenarios/data/{capture,decompose,run}.ts` + `scenarios/{minimal,full,focus}.ts` — attachuj `runId` (scenariusz tworzy Run + ustawia aktywny), by mock-data pasowało do nowego modelu.
+- **[entity types]** add `runId: string` to: `Stressor` (`src/modules/capture/types/stressor.ts`), `NextAction` (`src/modules/decompose/types/next-action.ts`), `Task` (`src/modules/decompose/types/task.ts:31`), `Reason` (`src/modules/decompose/types/reason.ts`). **Why**: the lack of `runId` is the root cause of the bug (`runs-share-funnel-data.md`); entities must know who they belong to.
+- **[active-run store + hook]** a new key `run:active` (`activeRunId | null`) + `useActiveRun()` (`src/modules/run/hooks/`) + an `ActiveRunProvider` at the root (`src/App.tsx`). **Why**: today there's no concept of an active Run (grep → 0 hits); the funnel must know which Run it's working on. The funnel routing (`App.tsx`) has no `runId` in the URL → the active Run must live in state.
+- **[re-scope the funnel hooks]** `useStressors` (`use-stressors.ts:8,16`), `useTasks` (`use-tasks.ts:9,26,11`), `useNextActions` (`use-next-actions.ts:8`), `useReasons` (`use-reasons.ts:9`), `useDoneVisions` (`use-done-visions.ts:13`) — read `activeRunId` and return/mutate only the active Run's slice. **Design decision (mine)**: **Design B** — `runId` on entities + in-memory filtering by `activeRunId` inside the hook (consumers don't change call sites). **Why B not A (key-per-run)**: `useLocalStorage` reads the key once on mount (`use-local-storage.ts:24-34`, `initRef`) — a dynamic key on switch would require extending the hook/remounting; Design B is reactive with no storage changes. Trade-off: global arrays hold all Runs (localStorage grows), delete filters — acceptable for a prototype. Design A (key-per-run, harder isolation, trivial delete) is an alternative if the team prefers.
+- **[focus per-Run]** `focus:filter` / `focus:session` / `focus:taskOrder` (`FocusView.tsx:62,72,77`) scoped by the active Run. **Why**: a paused session and a manual order belong to one Run (`TaskOrder` "per-Run in intent", ADR 0036/`ENTITY_MAP.md:49`); today global.
+- **[Create/Continue set active]** `handleStartNew` (`DashboardView.tsx:53-56`) → `setActiveRun(run.id)` before navigating; `continueRun` (`:59`) and Continue in `RunCard`/`RunDetails` → `setActiveRun(run.id)` before navigating. **Why**: this is the only way into a specific Run's funnel (the dashboard-driven model, confirmed with the user).
+- **[per-Run stats]** `useLiveRuns` (`use-live-runs.ts:35,49-52`) — instead of mapping one global `stats`/`lastReachedStep` to all Runs, group tasks by `runId` and derive per-Run (`deriveRunStats` from that Run's tasks). **Why**: today every card shows identical progress (a side effect of the ADR 0033 fix).
+- **[cascading delete]** `deleteRun` (`use-runs.ts:77`) — after removing the Run, delete its stressors/tasks/nextActions/reasons/doneVisions/focus-data (in Design B: filter the global arrays; remove that Run's focus keys). **Why**: otherwise the data is orphaned and pollutes localStorage.
+- **[migration]** on first load after upgrade — if old global keys exist without `runId`, seed them into the newest existing Run (or create one "first run" and set it active). Prod is locked to the 'empty' scenario (`loader.ts:31`), so migration mainly affects dev/local localStorage — but the logic must exist. **Why**: the user (answer 3) wants to keep their current data, not start from scratch.
+- **[scenarios]** `src/scenarios/data/{capture,decompose,run}.ts` + `scenarios/{minimal,full,focus}.ts` — attach `runId` (the scenario creates a Run + sets it active) so the mock data fits the new model.
 
 ## Later (deferred)
-- Switcher aktywnego Runa w shellu (dropdown w nagłówku) — user wybrał model dashboard-driven.
-- Porównanie Runów (ADR 0027, już poza MVP).
-- Eksport/sharing Runa.
+- An active-Run switcher in the shell (a header dropdown) — the user chose a dashboard-driven model.
+- Run comparison (ADR 0027, already out of MVP scope).
+- Run export/sharing.
 
 ## Hand-off
-**Krok 0 (residual — warstwa danych) idzie pierwszy** — to fundament, od którego zależy cała reszta; ten feature jest data-layer-led. Po nim: `proto-detail run` (zespecyfikować koncept + shared-doc), potem `proto-lofi run` (chip + Continue/Create wiring), `proto-edgecases run`, `proto-harden run`, `proto-design/polish run`. Decyzja techniczna (moja): Design B (`runId` na encjach + filtrowanie), bo współpracuje z istniejącym `useLocalStorage` bez zmian. Dokument jest bazą, którą czytają kolejne skille.
+**Step 0 (residual — the data layer) goes first** — it's the foundation the rest depends on; this feature is data-layer-led. After it: `proto-detail run` (spec the concept + shared-doc), then `proto-lofi run` (chip + Continue/Create wiring), `proto-edgecases run`, `proto-harden run`, `proto-design/polish run`. Technical decision (mine): Design B (`runId` on entities + filtering), because it works with the existing `useLocalStorage` without changes. The document is the base the next skills read.
