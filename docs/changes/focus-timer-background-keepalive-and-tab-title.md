@@ -1,104 +1,104 @@
-# Feature: Focus — timer żywy w tle + czas w title karty
+# Feature: Focus — live background timer + time in the tab title
 
 ## Type
 Feature (planned by proto-feature)
 
 ## User goal
-User pracuje w sesji focus i często przełącza się na inną kartę w Edge'u (prawdziwa robota obok). Dwie dolegliwości:
-1. **Title karty nie pokazuje czasu** — żeby rzutem oka na pasek Edge'a widzieć, jak długo już siedzi nad zadaniem, bez wracania na kartę.
-2. **Timer przestaje odliczać w tle** — Edge throttluje/usypia nieaktywną kartę (`setInterval` głównego wątku jest dławiony, a Sleeping Tabs potrafi zawiesić kartę całkowicie). Po powrocie timer „zostaje w tyle", bo liczył ticki, a nie czas. User chce, by karta **nie gasła** i timer **ciągle działał** nawet na nieaktywnej karcie.
+The user works in a focus session and often switches to another tab in Edge (real work alongside). Two pain points:
+1. **The tab title doesn't show the time** — so they can see at a glance in Edge's tab bar how long they've been on a task, without returning to the tab.
+2. **The timer stops counting in the background** — Edge throttles/sleeps an inactive tab (the main-thread `setInterval` is throttled, and Sleeping Tabs can suspend a tab entirely). On return the timer is "behind", because it counted ticks, not time. The user wants the tab to **not go dark** and the timer to **keep running** even on an inactive tab.
 
 ## MVP scope
-**MUSI działać (MVP):**
-- Title karty pokazuje live elapsed timera podczas sesji (`12:34 — Autowork`), z suffixem stanu (`· paused` / `· over`). Poza sesją / w podsumowaniu = normalny title (`Autowork`).
-- Timer jest **zawsze poprawny** po powrocie do karty — model timestamp-based (liczy czas wall-clock, nie ticki). Zero dryfu nawet jeśli karta spała 5 min.
-- Timer **tyka na żywo w tle** (title aktualizuje się co 1 s na nieaktywnej karcie): Web Worker napędza tick + Wake Lock trzyma ekran/kartę przy życiu gdy jest widoczna. Resync na `visibilitychange`.
+**MUST work (MVP):**
+- The tab title shows the timer's live elapsed during a session (`12:34 — Autowork`), with a state suffix (`· paused` / `· over`). Outside a session / in the summary = the normal title (`Autowork`).
+- The timer is **always correct** on return to the tab — a timestamp-based model (counts wall-clock time, not ticks). Zero drift even if the tab slept for 5 min.
+- The timer **ticks live in the background** (the title updates every 1 s on an inactive tab): a Web Worker drives the tick + a Wake Lock keeps the screen/tab alive when visible. Resync on `visibilitychange`.
 
-**Odłożone (Later):**
-- Jakikolwiek in-app wskaźnik statusu keep-alive (np. ikona „karta aktywna"). MVP niewidoczny; patrz sekcja Design.
-- Powiadomienie systemowe / dźwięk przy overtime lub końcu sesji w tle (osobny feature).
-- Guarancja 100% — z poziomu JS nie da się na siłę zabronić Edge'owi uśpienia karty po bardzo długim czasie. Maksimum, co można: Worker + Wake Lock + resync. Przywrócenie zawsze snapuje poprawny czas (patrz Edge cases).
+**Deferred (Later):**
+- Any in-app keep-alive status indicator (e.g. a "tab active" icon). Invisible in the MVP; see the Design section.
+- A system notification / sound on overtime or session end in the background (a separate feature).
+- A 100% guarantee — from JS you can't forcibly forbid Edge from sleeping a tab after a very long time. The maximum: Worker + Wake Lock + resync. A return always snaps to the correct time (see Edge cases).
 
 ## Impact map
-- **Nowy moduł?**: **nie** — rozszerza `focus`.
-- **Moduły dotknięte**: `focus` (mechanizm `Timer` + efekt uboczny title karty). Żaden inny moduł się nie zmienia; `run`/`dashboard` bez zmian (title to chrome przeglądarki, nie powierzchnia apki).
-- **Cross-module integration**: **brak** nowej relacji między encjami. Ryzykowny punkt jest **wewnętrzny** dla `focus` — logika resyncu timestamp + widoczność/pauza w przepisanym `use-focus-timer.ts` (tu żyje poprawność i tu kryją się bugi).
-- **Shared-doc additions** (wpisze `proto-detail`):
-  - `ENTITY_MAP.md` — notka przy encji `Timer`: mechanizm timestamp-based (wall-clock, nie ticki) + poprawność w tle + zachowanie Wake Lock; semantyka `timerElapsed` bez zmian (wciąż bezwzględna liczba sekund).
-  - `ACTIONS.md` — przy akcjach `Timer`: dopiski „stays accurate when tab is backgrounded/slept; resyncs on return" (Start/Pause-Resume) oraz System „keeps ticking in background via Web Worker; screen held awake via Wake Lock".
-  - `GLOSSARY.md` — dopisek do `Timer` (tło: poprawność po powrocie, tytuł karty, keep-alive) + ew. wiersz „Keep-alive (timer w tle)".
-  - `docs/modules/focus.md` — nowy Edge case „Karta w tle / uśpiona karta" + dopisek przy istniejących „Wczesne wyjście / refresh / browser-back" i „Zmiana stanu mid-session (inna karta)".
+- **New module?**: **no** — extends `focus`.
+- **Modules affected**: `focus` (the `Timer` mechanism + the tab-title side effect). No other module changes; `run`/`dashboard` unchanged (the title is browser chrome, not an app surface).
+- **Cross-module integration**: **no** new entity relation. The risky point is **internal** to `focus` — the timestamp resync logic and visibility/pause in the rewritten `use-focus-timer.ts` (this is where correctness lives and where bugs hide).
+- **Shared-doc additions** (written by `proto-detail`):
+  - `ENTITY_MAP.md` — a note by the `Timer` entity: the timestamp-based mechanism (wall-clock, not ticks) + background correctness + Wake Lock behavior; the `timerElapsed` semantics unchanged (still an absolute number of seconds).
+  - `ACTIONS.md` — by the `Timer` actions: addenda "stays accurate when tab is backgrounded/slept; resyncs on return" (Start/Pause-Resume) and System "keeps ticking in background via Web Worker; screen held awake via Wake Lock".
+  - `GLOSSARY.md` — an addendum to `Timer` (background: correctness on return, the tab title, keep-alive) + possibly a "Keep-alive (background timer)" row.
+  - `docs/modules/focus.md` — a new Edge case "Background tab / sleeping tab" + an addendum to the existing "Early exit / refresh / browser-back" and "Mid-session state change (another tab)".
 
 ## Per-module changes
 
 ### focus
 
 #### Data
-- **Brak nowych encji, brak nowych pól.** `Timer` istnieje (ENTITY_MAP); `timerElapsed` (per `Task`) bez zmian semantyki — wciąż bezwzględna liczba sekund, persystowana throttled.
-- Zmiana jest **mechaniczna, nie modelowa**: sposób liczenia (ticki → wall-clock timestamp) i trzymanie karty przy życiu to szczegół implementacyjny `Timer`, nie nowa dana.
+- **No new entities, no new fields.** `Timer` exists (ENTITY_MAP); `timerElapsed` (per `Task`) is semantically unchanged — still an absolute number of seconds, persisted throttled.
+- The change is **mechanical, not model-level**: how it counts (ticks → wall-clock timestamp) and keeping the tab alive are an implementation detail of `Timer`, not new data.
 
 #### Actions
-- Akcje `Timer` (Start / Pause / Resume / counts-past-estimate) bez zmian z punktu widzenia usera.
-- **Nowe zachowania systemowe** (notka w ACTIONS):
-  - Timer pozostaje poprawny, gdy karta jest w tle / uśpiona; po powrocie snapuje do właściwego czasu.
-  - Timer tyka dalej w tle przez Web Worker; ekran trzymany przy życiu Wake Lockiem, gdy karta widoczna.
+- The `Timer` actions (Start / Pause / Resume / counts-past-estimate) are unchanged from the user's perspective.
+- **New system behaviors** (a note in ACTIONS):
+  - The timer stays correct when the tab is backgrounded / asleep; on return it snaps to the correct time.
+  - The timer keeps ticking in the background via a Web Worker; the screen is held awake by a Wake Lock when the tab is visible.
 
 #### Screens & flows
-- **Brak nowych ekranów, brak zmian w istniejących screenach.** `FocusTimer.tsx` (prezentacyjny) bez zmian.
-- Title karty to **efekt uboczny** stanu sesji — side-effect, nie ekran. Zakres: tylko gdy `screen === 'session' && currentTask` (running lub paused).
-- Nawigacja bez zmian.
+- **No new screens, no changes to existing screens.** `FocusTimer.tsx` (presentational) is unchanged.
+- The tab title is a **side effect** of the session state — a side-effect, not a screen. Scope: only when `screen === 'session' && currentTask` (running or paused).
+- Navigation unchanged.
 
 #### States
-- **Brak nowych stanów user-facing** (empty/error/loading). Fallbacki (brak Workera / brak Wake Lock) degradują **po cichu** do main-thread interval / braku blokady usypiania — bez UI, bez komunikatu.
-- Jedno nowe, poprawne zachowanie przy powrocie z długiego tła: timer snapuje do przodu (może wskoczyć w `overtime`). To poprawny wynik, nie stan błędu.
+- **No new user-facing states** (empty/error/loading). Fallbacks (no Worker / no Wake Lock) degrade **silently** to a main-thread interval / no sleep block — no UI, no message.
+- One new, correct behavior on return from a long background period: the timer snaps forward (may jump into `overtime`). This is a correct result, not an error state.
 
-#### Edge cases (instynkt usera + oczywiste; pełna diagnoza → `proto-edgecases`)
-- **Karta uśpiona (Edge Sleeping Tabs)** — ticki mogą nie odpalać wcale; `visibilitychange` → visible wymusza recompute ze timestampu → poprawny czas natychmiast. (Gwarancja poprawności niezależna od keep-alive.)
-- **Pauza w tle / resume w tle** — `running` flipuje; hook musi (re)przechwycić `resumedAt` i zamrozić `baseElapsed` poprawnie nawet gdy karta ukryta.
-- **Powrót po długim tle** — snap do przodu (może wpaść w overtime); natychmiastowy flush persystencji, by nie zgubić.
-- **Dwie karty tej samej sesji** — obie tykają → konflikt zapisu `timerElapsed` (ostatni wygrywa). Powiązane z istniejącą rekonsyliacją mid-session (`storage` event). → `edgecases`.
-- **Brak WSparcia Wake Lock / Worker** (stara przeglądarka, brak secure context) — cicha degradacja; timer nadal poprawny (timestamp).
-- **Rapid przejścia** (Done → next task szybko, Back, Skip) — `initialElapsed` zmienia się; reset `base` + `resumedAt` musi być idempotentny i nie gubić sekundy.
+#### Edge cases (the user's instincts + the obvious; full diagnosis → `proto-edgecases`)
+- **Sleeping tab (Edge Sleeping Tabs)** — ticks may not fire at all; `visibilitychange` → visible forces a recompute from the timestamp → correct time immediately. (The correctness guarantee is independent of keep-alive.)
+- **Pause in the background / resume in the background** — `running` flips; the hook must (re)capture `resumedAt` and freeze `baseElapsed` correctly even when the tab is hidden.
+- **Return after a long background period** — snap forward (may land in overtime); an immediate persistence flush so nothing is lost.
+- **Two tabs of the same session** — both tick → a `timerElapsed` write conflict (last wins). Related to the existing mid-session reconciliation (`storage` event). → `edgecases`.
+- **No Wake Lock / Worker support** (old browser, no secure context) — silent degradation; the timer is still correct (timestamp).
+- **Rapid transitions** (Done → next task quickly, Back, Skip) — `initialElapsed` changes; the `base` + `resumedAt` reset must be idempotent and not lose a second.
 
 #### Design
-- **Brak powierzchni do designu/polish.** Title = chrome przeglądarki; Wake Lock = niewidoczny. `DESIGN.md` **nietknięty**, żadna zaprojektowana powierzchnia się nie zmienia → ten feature nie przechodzi przez `proto-design`/`proto-polish`.
-- (Later) ewentualny in-app wskaźnik keep-alive byłby nową powierzchnią → wtedy `design`+`polish`. W MVP celowo pominięte.
+- **No surface to design/polish.** The title = browser chrome; Wake Lock = invisible. `DESIGN.md` is **untouched**, no designed surface changes → this feature doesn't go through `proto-design`/`proto-polish`.
+- (Later) any in-app keep-alive indicator would be a new surface → then `design`+`polish`. Deliberately omitted in the MVP.
 
 ## Routing — which proto skill builds what
 
-Ten feature to **głównie zmiana logiki/mechanizmu** (nie dodaje ekranów). Dlatego klasyczny lejek `lofi → harden → design` się nie aplicjuje — rdzeń to residual direct-edit, a `detail`/`edgecases`/`harden` pełnią rolę wspierającą.
+This feature is **mainly a logic/mechanism change** (it adds no screens). So the classic `lofi → harden → design` funnel doesn't apply — the core is a residual direct-edit, and `detail`/`edgecases`/`harden` play a supporting role.
 
-| Step | Skill | Target | Co robi |
-|------|-------|--------|---------|
-| 1 | `proto-detail` | focus | Zespecyfikować delty: mechanizm timera (timestamp), title karty, keep-alive (Worker + Wake Lock + resync). Wpisać notki do ENTITY_MAP / ACTIONS / GLOSSARY + nowy Edge case w `focus.md`. **Light.** |
-| 2 | **(residual direct-edit)** | focus | Zbudować mechanizm — patrz sekcja Residual niżej. To rdzeń feature'a. |
-| 3 | `proto-edgecases` | focus | Zdiagnozować przypadki brzegowe tła/widoczności/pauzy/multi-tab na zbudowanym mechanizmie (`focus-edgecases.md` re-audit). |
-| 4 | `proto-harden` | focus | **Tylko warunkowo** — jeśli `edgecases` znajdzie lukę user-facing. Większość fallbacków jest po cichu; prawdopodobnie minimalny. |
+| Step | Skill | Target | What it does |
+|------|-------|--------|--------------|
+| 1 | `proto-detail` | focus | Spec the deltas: the timer mechanism (timestamp), the tab title, keep-alive (Worker + Wake Lock + resync). Write notes into ENTITY_MAP / ACTIONS / GLOSSARY + a new Edge case in `focus.md`. **Light.** |
+| 2 | **(residual direct-edit)** | focus | Build the mechanism — see the Residual section below. This is the feature's core. |
+| 3 | `proto-edgecases` | focus | Diagnose the background/visibility/pause/multi-tab edge cases on the built mechanism (`focus-edgecases.md` re-audit). |
+| 4 | `proto-harden` | focus | **Only conditionally** — if `edgecases` finds a user-facing gap. Most fallbacks are silent; likely minimal. |
 
-**Pominięte celowo:** `proto-lofi` (brak nowych ekranów), `proto-design` / `proto-polish` (brak on-screen zmiany), `proto-highlevelui` (brak wpływu na shell/nav).
+**Deliberately omitted:** `proto-lofi` (no new screens), `proto-design` / `proto-polish` (no on-screen change), `proto-highlevelui` (no impact on the shell/nav).
 
-**Sekwencja:** `detail` (spec) → residual (budowa mechanizmu) → `edgecases` (stress-test) → `harden` (jeśli trzeba). Można pominąć `detail` i wejść prosto w residual, jeśli user chce iść szybko — plan ma wystarczająco szczegółów.
+**Sequence:** `detail` (spec) → residual (build the mechanism) → `edgecases` (stress-test) → `harden` (if needed). You can skip `detail` and go straight to residual if the user wants to move fast — the plan has enough detail.
 
 ## Residual — direct edits not covered by a proto skill
 
-Rdzeń implementacji. Wszystkie pliki w `src/modules/focus/`.
+The implementation core. All files in `src/modules/focus/`.
 
-- **[`src/modules/focus/hooks/use-focus-timer.ts:19-45`]** — **RYZYKOWNE, tu żyje poprawność.** Teraz: akumulacja ticków (`setInterval(prev => prev + 1)`, 1000 ms). Zmiana na **model timestamp-based**:
-  - Dodać refs: `baseRef` (sekundy zamrożone przy pauzie/zmianie taska) i `resumedAtRef` (ms wall-clock ostatniego wznowienia).
-  - `compute() = baseRef + floor((Date.now() - resumedAtRef)/1000)` gdy running, inaczej `baseRef`.
-  - `running` → true: `resumedAtRef = Date.now()`, start ticku (Worker, fallback: main-thread `setInterval`). `running` → false: `baseRef = compute()`, stop tick.
-  - Efekt resetu przy `initialElapsed` (`:27-30`): też reset `baseRef = initialElapsed` i `resumedAtRef = running ? Date.now() : null`.
-  - Listener `visibilitychange`: gdy `visible && running` → `setElapsed(compute())` (wymuszenie snapu — zabezpieczenie na wypadek całkowicie porzuconych ticków przez uśpioną kartę) + natychmiastowy flush.
-  - `onPersist` (throttled co ~5 s), unmount-flush i API `flush()` **bez zmian** — konsumenci (`FocusView`) nietknięci.
-- **[`src/modules/focus/workers/timer-tick.worker.ts`]** — **nowy plik.** Worker z `setInterval(() => postMessage('tick'), 1000)`; tick Workera jest throttlowany znacznie słabiej w tle niż main-thread. Tworzony przez `new Worker(new URL('./timer-tick.worker.ts', import.meta.url), { type: 'module' })` (Vite wspiera natywnie). Fallback: jeśli `typeof Worker === 'undefined'` lub konstrukcja rzuca → main-thread `setInterval` (poprawność timestampu i tak gwarantowana). Worker terminowany w cleanupie.
-- **[Wake Lock]** — w hooku lub nowym `src/modules/focus/hooks/use-wake-lock.ts`: gdy `running && !document.hidden` → `navigator.wakeLock.request('screen')` (trzyma ekran/kartę przy życiu gdy widoczna — lever na „karta nie może gasnąć"); release przy pauzie/hidden/unmount; re-acquire na `visibilitychange → visible`. Guard `if ('wakeLock' in navigator)`. Cicha degradacja, gdy niedostępne.
-- **[`src/modules/focus/hooks/use-focus-tab-title.ts`]** — **nowy plik.** `useFocusTabTitle({ active, clock, paused, over })`: przy mount czyta `document.title` (base = `Autowork` z `index.html:6`); gdy `active` ustawia `${clock}${paused ? ' · paused' : ''}${over ? ' · over' : ''} — ${base}`; przy unmount przywraca base. UI copy po angielsku (zgodnie z konwencją apki).
-- **[`src/modules/focus/components/FocusView.tsx:214-218`]** — zaraz po `useFocusTimer`, podpiąć `useFocusTabTitle({ active: screen === 'session' && !!currentTask, clock: formatClock(elapsed), paused: screen === 'session' && !running, over: currentTask?.estimatedTime != null && elapsed > currentTask.estimatedTime * 60 })`. Zaimportować `formatClock` z `../types/focus`.
+- **[`src/modules/focus/hooks/use-focus-timer.ts:19-45`]** — **RISKY, this is where correctness lives.** Today: tick accumulation (`setInterval(prev => prev + 1)`, 1000 ms). Change to a **timestamp-based model**:
+  - Add refs: `baseRef` (seconds frozen on pause/task-change) and `resumedAtRef` (wall-clock ms of the last resume).
+  - `compute() = baseRef + floor((Date.now() - resumedAtRef)/1000)` when running, otherwise `baseRef`.
+  - `running` → true: `resumedAtRef = Date.now()`, start the tick (Worker, fallback: main-thread `setInterval`). `running` → false: `baseRef = compute()`, stop the tick.
+  - The reset effect on `initialElapsed` (`:27-30`): also reset `baseRef = initialElapsed` and `resumedAtRef = running ? Date.now() : null`.
+  - A `visibilitychange` listener: when `visible && running` → `setElapsed(compute())` (force a snap — a safeguard in case ticks were entirely dropped by a sleeping tab) + an immediate flush.
+  - `onPersist` (throttled every ~5 s), unmount-flush, and the `flush()` API are **unchanged** — consumers (`FocusView`) untouched.
+- **[`src/modules/focus/workers/timer-tick.worker.ts`]** — **new file.** A Worker with `setInterval(() => postMessage('tick'), 1000)`; the Worker's tick is throttled far less in the background than the main-thread one. Created via `new Worker(new URL('./timer-tick.worker.ts', import.meta.url), { type: 'module' })` (Vite supports this natively). Fallback: if `typeof Worker === 'undefined'` or construction throws → main-thread `setInterval` (timestamp correctness is guaranteed regardless). The Worker is terminated in cleanup.
+- **[Wake Lock]** — in the hook or a new `src/modules/focus/hooks/use-wake-lock.ts`: when `running && !document.hidden` → `navigator.wakeLock.request('screen')` (keeps the screen/tab alive when visible — the lever on "the tab can't go dark"); release on pause/hidden/unmount; re-acquire on `visibilitychange → visible`. Guard `if ('wakeLock' in navigator)`. Silent degradation when unavailable.
+- **[`src/modules/focus/hooks/use-focus-tab-title.ts`]** — **new file.** `useFocusTabTitle({ active, clock, paused, over })`: on mount it reads `document.title` (base = `Autowork` from `index.html:6`); when `active` it sets `${clock}${paused ? ' · paused' : ''}${over ? ' · over' : ''} — ${base}`; on unmount it restores the base. UI copy in English (per the app convention).
+- **[`src/modules/focus/components/FocusView.tsx:214-218`]** — right after `useFocusTimer`, wire `useFocusTabTitle({ active: screen === 'session' && !!currentTask, clock: formatClock(elapsed), paused: screen === 'session' && !running, over: currentTask?.estimatedTime != null && elapsed > currentTask.estimatedTime * 60 })`. Import `formatClock` from `../types/focus`.
 
 ## Later (deferred)
-- In-app wskaźnik statusu keep-alive (nowa powierzchnia → wtedy `design`+`polish`).
-- Powiadomienie/dźwięk przy overtime lub końcu sesji, gdy karta w tle.
-- Pełna guarancja przeciw usypianiu karty przez Edge po bardzo długim czasie (poza zasięgiem JS; resync zawsze poprawia wartość po powrocie).
+- An in-app keep-alive status indicator (a new surface → then `design`+`polish`).
+- A notification/sound on overtime or session end when the tab is in the background.
+- A full guarantee against Edge sleeping the tab after a very long time (beyond JS's reach; resync always corrects the value on return).
 
 ## Hand-off
-Odpal w kolejności: `proto-detail focus` (spec delty + shared-doc notki) → residual direct-edits powyżej (rdzeń) → `proto-edgecases focus` → ew. `proto-harden focus`. Plan jest bazą, którą czytają te skille. Jeśli scope się zmieni — odpal `proto-feature` ponownie.
+Run in order: `proto-detail focus` (spec the deltas + shared-doc notes) → the residual direct-edits above (the core) → `proto-edgecases focus` → possibly `proto-harden focus`. The plan is the base those skills read. If the scope changes — run `proto-feature` again.
