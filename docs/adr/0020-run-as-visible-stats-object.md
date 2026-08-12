@@ -1,17 +1,17 @@
-# 0020 - Run jako widoczny obiekt ze statystykami (wiele runów)
+# 0020 - Run as a visible object with stats (multiple runs)
 
 **Date**: 2026-06-29
 **Module**: run
 **Status**: Accepted
 
 ## Context
-`MODULES.md` pierwotnie ramował moduł `run` jako minimalny MVP — „wystarczy jeden aktywny Run", traktowany raczej jako cicha warstwa persystencji. W trakcie detailing `run` user sprecyzował odwrotną wizję: Run to **widoczny, namacalny obiekt, którym świadomie zarządza** — widzi statystyki (czas spędzony, wykonane, zostało, progress), a **wiele runów żyje równolegle**, odpalanych z dashboardu.
+`MODULES.md` originally framed the `run` module as a minimal MVP — "one active Run is enough", treated more as a silent persistence layer. During `run` detailing the user specified the opposite vision: a Run is a **visible, tangible object they manage consciously** — they see stats (time spent, done, left, progress), and **many runs live in parallel**, launched from the dashboard.
 
 ## Decision
-Run = widoczny obiekt ze statystykami (nie ukryty pojedynczy kontener). Wiele runów równolegle. Każdy Run niesie statystyki: `timeSpent` (łączny czas z focusa — suma `timerElapsed`), wykonane (`completed + dismissed`), zostało, `progress` %. To **superseded** notki „MVP = jeden aktywny Run" z `MODULES.md`.
+Run = a visible object with stats (not a hidden single container). Many runs in parallel. Each Run carries stats: `timeSpent` (total time from focus — sum of `timerElapsed`), done (`completed + dismissed`), left, `progress` %. This **supersedes** the "MVP = one active Run" note in `MODULES.md`.
 
 ## Impact
-- `MODULES.md`: wpis `run` rozszerzony (multi-run, statystyki, archive); usunięta minimalistyczna ramka MVP.
+- `MODULES.md`: the `run` entry expanded (multi-run, stats, archive); the minimalistic MVP framing removed.
 - `ENTITY_MAP.md`: Run zyskuje atrybut `timeSpent`.
 - `ACTIONS.md`: dodane `View Details / Stats`.
 - `docs/modules/run.md`: utworzony (Vision, flow Create/Continue/Details).

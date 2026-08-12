@@ -5,11 +5,11 @@
 **Status**: Accepted
 
 ## Context
-W `decompose` next-actiony są materiałem, który trafia na listę focus i ma być realnie wykonany. User podkreślił, że **akcje muszą być zapisane aktywnym językiem i być konkretne** — bo właśnie ogólne/vague sformułowania rodzą paraliż (główny driver apki dla osoby ADHD/overwhelmed).
+In `decompose`, next-actions are the material that lands on the focus list and is meant to be really executed. The user stressed that **actions must be written in active language and be concrete** — because general/vague phrasings are exactly what breeds paralysis (the app's main driver for an ADHD/overwhelmed person).
 
 ## Decision
-Przyjąć standard treściowy: każdy **NextAction zapisany aktywnym, konkretnym językiem** — czasownik na początku, fizycznie wykonalne („zrobisz to w jednym siadaniu"). App **modeluje ten styl w promptach i przykładach** (np. „zadzwoń do…", „wyślij…", „wpłać…"), ciągnąc usera ku konkretnym sformułowaniom — analogicznie do wzorca nudge (prompt + skip) z WHY i z `capture`.
+Adopt a content standard: every **NextAction written in active, concrete language** — a verb up front, physically doable ("you can do it in one sitting"). The app **models this style in prompts and examples** (e.g. "call…", "send…", "pay in…"), pulling the user toward concrete phrasings — analogous to the nudge pattern (prompt + skip) from WHY and from `capture`.
 
 ## Impact
-- `ACTIONS.md`: notka przy `Add NextAction` (aktywny/konkretny język) i przy `Decompose into Tasks` (prompt „Jak to możesz rozbić?" + skip = 1 task).
+- `ACTIONS.md`: a note by `Add NextAction` (active/concrete language) and by `Decompose into Tasks` (the "How can you break this down?" prompt + skip = 1 task).
 - `docs/modules/decompose.md`: zasada odzwierciedlona w wizji, flow (krok 3) i edge cases.

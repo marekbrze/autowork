@@ -1,32 +1,32 @@
-# 0037 - Lista zadań na RunDetails + akcje kolejki
+# 0037 - Task list on RunDetails + queue actions
 
 **Date**: 2026-06-30
 **Module**: run, focus
 **Status**: Accepted
 
 ## Context
-Feature `session-queue-order-and-run-task-list` (ADR 0035): user chce widzieć **realną listę zadań** (nie tylko agregaty) na Szczegółach `run` i działać z listy; oraz ręcznie przełożyć kolejność w filtrze `focus`. `TaskOrder` jako współdzielony model ustalono w ADR 0036.
+The `session-queue-order-and-run-task-list` feature (ADR 0035): the user wants to see a **real task list** (not just aggregates) on `run` Details and act from the list; and to manually reorder in the `focus` filter. `TaskOrder` as a shared model was decided in ADR 0036.
 
 ## Decision
 
 **A) Akcje kolejki (`focus`)** — dopisane do `ACTIONS.md` (encja `Task`):
-- `Reorder queue` — drag / ↑↓ na liście dopasowanych; aktualizuje `TaskOrder` (ADR 0036). Honest persistence: przy awarii zapisu lokalny stan się nie psuje (wzorzec `ProcessView`).
-- `Reset queue order` — czyści `TaskOrder` → powrót do ranku stresora.
+- `Reorder queue` — drag / ↑↓ on the matched list; updates `TaskOrder` (ADR 0036). Honest persistence: on a write failure the local state doesn't break (the `ProcessView` pattern).
+- `Reset queue order` — clears `TaskOrder` → back to stressor rank.
 
-**B) Lista zadań na RunDetails (`run`)** — nowa sekcja „Tasks" między statystykami (`RunStatTiles`) a blokiem Continue:
-- Lista wszystkich tasków (`decompose:tasks`, globalne — ADR 0020) **pogrupowana stanem**: **To do** (`pending`/`skipped`/`active`), **Done** (`completed`), **Not relevant** (`dismissed`); sort wewnątrz grupy po `TaskOrder` (ADR 0036).
-- Wiersz: tekst + plakietka stanu (+ labelka „untagged" gdy bez atrybutów) + akcje.
+**B) Task list on RunDetails (`run`)** — a new "Tasks" section between the stats (`RunStatTiles`) and the Continue block:
+- A list of all tasks (`decompose:tasks`, global — ADR 0020) **grouped by state**: **To do** (`pending`/`skipped`/`active`), **Done** (`completed`), **Not relevant** (`dismissed`); sorted within a group by `TaskOrder` (ADR 0036).
+- Row: text + a state badge (+ an "untagged" label when it has no attributes) + actions.
 - Akcje z listy (dopisane do `ACTIONS.md`):
   - `Mark task done (from details)` — `pending`/`skipped`/`active` → `completed`.
   - `Mark task not-relevant (from details)` — → `dismissed` (terminalnie; undo; liczy do progresem, ADR 0017).
-- **`run` po raz pierwszy mutuje stany tasków** — cross-module write przez `updateTask` (`decompose/hooks/use-tasks.ts`). Statystyki (`deriveRunStats`, `stats.ts`) i krok resume (`deriveLastReachedStep`) czytają `state` bezpośrednio → przeliczają się na żywo.
+- **`run` mutates task states for the first time** — a cross-module write via `updateTask` (`decompose/hooks/use-tasks.ts`). The stats (`deriveRunStats`, `stats.ts`) and the resume step (`deriveLastReachedStep`) read `state` directly → they recompute live.
 
-**Poza scopem (Later):** edycja tekstu/atrybutów i usuwanie taska z RunDetails; „otwórz ponownie" (→ `pending`) z listy; `Skip` z listy (skip = pojęcie sesji, nie listy).
+**Out of scope (Later):** editing text/attributes and deleting a task from RunDetails; "reopen" (→ `pending`) from the list; `Skip` from the list (skip is a session concept, not a list one).
 
 ## Impact
 - `ACTIONS.md`: 5 nowych akcji (`Reorder queue`, `Reset queue order`, `View run task list`, `Mark task done (from details)`, `Mark task not-relevant (from details)`).
-- `GLOSSARY.md`: dodano termin `Lista zadań Runa` (`RunTaskList`).
-- `run.md`: nowy flow „Praca z listą zadań", zaktualizowany ekran RunDetails (sekcja „Tasks"), nowe edge case'y.
+- `GLOSSARY.md`: added the term `Run task list` (`RunTaskList`).
+- `run.md`: a new "Working with the task list" flow, an updated RunDetails screen (the "Tasks" section), new edge cases.
 - `focus.md`: zaktualizowany flow/ekran filtra (lista dopasowanych + reset).
-- Cross-module: `run` → store tasków `decompose` (read + write) — **pierwszy zapis z `run`**; weryfikacja live-odświeżania statystyk po mutacjach.
-- Otwarte (→ `edgecases`/`harden`): wpływ done/dismiss z listy na `lastReachedStep`/routing resume; empty-state listy; task bez atrybutów („untagged"); done/dismiss na już-w-tym-stanie; dismiss z listy (confirm vs undo).
+- Cross-module: `run` → the `decompose` task store (read + write) — **the first write from `run`**; verify the live stat refresh after mutations.
+- Open (→ `edgecases`/`harden`): the impact of done/dismiss from the list on `lastReachedStep`/resume routing; the list empty-state; an attributeless task ("untagged"); done/dismiss on an already-in-that-state task; dismiss from the list (confirm vs undo).

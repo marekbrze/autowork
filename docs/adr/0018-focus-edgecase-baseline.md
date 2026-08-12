@@ -5,14 +5,14 @@
 **Status**: Accepted
 
 ## Context
-Moduł `focus` został zbudowany w `proto-lofi` (happy paths działają), ale nie był jeszcze systematycznie streszczany pod kątem edge case'ów. `proto-detail` celowo odłożył ten audyt („nie wymuszaj systematycznego audytu — to proto-edgecases").
+The `focus` module was built in `proto-lofi` (the happy paths work), but it hadn't yet been systematically stress-tested for edge cases. `proto-detail` deliberately deferred this audit ("don't force a systematic audit — that's proto-edgecases").
 
 ## Decision
-Audyt wykonany w `docs/modules/focus-edgecases.md`. Znaleziono **10** gapów: 🔴 1 · 🟡 4 · 🟢 5. Top priorytety:
-- 🔴 **Honest persistence** — handlery akcji ignorują wynik `updateTask`/`deleteTask`; przy awarii zapisu UI idzie dalej, a kolejna akcja nadpisuje `pendingRef` → cicha utrata danych (względem `ProcessView.tsx:185-199`, który sprawdza `if (!ok) return`).
-- 🟡 **Brak persystencji sesji** — Exit/refresh/browser-back gubią pozycję w sesji; spec obiecuje Exit → `active` + resume (lo-fi odkłada `pending` i porzuca).
-- 🟡 **Undo Dismiss nieosiągalne dla ostatniego taska** — skok do summary odmontowuje toast (ADR 0017 obiecuje undo).
-- 🟡 **Mylny empty-state** — „Brak atrybutów" pokazuje się też gdy wszystkie taski rozwiązane.
+The audit is in `docs/modules/focus-edgecases.md`. **10** gaps found: 🔴 1 · 🟡 4 · 🟢 5. Top priorities:
+- 🔴 **Honest persistence** — action handlers ignore the result of `updateTask`/`deleteTask`; on a write failure the UI moves on, and the next action overwrites `pendingRef` → silent data loss (vs `ProcessView.tsx:185-199`, which checks `if (!ok) return`).
+- 🟡 **No session persistence** — Exit/refresh/browser-back lose the session position; the spec promises Exit → `active` + resume (the lo-fi defers `pending` and abandons).
+- 🟡 **Undo Dismiss unreachable for the last task** — the jump to summary unmounts the toast (ADR 0017 promises undo).
+- 🟡 **Misleading empty-state** — "No attributes" also shows when all tasks are resolved.
 
 ## Impact
-`proto-harden` wdroży listę priorytetową (na początek #1 persistence + #2 resume + #3 undo-na-summary + #4 rozdzielenie empty-state). Po zmianach w prototypie — uruchomić `proto-edgecases` ponownie dla świeżego baseline'u.
+`proto-harden` will implement the priority list (starting with #1 persistence + #2 resume + #3 undo-on-summary + #4 splitting the empty-state). After the prototype changes — re-run `proto-edgecases` for a fresh baseline.

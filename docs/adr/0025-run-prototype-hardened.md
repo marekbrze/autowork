@@ -5,17 +5,17 @@
 **Status**: Accepted
 
 ## Context
-Prototyp `run` obsługiwał happy paths, ale audyt `proto-edgecases` (`docs/modules/run-edgecases.md`, ADR 0024) znalazł 16 luk (🔴 0 · 🟡 9 · 🟢 7). Największa grupa — CM-1/2/3 (statystyki / `lastReachedStep` / review-items spięte z realnymi danymi lejka) — to **cross-module feature work** (wymaga `runId` na stresorach/taskach + partycji danych we wszystkich krokach lejka + scenariuszach), poza zakresem harden.
+The `run` prototype handled happy paths, but the `proto-edgecases` audit (`docs/modules/run-edgecases.md`, ADR 0024) found 16 gaps (🔴 0 · 🟡 9 · 🟢 7). The biggest group — CM-1/2/3 (stats / `lastReachedStep` / review-items wired to real funnel data) — is **cross-module feature work** (needs `runId` on stressors/tasks + data partitioning across all funnel steps + scenarios), outside harden's scope.
 
 ## Decision
-Decyzja designu: **oznaczyć statystyki jako poglądowe + odłożyć realne spięcie** (CM-1/2/3 → ❌, faza integracji Runa / moduł `dashboard`). Dyskretny caption „Statystyki poglądowe…" na `RunStatTiles`. Reszta hardenu — lokalne stany na istniejących ekranach (6 wdrożonych):
-- **LE-1** — stan błędu odczytu storage (`RunReadError`) zamiast mylnego empty-state na listach (`RunsList`, `ArchivedRuns`).
-- **FI-1 / DS-2** — walidacja rename (disabled „Zapisz" + `aria-invalid` + komunikat) + `maxLength` 60 + `truncate` tytułu karty.
-- **ST-1** — ukończony Run → sekcja celebracji + CTA „Archiwizuj" (`RunCompleted`).
-- **AO-2** — `ConfirmDialog` na „Usuń przeterminowane" w Review.
-- **AO-3** — honest persistence: dialog usuwania zamyka się tylko po udanym zapisie.
+Design decision: **mark the stats as overview + defer the real wiring** (CM-1/2/3 → ❌, the Run-integration phase / the `dashboard` module). A discreet "Overview stats…" caption on `RunStatTiles`. The rest of the harden — local states on existing screens (6 implemented):
+- **LE-1** — a storage read-error state (`RunReadError`) instead of a misleading empty-state on the lists (`RunsList`, `ArchivedRuns`).
+- **FI-1 / DS-2** — rename validation (disabled "Save" + `aria-invalid` + a message) + `maxLength` 60 + a card-title `truncate`.
+- **ST-1** — a completed Run → a celebration section + an "Archive" CTA (`RunCompleted`).
+- **AO-2** — a `ConfirmDialog` on "Remove stale" in Review.
+- **AO-3** — honest persistence: the delete dialog closes only after a successful write.
 
-Odłożone (❌, z racją): CM-1/2/3 (cross-module), FI-2 (rename niedestrukcyjny), AO-1 (implicit feedback wystarcza), DS-1/DS-3/DS-4/LE-2/NF-1 (polish / świadome kompromisy). Każda luka ma status + `file:line` w `run-edgecases.md → Resolution`.
+Deferred (❌, for good reason): CM-1/2/3 (cross-module), FI-2 (rename is non-destructive), AO-1 (implicit feedback is enough), DS-1/DS-3/DS-4/LE-2/NF-1 (polish / conscious compromises). Each gap has a status + `file:line` in `run-edgecases.md → Resolution`.
 
 ## Impact
-Prototyp `run` obsługuje teraz świadomie każdą ścieżkę (pomyślną i błędną): błędy odczytu, walidację rename, potwierdzenia destrukcyjne, stan ukończenia. Happy path niezmieniony. Największa usunięta fragmentaryczność: mylny empty-state przy uszkodzonym `run:runs` → jasny stan błędu z naprawą. CM-1/2/3 pozostają otwartą decyzją architektoniczną na fazę integracji Runa. Oprawa wizualna / celebracja to przyszły `proto-design`.
+The `run` prototype now deliberately handles every path (success and error): read errors, rename validation, destructive confirmations, the completed state. The happy path is unchanged. The biggest fragmentation removed: a misleading empty-state on a corrupt `run:runs` → a clear error state with recovery. CM-1/2/3 remain an open architectural decision for the Run-integration phase. The visual treatment / celebration is a future `proto-design`.

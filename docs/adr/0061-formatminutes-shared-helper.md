@@ -4,14 +4,14 @@
 **Status**: Accepted
 
 ## Context
-Feature `run-estimated-time-totals` (ADR 0059/0060) potrzebuje formattera minut → „2h 35m" / „45m" na **trzech** powierzchniach w trzech modułach: `RunStatTiles` (`run`), `DominantRunCard` (`dashboard`) i `SessionFilter` (`focus`).
+The `run-estimated-time-totals` feature (ADR 0059/0060) needs a minutes → "2h 35m" / "45m" formatter on **three** surfaces in three modules: `RunStatTiles` (`run`), `DominantRunCard` (`dashboard`), and `SessionFilter` (`focus`).
 
-Moduł `run` już ma `formatDuration(seconds)` w `run/types/run.ts`. Naturalny impuls — dodać `formatMinutes` obok niego. Ale `dashboard` już importuje z `run` (`@/modules/run/types/run`), a **`focus` nie** — moduł lejka `focus` dziś nie sięga do `run`. Wczenie `formatMinutes` w `run` + użycie w `focus` stworzyłoby nową zależność `focus` → `run`, przeciwną do kierunku architektury: `run` agreguje dane lejka, moduły lejka nie importują z `run` (`run/stats.ts` czyta localStorage bez hooków lejka właśnie po to, by nie tworzyć cyklu).
+The `run` module already has `formatDuration(seconds)` in `run/types/run.ts`. The natural impulse — add `formatMinutes` next to it. But `dashboard` already imports from `run` (`@/modules/run/types/run`), and **`focus` does not** — the `focus` funnel module doesn't reach into `run` today. Putting `formatMinutes` in `run` + using it in `focus` would create a new `focus` → `run` dependency, opposite to the architecture's direction: `run` aggregates funnel data, the funnel modules don't import from `run` (`run/stats.ts` reads localStorage without funnel hooks precisely to avoid a cycle).
 
 ## Decision
-`formatMinutes(totalMinutes: number): string` siedzi w **nowym pliku `src/shared/format.ts`** (współdzielona warstwa), nie w module `run`. Algorytm: minuty → „2h 35m" (h+m), „45m" (tylko m), „0m" (0) — równoległy do `formatDuration`, ale wejście w minutach.
+`formatMinutes(totalMinutes: number): string` lives in **a new file `src/shared/format.ts`** (the shared layer), not in the `run` module. Algorithm: minutes → "2h 35m" (h+m), "45m" (m only), "0m" (0) — parallel to `formatDuration`, but with input in minutes.
 
-`formatDuration` (sekundy, dziś w `run/types/run.ts`) pozostaje na miejscu — poza scopem tego ficzera; ewentualne przeniesienie go do `shared` (razem z de-duplikacją) to osobna decyzja.
+`formatDuration` (seconds, today in `run/types/run.ts`) stays where it is — out of scope for this feature; moving it to `shared` (with de-duplication) is a separate decision.
 
 ## Impact
-Nowy plik `src/shared/format.ts`. `run`/`dashboard`/`focus` importują `formatMinutes` z `@/shared/format` — brak nowej zależności między-modułowej (`focus` → `run`), kierunek architektury zachowany. Residual edit (lokalizacja) rozpisany w planie feature'u.
+A new file `src/shared/format.ts`. `run`/`dashboard`/`focus` import `formatMinutes` from `@/shared/format` — no new inter-module dependency (`focus` → `run`), the architecture's direction preserved. The residual edit (location) is written up in the feature plan.

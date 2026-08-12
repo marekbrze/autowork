@@ -5,16 +5,16 @@
 **Status**: Accepted
 
 ## Context
-Prototyp `process` (3-ekranowa maszyna stanów: summary → processing → done, wzorzec `dopadone`) obsługiwał happy paths i większość edge-case'ów była już uwzględniona w specyfikacji modułu, a wiele z nich — w tym obsługa błędów LocalStorage (toast + retry) — było już zaimplementowanych mimo adnotacji „po `proto-harden`". Brakowało jednak systematycznego stresstestu gotowych ekranów.
+The `process` prototype (a 3-screen state machine: summary → processing → done, the `dopadone` pattern) handled happy paths, and most edge cases were already accounted for in the module spec, with many of them — including LocalStorage error handling (toast + retry) — already implemented despite the "after `proto-harden`" annotations. What was missing was a systematic stress-test of the built screens.
 
 ## Decision
-Przeprowadzono audyt (`proto-edgecases`) — wynik w `docs/modules/process-edgecases.md`. Znaleziono **10 luk** (🔴 1 · 🟡 3 · 🟢 6). Luki skupiają się wokół jednego korzenia: integracja przepływu processing z honest-persistence warstwy storage.
+An audit was run (`proto-edgecases`) — the result is in `docs/modules/process-edgecases.md`. **10 gaps** found (🔴 1 · 🟡 3 · 🟢 6). The gaps cluster around one root: integrating the processing flow with the storage layer's honest persistence.
 
 Top priorytety (hand-off do `proto-harden`):
-1. **#1 (🔴)** — `commit` advance'uje krok i stawia ✓ także przy **nieudanym zapisie** atrybutu (quota/disabled) → UI kłamie, atrybut po refresh znika. `updateTask`/`deleteTask` zwracają `void` i nie raportują sukcesu zapisu.
-2. **#2 (🟡)** — usuwanie taska bez potwierdzenia/undo, mimo że `decompose` ma wielokrotnie używalny `ConfirmDialog`.
+1. **#1 (🔴)** — `commit` advances the step and sets ✓ even on a **failed attribute write** (quota/disabled) → the UI lies, the attribute vanishes after refresh. `updateTask`/`deleteTask` return `void` and don't report the write's success.
+2. **#2 (🟡)** — deleting a task with no confirmation/undo, even though `decompose` has a reusable `ConfirmDialog`.
 3. **#3 (🟡)** — globalny handler Enter „double-fires" przy sfokusowanym przycisku (option-card / Edit / Trash); guard wyklucza tylko INPUT/TEXTAREA.
 4. **#4 (🟡)** — brak powrotu do summary z pierwszego kroku processing.
 
 ## Impact
-`proto-harden` wdraża listę priorytetową (zalecane najpierw #1, #2, #3). Po zmianach w prototypie — uruchomić ponownie `proto-edgecases`, by odświeżyć baseline (szczególnie weryfikacja #1 po ew. zmianie sygnatury `updateTask`).
+`proto-harden` implements the priority list (recommended first: #1, #2, #3). After the prototype changes — re-run `proto-edgecases` to refresh the baseline (especially verify #1 after any `updateTask` signature change).

@@ -1,16 +1,16 @@
-# 0023 - Review ręczny, nie uruchamiany automatycznie przy resume
+# 0023 - Manual Review, not triggered automatically on resume
 
 **Date**: 2026-06-29
 **Module**: run
 **Status**: Accepted
 
 ## Context
-`ACTIONS.md` listowało akcję „Review on resume" — sugerując, że przegląd (co nadal aktualne vs do usunięcia) odpala się przy wznawianiu Runa. Pytanie z detailing: czy review ma być **bramką** wymuszoną przed wejściem w lejek, czy opcjonalny? Spójnie z filozofią „nudge, nie bramka" (ADR 0007) i osobą z ADHD/overwhelmed — przerwanie resume wymuszonym przeglądem dodaje tarcie.
+`ACTIONS.md` listed a "Review on resume" action — suggesting the review (what's still current vs to remove) fires on resuming a Run. The detailing question: should review be a forced **gate** before entering the funnel, or optional? Consistent with the "nudge, not a gate" philosophy (ADR 0007) and an ADHD/overwhelmed person — interrupting resume with a forced review adds friction.
 
 ## Decision
-Review jest **wyłącznie ręczny** — user odpala go sam ze **Szczegółów**, kiedy chce posprzątać przeterminowane rzeczy (stresory / taski: relevant vs stale). **Nie** uruchamia się automatycznie przy Kontynuuj/resume — user ląduje prosto w kroku lejka. Nazwa akcji pozostaje `Review` (zamiast „Review on resume"), by nie sugerować automatycznego triggera.
+Review is **manual only** — the user runs it themselves from **Details**, when they want to clean up stale items (stressors / tasks: relevant vs stale). It does **not** fire automatically on Continue/resume — the user lands straight in the funnel step. The action name stays `Review` (instead of "Review on resume"), so it doesn't suggest an automatic trigger.
 
 ## Impact
-- `ACTIONS.md`: „Review on resume" → `Review` z notką „tylko ręcznie".
+- `ACTIONS.md`: "Review on resume" → `Review` with a "manual only" note.
 - `GLOSSARY.md`: `ReviewOnResume` doprecyzowane.
-- `docs/modules/run.md`: flow Review (ręczny, ze Szczegółów).
+- `docs/modules/run.md`: the Review flow (manual, from Details).

@@ -11,4 +11,4 @@ The dashboard's dominant card is the run the user **last worked on**, not the mo
 Add `lastActiveAt` (`datetime`) attribute to `Run`, stamped whenever the user does work inside that run (capture/decompose/process/focus activity, Continue). Active runs are ordered by `lastActiveAt` desc; the dominant dashboard card = `max(lastActiveAt)`.
 
 ## Impact
-`ENTITY_MAP.md` Run entity updated — new attribute added to the mermaid block and the attributes list. Implementation must stamp `lastActiveAt` on relevant actions; in the prototype, stats/timestamps are mock (per `run.md` "statystyki poglądowe" edge case) until cross-module integration. Cross-references ADR 0026 (dominant card).
+`ENTITY_MAP.md` Run entity updated — new attribute added to the mermaid block and the attributes list. Implementation must stamp `lastActiveAt` on relevant actions; in the prototype, stats/timestamps are mock (per the `run.md` "overview stats" edge case) until cross-module integration. Cross-references ADR 0026 (dominant card).
