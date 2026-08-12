@@ -1,321 +1,321 @@
 # Run — Edge Cases
 
 ## Coverage
-- **Spec już捕获 (`run.md` → Edge Cases)**: pusty Run → brain dump · task bez atrybutów gotowy (ADR 0013) · Run ukończony 100% bez auto-archive · resume zapauzowanej sesji · wiele aktywnych runów.
-- **Już obsłużone w kodzie**:
-  - Empty states na 3 ekranach — `RunsList.tsx:54`, `ArchivedRuns.tsx:38`, `ReviewRun.tsx:45`.
-  - Potwierdzenie usunięcia (terminalnego) — `RunDetails.tsx:182`, `ArchivedRuns.tsx:78` (`ConfirmDialog`).
-  - Status persystencji (toast write/read error + retry) na 4 ekranach — np. `RunsList.tsx:97`; hook raportuje `use-runs.ts:142`.
-  - Stan „nie znaleziono Runa" — `RunDetails.tsx:43`, `ReviewRun.tsx:17`.
-  - Badge „Ukończony" (wyliczany z progresu, bez auto-archive) — `RunDetails.tsx:201` (`isRunCompleted`).
-  - gating nawigacji przy awarii zapisu dla create/delete — `use-runs.ts:37`, `RunDetails.tsx:63`.
-- **Nowe luki znalezione**: 16.
+- **Spec already captured** (`run.md` → Edge Cases): empty Run → brain dump · attributeless task ready (ADR 0013) · 100%-completed Run with no auto-archive · resume of a paused session · multiple active runs.
+- **Already handled in code**:
+  - Empty states on 3 screens — `RunsList.tsx:54`, `ArchivedRuns.tsx:38`, `ReviewRun.tsx:45`.
+  - (Terminal) delete confirmation — `RunDetails.tsx:182`, `ArchivedRuns.tsx:78` (`ConfirmDialog`).
+  - Persistence status (write/read-error toast + retry) on 4 screens — e.g. `RunsList.tsx:97`; the hook reports it `use-runs.ts:142`.
+  - "Run not found" state — `RunDetails.tsx:43`, `ReviewRun.tsx:17`.
+  - "Completed" badge (derived from progress, no auto-archive) — `RunDetails.tsx:201` (`isRunCompleted`).
+  - Navigation gating on write failure for create/delete — `use-runs.ts:37`, `RunDetails.tsx:63`.
+- **New gaps found**: 16.
 - **By severity**: 🔴 0 · 🟡 9 · 🟢 7.
-- **Po `proto-harden`**: ✅ 6 wdrożone · ❌ 10 odłożone (z racją). Szczegóły w sekcji *Resolution* na dole.
+- **After `proto-harden`**: ✅ 6 implemented · ❌ 10 deferred (for good reason). Details in the *Resolution* section at the bottom.
 
-> Brak 🔴 — lo-fi obsłużył podstawy (empty states, potwierdzenia, toast persystencji). Największa fragmentaryczność: **Run jest w prototypie odłączony od realnych danych lejka** (CM-1/2/3) oraz **brak walidacji/feedbacku formularza rename** i mylny empty-state przy błędzie odczytu storage.
+> No 🔴 — the lo-fi covered the basics (empty states, confirmations, persistence toast). The biggest gaps: **the Run is disconnected from real funnel data in the prototype** (CM-1/2/3), plus **no rename-form validation/feedback** and a misleading empty-state on a storage read error.
 
 ## Inventory
 
 | # | Sev | Category | Edge case | Behavior today | Suggested behavior | Where |
 |---|-----|----------|-----------|----------------|--------------------|-------|
-| CM-1 | 🟡 | Cross-module | Statystyki Runa nigdy nie odzwierciedlają realnego postępu | `stats` są mockiem zapisanym na obiekcie; ukończenie tasków / sesja focusa **nie aktualizują** czasu/wykonanych/progresu — „widoczny obiekt ze statystykami" kłamie | Prawdziwa derywacja z danych lejka (suma `timerElapsed`, `completed+dismissed`, total), ALBO jawne oznaczenie statystyk jako ilustracyjnych. Decyzja scope: architektoniczne (cross-module) | `use-runs.ts:31` (stats statyczne); brak integracji z `capture`/`focus` |
-| CM-2 | 🟡 | Cross-module | `lastReachedStep` nigdy się nie przesuwa | `createRun` ustawia `brain-dump`, scenariusze seedują wartość, ale nic jej nie bumpuje wg postępu → Kontynuuj route jest **stale** po realnym przejściu lejka | Hook `setLastReachedStep` wywoływany z kroków lejka (capture→…→focus) gdy user osiąga krok; bez tego resume zawsze trafiałoby w to samo miejsce | `use-runs.ts` (brak settera); użycie `RunsList.tsx:38`, `RunDetails.tsx:141` |
-| CM-3 | 🟡 | Cross-module | Review nie do napęłnienia z UI | `reviewItems` pochodzą tylko ze scneariusza (`addReviewItem` nieużywane w komponentach) → w `empty`/`minimal` Review zawsze puste; flow nie jest testowalny end-to-end | Źródło pozycji do przeglądu z danych lejka (np. taski/stresory zmodyfikowane dawno temu), albo Add-item w UI do ręcznego dopisywania | `use-runs.ts:116` (`addReviewItem` nieużywane); `ReviewRun.tsx` |
-| LE-1 | 🟡 | Prototype-specific | Uszkodzony `run:runs` (zły JSON) / błąd odczytu | Pokazuje mylny empty-state „Nie masz aktywnych Runów" + toast `readError`; brak stanu błędu (focus ma `ReadErrorState`) i brak realnej naprawy (`retry` nie czyta ponownie) | Osobny stan błędu odczytu (jak `ReadErrorState` w `focus`) zamiast empty-state; „załaduj ponownie" jako jedyna droga | `use-runs.ts:18` (initialValue `[]`); `RunsList.tsx:54` |
-| FI-1 | 🟡 | Forms | Rename do pustego/samych spacji | Milcząco zostawia starą nazwę (`trimmed \|\| r.name`), zamyka edycję, bez komunikatu — user myśli, że nic się nie stało | Inline walidacja: przycisk „Zapisz" disabled przy pustym draft + komunikat „nazwa nie może być pusta", albo placeholder/keep-open z toastem | `use-runs.ts:45-48`; `RunDetails.tsx:58-60` |
-| ST-1 | 🟡 | State transitions | Ukończony Run (100%) siedzi w aktywnych bez celebracji/nudge | Filtr listy traktuje ukończone jak aktywne; Details pokazuje tylko badge, bez momentu celebracji ani sugestii archiwizacji (spec mówi o celebracji) | Na Details ukończonego Runa: celebracyjny stan / CTA „Archiwizuj ten przejazd"; opcjonalnie sekcja „ukończone" na liście z nudge | `RunsList.tsx:25` (filtr); `RunDetails.tsx:201` (tylko badge) |
-| AO-2 | 🟡 | Action outcomes | „Usuń przeterminowane" — bulk bez potwierdzenia i undo | Jedno kliknięcie usuwa wszystkie oflagowane pozycje na stałe; brak `ConfirmDialog` i undo | Potwierdzenie (jak ClearCompleted w focus) albo undo-toast z przywróceniem | `ReviewRun.tsx:99-105` |
-| FI-2 | 🟡 | Forms | Niezapisany rename tracony przy nawigacji | Edycja nazwy + klik „← Moje Runy" / Kontynuuj / inny link odrzuca draft bez pytania | Prompt „odrzucić zmiany?" (lub blokada nawigacji) gdy draft ≠ nazwa i tryb edycji aktywny | `RunDetails.tsx` tryb `editing` (brak guardu) |
-| AO-1 | 🟡 | Action outcomes | Brak feedbacku sukcesu archive/unarchive/rename | Tylko implicit zmiana stanu (przycisk się flipuje); brak toastu „przeniesiono do archiwum" / drogi do archiwum po archiwizacji | Toast potwierdzający + (po archiwizacji) link „Zobacz w archiwum" | `RunDetails.tsx:155-163` |
-| AO-3 | 🟢 | Action outcomes | Niegated mutacje opierają się tylko na toast | archive/unarchive/setStale/clearStale nie sprawdzają wyniku; confirm w ArchivedRuns zamyka się nawet przy awarii zapisu | Spójne honest-persistence (gating jak w `FocusView`); confirm zamykać tylko po udanym zapisie | `ArchivedRuns.tsx:83-86`; `use-runs.ts:55-71` |
-| DS-1 | 🟢 | Data states | Bardzo długa lista runów | Wszystkie aktywne/archiwalne stackują się w `<ul>`; brak grupowania (data), wyszukiwania, paginacji | Grupowanie po dacie / filtrowanie nazwą; priorytet niski (narzędzie osobiste, mało runów) | `RunsList.tsx:64`, `ArchivedRuns.tsx:43` |
-| DS-2 | 🟢 | Data states | Bardzo długa nazwa Runa | Input rename bez `maxLength`; w karcie/detail nazwa się zawija (OK), ale brak obcięcia/truncate w wąskiej karcie | `maxLength` na input + `truncate` w `RunCard` tytule | `RunDetails.tsx:87`; `RunCard.tsx:28` |
-| DS-3 | 🟢 | Data states | Puste statystyki świeżego Runa (`0 / 0`, `0%`) | Kafelki pokazują „0 / 0" i „0%" — chłodne, nie podpowiada akcji | Dla `totalTasks === 0`: „—" / „zacznij pierwszy krok" zamiast „0 / 0" | `RunStatTiles.tsx:21-25` |
-| DS-4 | 🟢 | Data states | Zduplikowane nazwy dozwolone | Brak unikalności; domyślna nazwa = timestamp → kolizja przy tworzeniu w tej samej minucie; rename do istniejącej nazwy OK | Dopuszczalne (nazwa nie jest identyfikatorem), ew. dopisek „(2)" przy kolizji domyślnej | `use-runs.ts:14,28,48` |
-| LE-2 | 🟢 | Data states | Daty bez czasu względnego | `toLocaleDateString` → sama data; „ostatnia aktywność: dziś" nie różni się od wcześniejszych dni w czytelnym skanie | Czas względny („dziś", „2 dni temu") dla `lastActiveAt` | `RunDetails.tsx:169-172` |
-| NF-1 | 🟢 | Navigation | ReviewRun „nie znaleziono" linkuje do `/run` | Link wstecz prowadzi do listy, nie do Szczegółów tego Runa | „← Szczegóły Runa" gdy istnieje kontekst (tu i tak nie znaleziono — niski priorytet) | `ReviewRun.tsx:21` |
+| CM-1 | 🟡 | Cross-module | Run stats never reflect real progress | `stats` is a mock stored on the object; completing tasks / a focus session **don't update** time/done/progress — the "visible object with stats" lies | Real derivation from funnel data (sum of `timerElapsed`, `completed+dismissed`, total), OR explicitly mark the stats as illustrative. Scope decision: architectural (cross-module) | `use-runs.ts:31` (static stats); no integration with `capture`/`focus` |
+| CM-2 | 🟡 | Cross-module | `lastReachedStep` never advances | `createRun` sets `brain-dump`, scenarios seed the value, but nothing bumps it per progress → the Continue route is **stale** past the real funnel progress | A `setLastReachedStep` hook called from the funnel steps (capture→…→focus) when the user reaches a step; without it resume always lands in the same place | `use-runs.ts` (no setter); usage `RunsList.tsx:38`, `RunDetails.tsx:141` |
+| CM-3 | 🟡 | Cross-module | Review can't be populated from the UI | `reviewItems` come only from the scenario (`addReviewItem` unused in components) → in `empty`/`minimal` Review is always empty; the flow isn't testable end-to-end | A source of review items from funnel data (e.g. tasks/stressors modified long ago), or an Add-item in the UI for manual entry | `use-runs.ts:116` (`addReviewItem` unused); `ReviewRun.tsx` |
+| LE-1 | 🟡 | Prototype-specific | Corrupted `run:runs` (bad JSON) / read error | Shows a misleading "You have no active Runs" empty-state + a `readError` toast; no error state (focus has `ReadErrorState`) and no real recovery (`retry` doesn't re-read) | A separate read-error state (like `ReadErrorState` in `focus`) instead of the empty-state; "reload" as the only path | `use-runs.ts:18` (initialValue `[]`); `RunsList.tsx:54` |
+| FI-1 | 🟡 | Forms | Rename to empty / whitespace-only | Silently keeps the old name (`trimmed \|\| r.name`), closes the edit, with no message — the user thinks nothing happened | Inline validation: "Save" button disabled on an empty draft + a "name can't be empty" message, or a placeholder/keep-open with a toast | `use-runs.ts:45-48`; `RunDetails.tsx:58-60` |
+| ST-1 | 🟡 | State transitions | A completed (100%) Run sits in active with no celebration/nudge | The list filter treats completed like active; Details shows only a badge, with no celebration moment or archive suggestion (the spec mentions celebration) | On a completed Run's Details: a celebration state / "Archive this run" CTA; optionally a "completed" section on the list with a nudge | `RunsList.tsx:25` (filter); `RunDetails.tsx:201` (badge only) |
+| AO-2 | 🟡 | Action outcomes | "Remove stale" — bulk with no confirmation or undo | One click permanently removes all flagged items; no `ConfirmDialog` and no undo | Confirmation (like ClearCompleted in focus) or an undo-toast that restores | `ReviewRun.tsx:99-105` |
+| FI-2 | 🟡 | Forms | Unsaved rename lost on navigation | Editing the name + clicking "← My Runs" / Continue / another link discards the draft without asking | A "discard changes?" prompt (or navigation block) when draft ≠ name and edit mode is active | `RunDetails.tsx` `editing` mode (no guard) |
+| AO-1 | 🟡 | Action outcomes | No success feedback for archive/unarchive/rename | Only an implicit state change (the button flips); no "moved to archive" toast / path to the archive after archiving | A confirmation toast + (after archiving) a "See in archive" link | `RunDetails.tsx:155-163` |
+| AO-3 | 🟢 | Action outcomes | Negated mutations rely on the toast alone | archive/unarchive/setStale/clearStale don't check the result; the confirm in ArchivedRuns closes even on a write failure | Consistent honest-persistence (gating like `FocusView`); close the confirm only after a successful write | `ArchivedRuns.tsx:83-86`; `use-runs.ts:55-71` |
+| DS-1 | 🟢 | Data states | A very long list of runs | All active/archived stack up in a `<ul>`; no grouping (date), search, or pagination | Group by date / filter by name; low priority (personal tool, few runs) | `RunsList.tsx:64`, `ArchivedRuns.tsx:43` |
+| DS-2 | 🟢 | Data states | A very long Run name | The rename input has no `maxLength`; in the card/detail the name wraps (OK), but there's no truncation in a narrow card | `maxLength` on the input + `truncate` in the `RunCard` title | `RunDetails.tsx:87`; `RunCard.tsx:28` |
+| DS-3 | 🟢 | Data states | Empty stats on a fresh Run (`0 / 0`, `0%`) | The tiles show "0 / 0" and "0%" — cold, doesn't suggest an action | For `totalTasks === 0`: "—" / "start the first step" instead of "0 / 0" | `RunStatTiles.tsx:21-25` |
+| DS-4 | 🟢 | Data states | Duplicate names allowed | No uniqueness; default name = timestamp → collision when creating in the same minute; rename to an existing name is OK | Acceptable (the name isn't an identifier), optionally append "(2)" on a default collision | `use-runs.ts:14,28,48` |
+| LE-2 | 🟢 | Data states | Dates without relative time | `toLocaleDateString` → date only; "last active: today" doesn't stand out from earlier days in a quick scan | Relative time ("today", "2 days ago") for `lastActiveAt` | `RunDetails.tsx:169-172` |
+| NF-1 | 🟢 | Navigation | ReviewRun "not found" links to `/run` | The back link goes to the list, not this Run's Details | "← Run Details" when context exists (here it's not found anyway — low priority) | `ReviewRun.tsx:21` |
 
-### Kategorie sprawdzone bez luk
-- **State machine (przejścia)**: tylko `in_progress ↔ archived`, oba osiągalne; UI zapobiega redundancji (Details pokazuje Archive *albo* Un-archive). Brak niepoprawnych przejść.
-- **Loading & async (initial load)**: `useLocalStorage` czyta synchronicznie przy pierwszym renderze — brak async, brak blank-screen, skeleton niepotrzebny.
-- **Offline**: czysty client-side, brak zapytań sieciowych — działa offline.
+### Categories checked with no gaps
+- **State machine (transitions)**: only `in_progress ↔ archived`, both reachable; the UI prevents redundancy (Details shows Archive *or* Un-archive). No invalid transitions.
+- **Loading & async (initial load)**: `useLocalStorage` reads synchronously on first render — no async, no blank screen, no skeleton needed.
+- **Offline**: pure client-side, no network requests — works offline.
 - **Roles / permissions**: single-user, n/a.
-- **`alert()` / `window.alert`**: brak w kodzie produkcyjnym (`window.confirm` tylko w dev `DevToolbar`).
+- **`alert()` / `window.alert`**: none in production code (`window.confirm` only in the dev `DevToolbar`).
 
 ## Priority list
-1. **CM-1 — statystyki kłamią**: Run „widoczny obiekt ze statystykami" (ADR 0020) jest rdzeniem modułu, a w prototypie liczby nigdy nie ruszają. Największy efekt, ale **architektoniczne** — wymaga decyzji scope (derywacja vs. ilustracyjne).
-2. **CM-2 — `lastReachedStep` stale**: bez tego Kontynuuj (resume) prowadzi zawsze w to samo miejsce; podważa routing ADR 0022. Architektoniczne (wspólne z CM-1).
-3. **LE-1 — mylny empty-state przy błędzie odczytu**: lokalna poprawka, duży efekt czytelności (paradygmat z `focus`/`ReadErrorState`).
-4. **FI-1 — rename pusty = milczące no-op**: lokalna walidacja, łatwe.
-5. **ST-1 — ukończone Runy bez celebracji/nudge**: luka w obietnicy „moment celebracji" (spec).
-6. **CM-3 — Review nietestowalny end-to-end**: wspólna przyczyna z CM-1/2 (brak źródła danych).
-7. **AO-2 — bulk-usuwanie przeterminowanych bez potwierdzenia/undo**.
-8. **FI-2 — guard niezapisanego rename przy nawigacji**.
-9. **AO-1 — feedback sukcesu archive/unarchive/rename**.
+1. **CM-1 — stats lie**: the Run as a "visible object with stats" (ADR 0020) is the module's core, yet in the prototype the numbers never move. Highest impact, but **architectural** — needs a scope decision (derivation vs. illustrative).
+2. **CM-2 — `lastReachedStep` stale**: without it Continue (resume) always leads to the same place; undermines the ADR 0022 routing. Architectural (shared with CM-1).
+3. **LE-1 — misleading empty-state on a read error**: a local fix, big readability effect (the paradigm from `focus`/`ReadErrorState`).
+4. **FI-1 — rename empty = silent no-op**: local validation, easy.
+5. **ST-1 — completed Runs without celebration/nudge**: a gap in the "moment of celebration" promise (spec).
+6. **CM-3 — Review not testable end-to-end**: a shared cause with CM-1/2 (no data source).
+7. **AO-2 — bulk-remove stale without confirmation/undo**.
+8. **FI-2 — guard unsaved rename on navigation**.
+9. **AO-1 — success feedback for archive/unarchive/rename**.
 10. (🟢 polish: DS-1…DS-4, LE-2, NF-1, AO-3).
 
 ## Hand-off to proto-harden
-Top-priority luki do wdrożenia w `proto-harden`:
-- **CM-1 / CM-2 / CM-3** — te trzy mają wspólną przyczynę (Run odłączony od danych lejka). Harden powinien zacząć od **decyzji scope z designerem**: (a) spiąć prawdziwą derywację statystyk + advance `lastReachedStep` + źródło review-items (duże, cross-module), czy (b) zostawić ilustracyjne + wyraźnie to oznaczyć (np. badge „dane poglądowe") i skupić harden na lokalnych lukach. Bez tej decyzji lokalne fixe ryzykują, że statystyki nadal wprowadzają w błąd.
-- **LE-1** — stan błędu odczytu storage (przenieść wzorzec `ReadErrorState` z `focus`).
-- **FI-1 / FI-2** — walidacja rename + guard niezapisanych zmian.
-- **ST-1** — celebracja / nudge archiwizacji dla ukończonych Runów.
-- **AO-2** — potwierdzenie/undo dla „Usuń przeterminowane".
+Top-priority gaps to implement in `proto-harden`:
+- **CM-1 / CM-2 / CM-3** — these three share a cause (the Run disconnected from funnel data). Harden should start with a **scope decision with the designer**: (a) wire real stats derivation + advance `lastReachedStep` + a review-items source (large, cross-module), or (b) leave them illustrative + mark it clearly (e.g. an "overview data" badge) and focus harden on local gaps. Without this decision, local fixes risk the stats still misleading.
+- **LE-1** — a storage read-error state (port the `ReadErrorState` pattern from `focus`).
+- **FI-1 / FI-2** — rename validation + unsaved-changes guard.
+- **ST-1** — celebration / archive nudge for completed Runs.
+- **AO-2** — confirmation/undo for "Remove stale".
 
-Każdy wiersz wskazuje `file:line` gdzie luka żyje — `proto-harden` (lub designer) może działać od razu. „Suggested behavior" to punkt startowy, nie decyzja ostateczna; `proto-harden` potwierdza lub nadpisuje każde z designerem.
+Each row points at the `file:line` where the gap lives — `proto-harden` (or the designer) can act immediately. "Suggested behavior" is a starting point, not the final decision; `proto-harden` confirms or overrides each with the designer.
 
 ## Resolution (`proto-harden`)
 
-### ✅ Wdrożone (6)
-- **LE-1** — stan błędu odczytu storage zamiast mylnego empty-state. `RunStates.tsx:RunReadError`; wstawiony w `RunsList.tsx:55` i `ArchivedRuns.tsx:39` (gdy `storage.readError`). Story: `Run/RunStates → ReadError`, `Run/RunsList → ReadError`, `Run/ArchivedRuns → ReadError`.
-- **FI-1** — walidacja rename: „Zapisz" disabled przy pustej nazwie, `aria-invalid` + `aria-describedby` + inline komunikat. `RunDetails.tsx` (`nameValid`, form). `maxLength={60}` (DS-2).
-- **ST-1** — ukończony Run (`isRunCompleted && !archived`) → sekcja celebracji + CTA „Archiwizuj ten przejazd" zamiast „Kontynuuj". `RunStates.tsx:RunCompleted`; `RunDetails.tsx` (resume section). Story: `Run/RunDetails → Completed`.
-- **AO-2** — `ConfirmDialog` na „Usuń przeterminowane" w Review. `ReviewRun.tsx` (`confirmClear`).
-- **AO-3** — honest persistence: dialog usuwania w ArchivedRuns zamyka się tylko po udanym zapisie. `ArchivedRuns.tsx` (`onConfirm`).
-- **DS-2** — `maxLength` na rename + `truncate` tytułu karty z `title` (hover). `RunDetails.tsx`, `RunCard.tsx:24`.
+### ✅ Implemented (6)
+- **LE-1** — a storage read-error state instead of a misleading empty-state. `RunStates.tsx:RunReadError`; inserted in `RunsList.tsx:55` and `ArchivedRuns.tsx:39` (when `storage.readError`). Stories: `Run/RunStates → ReadError`, `Run/RunsList → ReadError`, `Run/ArchivedRuns → ReadError`.
+- **FI-1** — rename validation: "Save" disabled on an empty name, `aria-invalid` + `aria-describedby` + an inline message. `RunDetails.tsx` (`nameValid`, form). `maxLength={60}` (DS-2).
+- **ST-1** — a completed Run (`isRunCompleted && !archived`) → a celebration section + an "Archive this run" CTA instead of "Continue". `RunStates.tsx:RunCompleted`; `RunDetails.tsx` (resume section). Story: `Run/RunDetails → Completed`.
+- **AO-2** — a `ConfirmDialog` on "Remove stale" in Review. `ReviewRun.tsx` (`confirmClear`).
+- **AO-3** — honest persistence: the delete dialog in ArchivedRuns closes only after a successful write. `ArchivedRuns.tsx` (`onConfirm`).
+- **DS-2** — `maxLength` on rename + card title `truncate` with `title` (hover). `RunDetails.tsx`, `RunCard.tsx:24`.
 
-### ❌ Odłożone (10) — z racją
-- **CM-1 / CM-2 / CM-3** — **cross-module feature** (statystyki / `lastReachedStep` / review-items spięte z realnymi danymi lejka wymaga `runId` na stresorach/taskach + partycji danych we wszystkich krokach lejka + scenariuszach). Poza zakresem harden (decyzja designu: oznaczyć jako poglądowe + odłożyć). Affordance uczciwości: dyskretny caption „Statystyki poglądowe…" na `RunStatTiles.tsx`. Realne spięcie w fazie integracji Runa (moduł `dashboard`).
-- **FI-2** — guard niezapisanego rename przy nawigacji: rename jest niedestrukcyjny i natychmiast powtarzalny; pełny blocker nawigacji (react-router) jest nieadekwatny do ryzyka.
-- **AO-1** — feedback sukcesu archive/unarchive/rename: implicit zmiana stanu (flip przycisku / badge / zamknięcie edycji) jest wystarczająca dla odwracalnych/lokalnych akcji; toasty sukcesu = polish dla `proto-design`.
-- **DS-1** — długie listy runów (grupowanie/wyszukiwanie): polish, niska potrzeba (narzędzie osobiste, mało runów).
-- **DS-3** — świeży Run pokazuje „0 / 0", „0%": poprawne, wystarczające; polish.
-- **DS-4** — zduplikowane nazwy: nazwa ≠ identyfikator; nie jest realnym problemem.
-- **LE-2** — czas względny dat („dziś", „2 dni temu"): polish.
-- **NF-1** — link „nie znaleziono" w ReviewRun → `/run`: poprawne (run nie istnieje → lista jest właściwym celem).
+### ❌ Deferred (10) — for good reason
+- **CM-1 / CM-2 / CM-3** — **cross-module feature** (stats / `lastReachedStep` / review-items wired to real funnel data requires `runId` on stressors/tasks + data partitioning across all funnel steps + scenarios). Outside harden's scope (design decision: mark as overview + defer). Honesty affordance: a discreet "Overview stats…" caption on `RunStatTiles.tsx`. Real wiring in the Run-integration phase (the `dashboard` module).
+- **FI-2** — guard unsaved rename on navigation: rename is non-destructive and instantly repeatable; a full navigation blocker (react-router) is disproportionate to the risk.
+- **AO-1** — success feedback for archive/unarchive/rename: the implicit state change (button flip / badge / closing the edit) is enough for reversible/local actions; success toasts = polish for `proto-design`.
+- **DS-1** — long run lists (grouping/search): polish, low need (personal tool, few runs).
+- **DS-3** — a fresh Run shows "0 / 0", "0%": correct, sufficient; polish.
+- **DS-4** — duplicate names: the name ≠ the identifier; not a real problem.
+- **LE-2** — relative dates ("today", "2 days ago"): polish.
+- **NF-1** — "not found" link in ReviewRun → `/run`: correct (the run doesn't exist → the list is the right target).
 
-> CM-1/2/3 to jedyne luki strukturalne — reszta odłożonych to świadomie zaakceptowane kompromisy polish/zakres, nie znalezione później błędy.
+> CM-1/2/3 are the only structural gaps — the rest of the deferred items are consciously accepted polish/scope compromises, not bugs found later.
 
 ---
 
 ## Re-audit: run-task-list feature (proto-edgecases, 2026-07-01)
 
-**Zakres**: nowe powierzchnie feature'u ADR 0035 w `run` — sekcja „Tasks" (`RunTaskList`) + akcje z listy (Done / Not relevant) + cross-module mutacja tasków. Powierzchnie sprzed feature'u obsłużone wyżej i w harden — nie dubluję.
+**Scope**: the new surfaces of the ADR 0035 feature in `run` — the "Tasks" section (`RunTaskList`) + list actions (Done / Not relevant) + cross-module task mutation. Pre-feature surfaces are handled above and in harden — not duplicated.
 
 ### Coverage (feature)
-- **Spec już capture'owana** (`run.md` §Edge Cases, dodane w proto-detail): pusta sekcja „Tasks" · task bez atrybutów („untagged") · done-na-done (no-op) · wpływ akcji na routing resume · dismiss z listy (confirm/undo → harden) · awaria mutacji (toast).
-- **Już obsłużone w kodzie**:
-  - empty list → „No tasks yet — start with a brain dump." (`RunTaskList.tsx`).
-  - task bez atrybutów → badge „untagged" (`RunTaskList.tsx`).
-  - done/dismiss z listy → task migruje do właściwej grupy na żywo (`updateTask`, instancja A).
-  - awaria zapisu mutacji → `taskStorage` wpięty w `StorageStatusToast` (`RunDetails.tsx`).
-- **Nowe luki**: 6 · 🔴 1 · 🟡 3 · 🟢 2.
+- **Spec already captured** (`run.md` §Edge Cases, added in proto-detail): empty "Tasks" section · attributeless task ("untagged") · done-on-done (no-op) · action impact on resume routing · dismiss from the list (confirm/undo → harden) · mutation failure (toast).
+- **Already handled in code**:
+  - empty list → "No tasks yet — start with a brain dump." (`RunTaskList.tsx`).
+  - attributeless task → "untagged" badge (`RunTaskList.tsx`).
+  - done/dismiss from the list → the task migrates to the right group live (`updateTask`, instance A).
+  - mutation write failure → `taskStorage` wired into `StorageStatusToast` (`RunDetails.tsx`).
+- **New gaps**: 6 · 🔴 1 · 🟡 3 · 🟢 2.
 
 ### Inventory (feature)
 
 | # | Sev | Category | Edge case | Behavior today | Suggested behavior | Where |
 |---|-----|----------|-----------|----------------|--------------------|-------|
-| R2-1 | 🔴 | Cross-module/state | Statystyki + Continue NIE odświeżają się po akcjach z listy | `RunDetails` ma **dwie instancje `useTasks()`**: własną (mutacje) i wewnątrz `useLiveRuns` (statystyki). `useLocalStorage` nie synchronizuje instancji w tej samej karcie (event `storage` = cross-tab tylko) → po `markDone`/`markNotRelevant` `RunTaskList` się odświeża (instancja A), ale `RunStatTiles`/Continue czytają instancję B (stale) do refresha. Łamie obietnicę „live stats" (ADR 0035) | Wystaw `updateTask`/`deleteTask`/`storage` z `useLiveRuns` (już woła `useTasks`) i użyj jednej instancji w `RunDetails` → statystyki przeliczają się live; ALBO dodaj same-tab sync do `useLocalStorage` | `use-live-runs.ts:26` (tylko `tasks` destrukturyzowane), `RunDetails.tsx` (własny `useTasks()`) |
-| R2-2 | 🟡 | Action outcomes | Dismiss z listy bez undo i bez confirm | `markNotRelevant` natychmiast → `dismissed`, bez drogi powrotu z listy (brak reopenu) i bez undo — niespójne z ADR 0017 (Dismiss ma undo) i focusem (`DismissUndoToast`) | Undo-toast (jak focus) albo `ConfirmDialog` | `RunDetails.tsx` (`markNotRelevant`), `RunTaskList.tsx` |
-| R2-3 | 🟡 | State transitions | Akcje z listy aktywne na zarchiwizowanym Runie | `RunDetails` zarchiwizowanego Runa nadal pokazuje listę z aktywnymi Done/Not-relevant; mutacja tasków w „ukończonym" Runie dotyka globalnych danych | Gate'uj/zablokuj akcje listy gdy `run.state === 'archived'` (lub ostrzeż) | `RunDetails.tsx` (sekcja Tasks bez checku `archived`), `RunTaskList.tsx` |
-| R2-4 | 🟡 | Action outcomes | Brak feedbacku po Done z listy | Task migruje grupy (implicit), brak toasta; z Done nie ma reopenu z listy (Later), więc klik jest ostateczny bez potwierdzenia | Toast (zwłaszcza undo dla Not relevant — patrz R2-2) | `RunDetails.tsx` (`markDone`) |
-| R2-5 | 🟢 | Data states | Długa lista tasków rozciąga sekcję | Wiele tasków → sekcja „Tasks" długa, brak scrolla/paginacji | Cap wysokości + scroll wewnątrz sekcji | `RunTaskList.tsx` |
-| R2-6 | 🟢 | Errors | Uszkodzony `focus:taskOrder` w run = milczący fallback | `RunDetails` czyta `focus:taskOrder` read-only; zły JSON → `[]` (sort po ranku stresora), `readError` niewidoczne w run (degraduje grzecznie) | Opcjonalnie surfaj `readError` (degradacja i tak OK) | `RunDetails.tsx` (`useLocalStorage('focus:taskOrder')`) |
+| R2-1 | 🔴 | Cross-module/state | Stats + Continue DON'T refresh after list actions | `RunDetails` has **two `useTasks()` instances**: its own (mutations) and one inside `useLiveRuns` (stats). `useLocalStorage` doesn't sync instances in the same tab (the `storage` event = cross-tab only) → after `markDone`/`markNotRelevant` `RunTaskList` refreshes (instance A), but `RunStatTiles`/Continue read instance B (stale) until refresh. Breaks the "live stats" promise (ADR 0035) | Expose `updateTask`/`deleteTask`/`storage` from `useLiveRuns` (it already calls `useTasks`) and use a single instance in `RunDetails` → stats recompute live; OR add same-tab sync to `useLocalStorage` | `use-live-runs.ts:26` (only `tasks` destructured), `RunDetails.tsx` (own `useTasks()`) |
+| R2-2 | 🟡 | Action outcomes | Dismiss from the list with no undo and no confirm | `markNotRelevant` immediately → `dismissed`, with no way back from the list (no reopen) and no undo — inconsistent with ADR 0017 (Dismiss has undo) and focus (`DismissUndoToast`) | An undo-toast (like focus) or a `ConfirmDialog` | `RunDetails.tsx` (`markNotRelevant`), `RunTaskList.tsx` |
+| R2-3 | 🟡 | State transitions | List actions active on an archived Run | `RunDetails` of an archived Run still shows the list with active Done/Not-relevant; mutating tasks in a "completed" Run touches global data | Gate/disable list actions when `run.state === 'archived'` (or warn) | `RunDetails.tsx` (Tasks section without an `archived` check), `RunTaskList.tsx` |
+| R2-4 | 🟡 | Action outcomes | No feedback after Done from the list | The task migrates groups (implicit), no toast; Done has no reopen from the list (Later), so the click is final without confirmation | A toast (especially undo for Not relevant — see R2-2) | `RunDetails.tsx` (`markDone`) |
+| R2-5 | 🟢 | Data states | A long task list stretches the section | Many tasks → the "Tasks" section is long, no scroll/pagination | Cap the height + scroll within the section | `RunTaskList.tsx` |
+| R2-6 | 🟢 | Errors | Corrupted `focus:taskOrder` in run = silent fallback | `RunDetails` reads `focus:taskOrder` read-only; bad JSON → `[]` (sort by stressor rank), `readError` invisible in run (degrades gracefully) | Optionally surface `readError` (the degradation is fine anyway) | `RunDetails.tsx` (`useLocalStorage('focus:taskOrder')`) |
 
-*Mid-session external mutation (akcja z listy na task będący bieżącym w pauzowanej sesji focus): obsługiwane grzecznie przez rekonsyliację `FocusView.firstPendingFrom` (przewija do następnego pending). Niska uwaga.*
+*Mid-session external mutation (a list action on a task that's current in a paused focus session): handled gracefully by the `FocusView.firstPendingFrom` reconciliation (advances to the next pending). Low attention.*
 
 ### Priority (feature)
-1. **🔴 R2-1** — statystyki/Continue stale po akcjach z listy (regresja wprowadzona przez feature; obietnica ADR 0035 złamana na głównej interakcji). Fix mały i jasny (jedna instancja `useTasks` przez `useLiveRuns`).
-2. **R2-2** — dismiss z listy bez undo/confirm (ADR 0017).
-3. **R2-3** — akcje na zarchiwizowanym Runie.
-4. **R2-4** — feedback/undo po Done.
+1. **🔴 R2-1** — stats/Continue stale after list actions (a regression introduced by the feature; the ADR 0035 promise broken on the main interaction). The fix is small and clear (one `useTasks` instance via `useLiveRuns`).
+2. **R2-2** — dismiss from the list with no undo/confirm (ADR 0017).
+3. **R2-3** — actions on an archived Run.
+4. **R2-4** — feedback/undo after Done.
 5. (🟢 polish: R2-5, R2-6).
 
 ### Hand-off
-- **R2-1** → **direct-edit / harden (priorytet)**: wystaw mutatory z `useLiveRuns` (lub same-tab sync w `useLocalStorage`) — bez tego sekcja Tasks kłamie w statystykach.
+- **R2-1** → **direct-edit / harden (priority)**: expose mutators from `useLiveRuns` (or same-tab sync in `useLocalStorage`) — without it the Tasks section lies in the stats.
 - **R2-2 / R2-4** → `proto-harden` (undo/confirm + toast).
 - **R2-3** → `proto-harden` (gate `archived`).
 - **R2-5 / R2-6** → `proto-polish`.
 
 ### Resolution (proto-harden, 2026-07-01)
 
-| # | Status | Gdzie teraz |
+| # | Status | Where it is now |
 |---|--------|-------------|
-| R2-1 | ✅ | `use-live-runs.ts` (wystawia `tasks`/`updateTask`/`deleteTask`/`taskStorage` ze swojej instancji `useTasks`); `RunDetails.tsx` (jedna instancja przez `useLiveRuns` — kafelki/Continue przeliczają się live po akcjach z listy) |
+| R2-1 | ✅ | `use-live-runs.ts` (exposes `tasks`/`updateTask`/`deleteTask`/`taskStorage` from its own `useTasks` instance); `RunDetails.tsx` (a single instance via `useLiveRuns` — tiles/Continue recompute live after list actions) |
 | R2-2 | ✅ | `RunDetails.tsx` (`markNotRelevant` + `dismissUndo`/`undoDismiss` + `DismissUndoToast`; ADR 0017) |
-| R2-3 | ✅ | `RunTaskList.tsx` (`readOnly` ukrywa akcje) + `RunDetails.tsx` (`readOnly={archived}` + hint) |
-| R2-4 | ✅ | Honest persistence (`if (!updateTask) return` w `markNotRelevant`); Done = implicit feedback (migracja do grupy Done). Toast sukcesu → polish. |
-| R2-5 | ❌ Odroczone — polish (długa lista / scroll). |
-| R2-6 | ❌ Odroczone — polish (degraduje grzecznie do defaultu). |
+| R2-3 | ✅ | `RunTaskList.tsx` (`readOnly` hides actions) + `RunDetails.tsx` (`readOnly={archived}` + hint) |
+| R2-4 | ✅ | Honest persistence (`if (!updateTask) return` in `markNotRelevant`); Done = implicit feedback (migration to the Done group). Success toast → polish. |
+| R2-5 | ❌ Deferred — polish (long list / scroll). |
+| R2-6 | ❌ Deferred — polish (degrades gracefully to the default). |
 
-**Zamknięte: 4 (R2-1, R2-2, R2-3, R2-4) · Odroczone: 2 (polish).**
+**Closed: 4 (R2-1, R2-2, R2-3, R2-4) · Deferred: 2 (polish).**
 
 ---
 
 ## Re-audit: per-Run funnel isolation (proto-edgecases, 2026-07-01)
 
-**Zakres**: koncept **aktywnego Runa** (`activeRunId`) + per-Run własność danych lejka (feature `per-run-funnel-isolation`, ADR 0044; spec w `run.md` po proto-detail, ADR 0045). To **audit pre-implementation** — feature **jeszcze niezbudowany** (residual step 0 + `proto-lofi` przed nami), więc „Where" wskazuje strefę kodu, która **musi** obsłużyć dany przypadek (istniejący plik + planowane nowe lokacje z `docs/changes/per-run-funnel-isolation.md`), a „Behavior today" = przewidywane zachowanie po naiwnej implementacji bez guardów. Decyzje UX już potwierdzone z userem: brak aktywnego → Dashboard · delete aktywnego → brak aktywnego · draft w brain dumpie przy switchu → nie persystuje · archive aktywnego → czyści aktywnego.
+**Scope**: the **active Run** concept (`activeRunId`) + per-Run ownership of funnel data (feature `per-run-funnel-isolation`, ADR 0044; spec in `run.md` after proto-detail, ADR 0045). This is a **pre-implementation audit** — the feature **isn't built yet** (residual step 0 + `proto-lofi` ahead), so "Where" points at the code area that **must** handle the case (an existing file + planned new locations from `docs/changes/per-run-funnel-isolation.md`), and "Behavior today" = the predicted behavior after a naive implementation without guards. UX decisions already confirmed with the user: no active → Dashboard · delete the active → no active · brain-dump draft on switch → doesn't persist · archive the active → clears the active.
 
-**Ten feature ROZWIĄZUJE odroczone CM-1 / CM-2 / CM-3** z oryginalnego audytu (statystyki / `lastReachedStep` / źródło review spięte z realnymi danymi lejka — wymagały `runId`, czego dostarcza ten feature). Poniżej nowe luki, których wprowadza.
+**This feature RESOLVES the deferred CM-1 / CM-2 / CM-3** from the original audit (stats / `lastReachedStep` / review source wired to real funnel data — they needed `runId`, which this feature provides). Below are the new gaps it introduces.
 
 ### Coverage (feature)
-- **Spec capture'owana** (`run.md` §Edge Cases, dodane w proto-detail): brak aktywnego Runa → Dashboard · switch mid-funnel (draft ulotny) · wiele aktywnych runów z własnym lejkiem.
-- **Już obsłużone w kodzie**: brak — feature niezbudowany.
-- **Nowe luki**: 14 · 🔴 2 · 🟡 9 · 🟢 3.
+- **Spec captured** (`run.md` §Edge Cases, added in proto-detail): no active Run → Dashboard · mid-funnel switch (ephemeral draft) · multiple active runs each with its own funnel.
+- **Already handled in code**: none — the feature isn't built.
+- **New gaps**: 14 · 🔴 2 · 🟡 9 · 🟢 3.
 
 ### Inventory (feature)
 
-| # | Sev | Category | Edge case | Behavior (po naiwnej impl.) | Suggested behavior | Where |
+| # | Sev | Category | Edge case | Behavior (after naive impl.) | Suggested behavior | Where |
 |---|-----|----------|-----------|-----------------------------|--------------------|-------|
-| PR-1 | 🔴 | Navigation / flow | Brak guardu „aktywnego Runa" na trasach lejka | Wejście w `/capture`/`/decompose`/`/process`/`/focus` bez `activeRunId` (świeża apka po deep-linku, albo aktywny właśnie usunięto/zarchiwizowano) → lejek scope'uje po `null`/starym id → pusty lub mylny ekran, brak drogi naprzód | Guard tras lejka: brak ważnego `activeRunId` → **przekieruj na Dashboard** (decyzja usera). Waliduj, że id istnieje i `state==='in_progress'` (PR-3) | `App.tsx` trasy `/capture`…`/focus` (brak guardu); `useActiveRun` (nowy) |
-| PR-2 | 🔴 | Action outcomes / data | `deleteRun` bez kaskady = osierocone dane + niedotrzymana obietnica „terminalnego usunięcia" | `deleteRun` (`use-runs.ts:77`) dziś usuwa tylko rekord Runa. Po izolacji stresory/taski/nextActions/reasons/doneVisions/focus-data tego Runa **zostają** w storach → user myśli, że usunął Run na stałe, a dane drewnieją w localStorage (rosnąca objętość, ryzyko leaku przy błędnym filtrze) | Kaskadowe usuwanie **wszystkich** store'ów lejka tego Runa z **centralnej listy** (nie zapomnij o nowym storze w przyszłości); jeśli któryś zapis zawiedzie → toast retry (bez cichej utraty) | `use-runs.ts:77` (`deleteRun`); lista kaskady (nowa) |
-| PR-3 | 🟡 | State / data | Stary `activeRunId` wskazuje na usunięty/zarchiwizowany Run | Po Delete/Archive aktywnego wskaźnik (jeśli nie wyczyszczony) trzyma nieistniejące/stare id → lejek scope'uje po nim → pusto lub praca nad zarchiwizowanym Runem | Waliduj `activeRunId` przy każdym odczycie (istnieje && `in_progress`); PR-1 redirect łapie resztę. Clear przy Delete/Archive aktywnego (zgodne z decyzją usera) | `useActiveRun` (nowy); `use-runs.ts:77` (delete), `:59` (archive) |
-| PR-4 | 🟡 | Forms / unsaved | Switch Runa w trakcie wpisywania brain-dumpa gubi draft | `Continue` innego Runa podmienia dane; niezapisany tekst w polu capture (Enter) przepada bez słowa (decyzja: draft ulotny, `BrainDump.tsx:23` `useState`) | Zaakceptowane (decyzja usera). Opcjonalnie: lekki hint jeśli draft niepusty przy switchu; pole ulotne = spójne z dzisiaj | `BrainDump.tsx:23` (`draft`) |
-| PR-5 | 🟡 | Cross-module / state | Zapauzowana sesja focus musi wznawiać per-Run | `Continue` Runa A musi wznowić **sesję A**, nie globalną/B. Jeśli `focus:session` (`FocusView.tsx:72`) nie zostanie scope'owane per-Run → switch Runów wznawia złą (globalną) kolejkę | Scope'uj `focus:session` per-Run; `useLiveRuns` czyta snapshot aktywnego Runa (`use-live-runs.ts:33`) | `FocusView.tsx:72`; `use-live-runs.ts:33,44` |
-| PR-6 | 🟡 | Data / migration | Migracja nieidempotentna / podwójne uruchomienie | Jednorazowe przypisanie `runId` do starych globalnych danych musi być idempotentne (nie re-stampować co ładowanie, nie tworzyć drugiego „first run"); nie może się uruchomić po `loadScenario`, które czyści storage | Flag „zmigrowano" (albo `runId` już obecny = sygnał); migracja tylko gdy stare klucze istnieją bez `runId` | logika migracji (nowa); `loader.ts` (wzajemne wykluczanie ze scenario-load) |
-| PR-7 | 🟡 | Data / migration | Migracja łączy wszystkie stare dane w JEDEN Run | User z wieloma „przejazdami" zleonymi w globalnym storze nie może ich rozdzielić — wszystkie lądują w najnowszym/seed-Runie | Jednorazowy notice („przenieśliśmy Twoje dane do Runa X"); uczciwe ograniczenie, nie do naprawy bez heurystyki | logika migracji (nowa) |
-| PR-8 | 🟡 | Data / stats | Taski bez `runId` (sieroty / częściowy zapis) są niewidoczne w statystykach | Po migracji wszystkie taski mają `runId`, ale przyszła sierota (bug, częściowy zapis) spada z `deriveRunStats` wszystkich Runów — liczby cicho się nie zgadzają | Grupuj po `runId` w `useLiveRuns`; opcjonalnie: alert/sierocnik dla tasków bez `runId` | `use-live-runs.ts:49` (mapowanie globalnych stats na wszystkie → per-Run) |
-| PR-9 | 🟡 | Cross-module | `lastReachedStep` re-derive musi karmić się danymi TEGO Runa | `deriveLastReachedStep` (`stats.ts:65`) bierze `FunnelSignals`; jeśli nakarmione globalnymi liczbami → zły krok resume (stary CM-2 powraca). Po izolacji sygnały muszą być per-Run | `useLiveRuns` (`use-live-runs.ts:37`) buduje `FunnelSignals` z danych aktywnego Runa; to **zamyka CM-2** | `stats.ts:65`; `use-live-runs.ts:37-47` |
-| PR-10 | 🟡 | Visual / data | Chip aktywnego Runa w nagłówku przy braku aktywnego / długiej nazwie | Slot chipa (`AppShell.tsx:41`) dziś pusty; po impl. musi degradować gdy brak aktywnego (ukryty vs pusty chip — nie mylić) i nie wprowadzać w błąd; w MVP display-only (klik = Later) | Ukryj chip gdy brak `activeRunId`; `truncate` długiej nazwy; display-only (switch przez Dashboard) | `AppShell.tsx:41` (slot zarezerwowany, nieprzypięty) |
-| PR-11 | 🟡 | State transitions | Un-archive nie powinien aktywować Runa | `unarchiveRun` (`use-runs.ts:67`) przywraca do listy aktywnych; niech nie ustawia `activeRunId` (aktywacja = Continue). Verify że archiwizacja aktywnego czyści wskaźnik (PR-3) | Un-archive = tylko powrót na listę; aktywacja wyłącznie przez Create/Continue | `use-runs.ts:67` (unarchive), `:59` (archive) |
-| PR-12 | 🟡 | Data / referential | DoneVision / Reasons mogą leakować między Runami | `DoneVisionMap` keyed po `stressorId` (`use-done-visions.ts:13`), `Reason[]` (`use-reasons.ts:9`); jeśli nie scope'owane po aktywnym Runie → wizje/powody z innych Runów mogą się wyświetlić w `decompose` | Hooki filtrują po `activeRunId` (lub po zestawie stressorów tego Runa); id globalnie unikalne chroni przed kolizją, nie przed leakiem | `use-done-visions.ts:13`; `use-reasons.ts:9` |
-| PR-13 | 🟡 | Prototype-specific | Awaria zapisu `activeRunId` (quota) milczy | Jeśli `useLocalStorage('run:active', …)` zawiedzie → aktywny nieustawiony, lejek pokazuje pusto/mylnie bez feedbacku | Re-use wzorca `writeError`+retry (jak inne hooki); toast, stan UI = niezapisany | `useActiveRun` (nowy); `use-local-storage.ts` (status już jest) |
-| PR-14 | 🟢 | Data states | Wiele Runów → globalne tablice rosną (Design B) | Każdy Run dokłada do globalnych kluczy; przy wielu Runach localStorage rośnie → quota | Akceptowalne dla prototypu; Design A (key-per-run) byłby czystszy; paginacja/purge = Later | storage volume (Design B, ADR 0044) |
-| PR-15 | 🟢 | Visual | Długa nazwa aktywnego Runa w chipie nagłówka | Długa nazwa rozsadza wąski slot chipa | `truncate` + `title` (hover), jak `RunCard` (DS-2) | `AppShell.tsx:41` |
-| PR-16 | 🟢 | Data / referential | `TaskOrder` per-Run ze starymi id tasków | Ręczny porządek per-Run (`focus:taskOrder`) może trzymać id usuniętych tasków — istniejące zachowanie, teraz per-Run; verify brak cross-Run wpływu | Degrade grzecznie (ignoruj nieistniejące id, jak dziś) | `focus:taskOrder` per-Run (ADR 0036/0044) |
+| PR-1 | 🔴 | Navigation / flow | No "active Run" guard on funnel routes | Entering `/capture`/`/decompose`/`/process`/`/focus` without `activeRunId` (a fresh app via deep-link, or the active one was just deleted/archived) → the funnel scopes by `null`/old id → empty or misleading screen, no way forward | Guard funnel routes: no valid `activeRunId` → **redirect to Dashboard** (user decision). Validate that the id exists and `state==='in_progress'` (PR-3) | `App.tsx` routes `/capture`…`/focus` (no guard); `useActiveRun` (new) |
+| PR-2 | 🔴 | Action outcomes / data | `deleteRun` without cascade = orphaned data + a broken "terminal deletion" promise | `deleteRun` (`use-runs.ts:77`) today removes only the Run record. After isolation this Run's stressors/tasks/nextActions/reasons/doneVisions/focus-data **stay** in the stores → the user thinks they permanently deleted the Run, but the data lingers in localStorage (growing volume, leak risk on a bad filter) | Cascading deletion of **all** this Run's funnel stores from a **central list** (don't forget future new stores); if any write fails → retry toast (no silent loss) | `use-runs.ts:77` (`deleteRun`); cascade list (new) |
+| PR-3 | 🟡 | State / data | A stale `activeRunId` points at a deleted/archived Run | After Delete/Archive of the active one, the pointer (if not cleared) holds a nonexistent/stale id → the funnel scopes by it → empty, or work on an archived Run | Validate `activeRunId` on every read (exists && `in_progress`); the PR-1 redirect catches the rest. Clear on Delete/Archive of the active (per the user decision) | `useActiveRun` (new); `use-runs.ts:77` (delete), `:59` (archive) |
+| PR-4 | 🟡 | Forms / unsaved | Switching Runs while typing a brain-dump loses the draft | `Continue` on another Run swaps the data; unsaved text in the capture field (Enter) is lost without a word (decision: ephemeral draft, `BrainDump.tsx:23` `useState`) | Accepted (user decision). Optionally: a light hint if the draft is non-empty on switch; ephemeral field = consistent with today | `BrainDump.tsx:23` (`draft`) |
+| PR-5 | 🟡 | Cross-module / state | A paused focus session must resume per-Run | `Continue` on Run A must resume **session A**, not the global/B one. If `focus:session` (`FocusView.tsx:72`) isn't scoped per-Run → switching Runs resumes the wrong (global) queue | Scope `focus:session` per-Run; `useLiveRuns` reads the active Run's snapshot (`use-live-runs.ts:33`) | `FocusView.tsx:72`; `use-live-runs.ts:33,44` |
+| PR-6 | 🟡 | Data / migration | Non-idempotent migration / double run | The one-time assignment of `runId` to old global data must be idempotent (don't re-stamp every load, don't create a second "first run"); it must not run after `loadScenario`, which clears storage | A "migrated" flag (or `runId` already present = signal); migrate only when old keys exist without `runId` | migration logic (new); `loader.ts` (mutual exclusion with scenario-load) |
+| PR-7 | 🟡 | Data / migration | Migration merges all old data into ONE Run | A user with many "passes" merged in the global store can't separate them — all land in the newest/seed Run | A one-time notice ("we moved your data to Run X"); an honest limitation, not fixable without a heuristic | migration logic (new) |
+| PR-8 | 🟡 | Data / stats | Tasks without `runId` (orphans / partial write) are invisible in stats | After migration all tasks have `runId`, but a future orphan (bug, partial write) falls out of `deriveRunStats` for all Runs — the numbers silently disagree | Group by `runId` in `useLiveRuns`; optionally: an alert/orphan-bin for tasks without `runId` | `use-live-runs.ts:49` (mapping global stats to all → per-Run) |
+| PR-9 | 🟡 | Cross-module | `lastReachedStep` re-derive must feed on THIS Run's data | `deriveLastReachedStep` (`stats.ts:65`) takes `FunnelSignals`; if fed global numbers → wrong resume step (old CM-2 returns). After isolation the signals must be per-Run | `useLiveRuns` (`use-live-runs.ts:37`) builds `FunnelSignals` from the active Run's data; this **closes CM-2** | `stats.ts:65`; `use-live-runs.ts:37-47` |
+| PR-10 | 🟡 | Visual / data | Active-Run chip in the header with no active / long name | The chip slot (`AppShell.tsx:41`) is empty today; after impl. it must degrade when there's no active (hidden vs empty chip — don't confuse) and not mislead; in the MVP it's display-only (click = Later) | Hide the chip when there's no `activeRunId`; `truncate` a long name; display-only (switch via Dashboard) | `AppShell.tsx:41` (slot reserved, unassigned) |
+| PR-11 | 🟡 | State transitions | Un-archive shouldn't activate the Run | `unarchiveRun` (`use-runs.ts:67`) restores to the active list; it should not set `activeRunId` (activation = Continue). Verify that archiving the active clears the pointer (PR-3) | Un-archive = return to the list only; activation only via Create/Continue | `use-runs.ts:67` (unarchive), `:59` (archive) |
+| PR-12 | 🟡 | Data / referential | DoneVision / Reasons can leak between Runs | `DoneVisionMap` keyed by `stressorId` (`use-done-visions.ts:13`), `Reason[]` (`use-reasons.ts:9`); if not scoped to the active Run → visions/reasons from other Runs may show in `decompose` | The hooks filter by `activeRunId` (or by this Run's set of stressors); globally-unique ids protect against collision, not leak | `use-done-visions.ts:13`; `use-reasons.ts:9` |
+| PR-13 | 🟡 | Prototype-specific | `activeRunId` write failure (quota) is silent | If `useLocalStorage('run:active', …)` fails → active unset, the funnel shows empty/misleading with no feedback | Reuse the `writeError`+retry pattern (like other hooks); a toast, UI state = unsaved | `useActiveRun` (new); `use-local-storage.ts` (the status already exists) |
+| PR-14 | 🟢 | Data states | Many Runs → global arrays grow (Design B) | Each Run adds to the global keys; with many Runs localStorage grows → quota | Acceptable for a prototype; Design A (key-per-run) would be cleaner; pagination/purge = Later | storage volume (Design B, ADR 0044) |
+| PR-15 | 🟢 | Visual | A long active-Run name in the header chip | A long name bursts the narrow chip slot | `truncate` + `title` (hover), like `RunCard` (DS-2) | `AppShell.tsx:41` |
+| PR-16 | 🟢 | Data / referential | Per-Run `TaskOrder` with old task ids | A per-Run manual order (`focus:taskOrder`) may hold deleted task ids — existing behavior, now per-Run; verify no cross-Run impact | Degrade gracefully (ignore nonexistent ids, like today) | `focus:taskOrder` per-Run (ADR 0036/0044) |
 
-### Kategorie sprawdzone bez nowych luk (feature)
-- **State machine `activeRunId`**: to wskaźnik (set/clear), nie automat stanów — przejścia = Create/Continue (set), Delete/Archive aktywnego (clear). Brak niepoprawnych przejść do zablokowania.
-- **Walidacja `runId` na encjach**: id generowane globalnie-unikalnie (`generateId`) → brak kolizji między Runami (leak PR-12 to kwestia filtrowania, nie kolizji).
-- **Referential `stressorId`/`nextActionId`**: globalnie unikalne → join wewnątrz Runa poprawny; cross-Run join nie zachodzi (scope po `runId`).
-- **Roles/permissions, offline, `alert()`**: jak w bazowym audycie — n/a / OK.
+### Categories checked with no new gaps (feature)
+- **`activeRunId` state machine**: it's a pointer (set/clear), not a state machine — transitions = Create/Continue (set), Delete/Archive of the active (clear). No invalid transitions to block.
+- **`runId` validation on entities**: ids generated globally-unique (`generateId`) → no collisions between Runs (the PR-12 leak is a filtering matter, not collision).
+- **Referential `stressorId`/`nextActionId`**: globally unique → a join within a Run is correct; a cross-Run join doesn't happen (scoped by `runId`).
+- **Roles/permissions, offline, `alert()`**: as in the base audit — n/a / OK.
 
 ### Priority (feature)
-1. **🔴 PR-1** — guard „brak aktywnego Runa" na trasach lejka (dead-end / mylny ekran). Pierwszy do wdrożenia; bez tego izolacja tworzy puste ekrany przy każdym wejściu bez aktywacji.
-2. **🔴 PR-2** — kaskadowe usuwanie danych lejka w `deleteRun` (niedotrzymana obietnica „terminalnego usunięcia" + rosnące sieroty).
-3. **PR-3 / PR-5 / PR-9** — integralność active-run: walidacja wskaźnika, per-Run wznowienie sesji, per-Run re-derive kroku (razem zamykają stare CM-2/CM-3).
-4. **PR-6 / PR-7 / PR-8** — migracja (idempotentność, uczciwe ograniczenie scalania, sieroty w statystykach).
-5. **PR-12** — leak DoneVision/Reasons między Runami.
-6. **PR-10 / PR-11 / PR-13** — UX wskaźnika (chip, un-archive nie aktywuje, awaria zapisu active).
-7. **PR-4** — (zaakceptowane) ulotny draft przy switchu.
+1. **🔴 PR-1** — "no active Run" guard on funnel routes (dead-end / misleading screen). First to implement; without it isolation creates empty screens on every entry without activation.
+2. **🔴 PR-2** — cascading deletion of funnel data in `deleteRun` (a broken "terminal deletion" promise + growing orphans).
+3. **PR-3 / PR-5 / PR-9** — active-run integrity: pointer validation, per-Run session resume, per-Run step re-derive (together they close the old CM-2/CM-3).
+4. **PR-6 / PR-7 / PR-8** — migration (idempotency, honest merge limitation, orphans in stats).
+5. **PR-12** — DoneVision/Reasons leak between Runs.
+6. **PR-10 / PR-11 / PR-13** — pointer UX (chip, un-archive doesn't activate, active-write failure).
+7. **PR-4** — (accepted) ephemeral draft on switch.
 8. (🟢 polish: PR-14, PR-15, PR-16).
 
 ### Hand-off
-Większość tych luk to **guardy i integralność warstwy danych**, nie stany UI — więc trafiają głównie do **residual (direct-edits, krok 0 planu)** i `proto-lofi`, a nie do `proto-harden`. Kolejność:
-- **PR-1, PR-2, PR-3, PR-5, PR-8, PR-9, PR-11, PR-12** → **residual / `proto-lofi`** (fundament warstwy danych + wiring): guard tras, kaskada delete, walidacja wskaźnika, per-Run sesja/stats/re-derive, scope DoneVision/Reasons, semantyka un-archive. To implementacyjne, nie stany.
-- **PR-6, PR-7** → **residual (migracja)** + `proto-harden` (notice/toast migracji, PR-7).
-- **PR-10, PR-13, PR-15** → `proto-lofi` / `proto-polish` (chip w nagłówku: degradacja braku aktywnego, awaria zapisu, truncate).
-- **PR-4, PR-14, PR-16** → świadome kompromisy / `proto-polish`.
+Most of these gaps are **data-layer guards and integrity**, not UI states — so they go mainly to **residual (direct-edits, step 0 of the plan)** and `proto-lofi`, not `proto-harden`. Order:
+- **PR-1, PR-2, PR-3, PR-5, PR-8, PR-9, PR-11, PR-12** → **residual / `proto-lofi`** (the data-layer foundation + wiring): route guard, delete cascade, pointer validation, per-Run session/stats/re-derive, DoneVision/Reasons scope, un-archive semantics. This is implementation, not states.
+- **PR-6, PR-7** → **residual (migration)** + `proto-harden` (migration notice/toast, PR-7).
+- **PR-10, PR-13, PR-15** → `proto-lofi` / `proto-polish` (header chip: no-active degradation, write failure, truncate).
+- **PR-4, PR-14, PR-16** → conscious compromises / `proto-polish`.
 
-> Feature **rozwiązuje odroczone CM-1/CM-2/CM-3** (statystyki / `lastReachedStep` / review spięte z danymi lejka) — po wdrożeniu residual + lofi zdejmij z nich flagę „odłożone" w sekcji *Resolution* bazowego audytu i odznacz caption „Statystyki poglądowe" na `RunStatTiles`.
+> The feature **resolves the deferred CM-1/CM-2/CM-3** (stats / `lastReachedStep` / review wired to funnel data) — after implementing residual + lofi, remove their "deferred" flag in the base audit's *Resolution* section and drop the "Overview stats" caption on `RunStatTiles`.
 
 ### Resolution
-*Pending* — feature niezbudowany. Odśwież tę sekcję po wdrożeniu residual (krok 0) + `proto-lofi`/`proto-harden`.
+*Pending* — the feature isn't built. Refresh this section after implementing residual (step 0) + `proto-lofi`/`proto-harden`.
 
 ---
 
 ## Feature audit: clickable funnel steps + Run Details actions on top (ADR 0047/0048)
 
-Scope: **NOWE** przypadki brzegowe wprowadzone przez feature (klikalny stepper, guard wyjścia z aktywnej sesji, reorder akcji na Szczegółach). Reszta modułu — patrz audyt bazowy + per-run-isolation powyżej. Ekrany lejka były projektowane pod dotarcie z **guidowanego flow** (który gwarantuje warunki wstępne); teraz są osiągalne **bezpośrednio przez stepper** — to główna nowa powierzchnia ryzyka.
+Scope: **NEW** edge cases introduced by the feature (clickable stepper, active-session-exit guard, Details actions reorder). The rest of the module — see the base audit + per-run-isolation above. The funnel screens were designed to be reached from a **guided flow** (which guarantees preconditions); now they're reachable **directly via the stepper** — that's the main new risk surface.
 
 ### Coverage (feature)
-- **Już obsłużone w kodzie** (pozytywny wynik — ekrany lejka degradują grzecznie przy skoku z pustym lejkiem):
-  - BrainDump empty — `BrainDump.tsx:156` („List is empty. Dump your first stressor…").
-  - Ranking 0 stresorów — `Ranking.tsx:59` („No stressors to order…").
-  - Decompose 0 stresorów — `DecomposeView.tsx:70` („No stressors to break down…").
-  - Process 0 / nic-do-procesowania — `ProcessView.tsx:411` (`nothingToDo` → „All set — no tasks left to process" + CTA).
-  - Focus 0 opisanych / 0 dopasowanych — `SessionFilter.tsx:115,156`; Start disabled gdy `matchCount === 0` (`:84`).
-  - RunTaskList empty (lista na Szczegółach, teraz na dole) — `RunTaskList.tsx:65` („No tasks yet…").
-  - Guard wyjścia z aktywnej sesji (ConfirmDialog) — `FocusView.tsx:411` (`onBeforeNavigate`) + dialog `:539`.
-- **Nowe luki znalezione**: 6.
+- **Already handled in code** (a positive result — the funnel screens degrade gracefully on a jump with an empty funnel):
+  - BrainDump empty — `BrainDump.tsx:156` ("List is empty. Dump your first stressor…").
+  - Ranking with 0 stressors — `Ranking.tsx:59` ("No stressors to order…").
+  - Decompose with 0 stressors — `DecomposeView.tsx:70` ("No stressors to break down…").
+  - Process with 0 / nothing-to-process — `ProcessView.tsx:411` (`nothingToDo` → "All set — no tasks left to process" + CTA).
+  - Focus with 0 described / 0 matched — `SessionFilter.tsx:115,156`; Start disabled when `matchCount === 0` (`:84`).
+  - RunTaskList empty (the list on Details, now at the bottom) — `RunTaskList.tsx:65` ("No tasks yet…").
+  - Active-session-exit guard (ConfirmDialog) — `FocusView.tsx:411` (`onBeforeNavigate`) + dialog `:539`.
+- **New gaps found**: 6.
 - **By severity**: 🔴 0 · 🟡 2 · 🟢 4.
 
-> Brak 🔴 — feature jest funkcjonalnie kompletny; ekrany lejka obsługują skoki z pustym lejkiem. Największa fragmentaryczność to **affordance** (klikalne kroki wyglądają na disabled) oraz **niespójność guardu** (tylko stepper pyta przed wyjściem z sesji).
+> No 🔴 — the feature is functionally complete; the funnel screens handle jumps with an empty funnel. The biggest gaps are **affordance** (clickable steps look disabled) and **guard inconsistency** (only the stepper asks before leaving a session).
 
 ### Inventory (feature)
 
 | # | Sev | Category | Edge case | Behavior today | Suggested behavior | Where |
 |---|-----|----------|-----------|----------------|--------------------|-------|
-| CS-1 | 🟡 | Navigation / consistency | Wyjście z aktywnej sesji focus pyta TYLKO przez stepper; back przeglądarki / link Dashboard / reload — nie | Guard działa wyłącznie na klik stepper'a (`onBeforeNavigate`); back/reload/link wychodzą milcząco. Sesja i tak przetrwa (snapshot per-Run), więc to **nie** utrata danych — lecz niespójność: stepper pyta, back nie | Decyzja: zaakceptować i udokumentować (guard = tylko stepper), ALBO rozszerzyć guard na inne drogi (blokada nawigacji / `beforeunload`). MVP: zaakceptować + odnotować | `FocusView.tsx:411` (guard tylko na stepper) |
-| CS-2 | 🟡 | Navigation / affordance | Klikalne „przyszłe" kroki stepper'a wyglądają na wyłączone (muted), a są klikalne | `!isActive && !isDone` → `text-muted-foreground/60`; dopiero hover zmienia na foreground. Dla persony ADHD „wygląda zablokowane, ale działa" = mylące affordance | Restyle (`design`/`polish`): klikalne kroki nie powinny wyglądać na disabled w spoczynku — wyraźny sygnał interaktywności (akcent/outline zamiast muted) | `FunnelStepper.tsx:51` (muted dla `!isActive && !isDone`) |
-| CS-3 | 🟢 | State / guard | Guard może over-triggernąć w stanie safeguard (sesja, ale task zniknął) | `screen === 'session' && running` — jeśli `running` jeszcze true w stanie `session && !currentTask` (task usunięty z innej karty), dialog pyta o wyjście, gdy nie ma aktywnego taska. Rzadkie, wyjście i tak nieszkodliwe | Dobić guard na obecność taska: `screen === 'session' && currentTask && running` | `FocusView.tsx:413` (warunek guardu) |
-| CS-4 | 🟢 | Data states / copy | „All set — no tasks left to process" mylące przy dosłownie 0 tasków | Komunikat implikuje przetworzone taski; przy pustym lejku (skok capture→process) niedokładne, choć CTA „Continue to focus" daje drogę | Rozróżnić copy: 0 tasków vs wszystkie-opisane (np. „No tasks to process yet — create some in Breakdown") | `ProcessView.tsx:411` |
-| CS-5 | 🟢 | Data states | Ranking przy dokładnie 1 stresorze: degenerowany | Brak Pairing (`≥2`), list 1-elementowy, ↑↓ oba `disabled`. Funkcjonalne (Dalej enabled przy 1), ale dziwne — teraz osiągalne bezpośrednio stepperem | Akceptowalne (1 stresor = poprawny, trywialny przypadek); ew. ukryć Pairing/strzałki przy 1 | `Ranking.tsx:41` (`:110/:121` disabled) |
-| CS-6 | 🟢 | Navigation / a11y | Stepper dodaje 5 tab-stopów przed treścią na każdym ekranie lejka | Klawiatura: 5 linków stepper'a tabuje się przed główną treścią ekranu | Dopuszczalne; rozważyć „skip to content" jeśli tab-order uciążliwy (→ `polish`) | `FunnelStepper.tsx:31` (render w każdym ekranie) |
+| CS-1 | 🟡 | Navigation / consistency | Leaving an active focus session asks ONLY via the stepper; browser back / Dashboard link / reload — don't | The guard acts only on a stepper click (`onBeforeNavigate`); back/reload/link leave silently. The session survives anyway (per-Run snapshot), so this is **not** data loss — but an inconsistency: the stepper asks, back doesn't | Decision: accept and document (guard = stepper only), OR extend the guard to other paths (navigation block / `beforeunload`). MVP: accept + note | `FocusView.tsx:411` (stepper-only guard) |
+| CS-2 | 🟡 | Navigation / affordance | Clickable "future" stepper steps look disabled (muted), but are clickable | `!isActive && !isDone` → `text-muted-foreground/60`; only hover changes it to foreground. For an ADHD persona "looks blocked but works" = a misleading affordance | Restyle (`design`/`polish`): clickable steps shouldn't look disabled at rest — a clear interactivity signal (accent/outline instead of muted) | `FunnelStepper.tsx:51` (muted for `!isActive && !isDone`) |
+| CS-3 | 🟢 | State / guard | The guard can over-trigger in the safeguard state (session, but the task disappeared) | `screen === 'session' && running` — if `running` is still true in the `session && !currentTask` state (task deleted from another tab), the dialog asks about leaving when there's no active task. Rare, and leaving is harmless anyway | Tighten the guard on task presence: `screen === 'session' && currentTask && running` | `FocusView.tsx:413` (guard condition) |
+| CS-4 | 🟢 | Data states / copy | "All set — no tasks left to process" is misleading at literally 0 tasks | The message implies processed tasks; with an empty funnel (a capture→process jump) it's inaccurate, though the "Continue to focus" CTA gives a path | Distinguish the copy: 0 tasks vs all-described (e.g. "No tasks to process yet — create some in Breakdown") | `ProcessView.tsx:411` |
+| CS-5 | 🟢 | Data states | Ranking with exactly 1 stressor: degenerate | No Pairing (`≥2`), a single-element list, ↑↓ both `disabled`. Functional (Next enabled at 1), but odd — now reachable directly via the stepper | Acceptable (1 stressor = a valid, trivial case); optionally hide Pairing/arrows at 1 | `Ranking.tsx:41` (`:110/:121` disabled) |
+| CS-6 | 🟢 | Navigation / a11y | The stepper adds 5 tab-stops before the content on every funnel screen | Keyboard: the 5 stepper links tab before the screen's main content | Acceptable; consider a "skip to content" if the tab order is burdensome (→ `polish`) | `FunnelStepper.tsx:31` (rendered on every screen) |
 
-### Kategorie sprawdzone bez luk (feature)
-- **Skok do kroku z niespełnionymi warunkami (główna nowa powierzchnia)**: wszystkie 5 ekranów lejka degraduje do empty-state'a / CTA — BrainDump, Ranking (0), Decompose, Process (`nothingToDo`), Focus (0 opisanych / 0 dopasowanych). ✅ Brak blank-screena, brak dead-endu.
-- **Klik w bieżący krok**: Link do samego siebie = no-op (brak nowego wpisu historii / re-rendera). ✅
-- **Persystencja sesji po „Leave"**: snapshot zapisywany efektem (`FocusView.tsx:191`) przed nawigacją; powrót → `SessionResumeBanner`. ✅
-- **Reorder akcji na Szczegółach**: stany archived (read-only lista + Unarchive nad nią) i completed (`RunCompleted` CTA nad listą) spójne; pusta lista tasków ma empty-state (`RunTaskList.tsx:65`) i jest teraz na dole. ✅
-- **Guard braku aktywnego Runa**: trasy lejka chronione `RequireActiveRun`; stepper renderuje się dopiero po przejściu guardu. ✅
-- **Storage failure przy nawigacji stepperem**: nawigacja nie zapisuje — brak nowej ścieżki awarii zapisu. ✅
+### Categories checked with no gaps (feature)
+- **Jumping to a step with unmet conditions (the main new surface)**: all 5 funnel screens degrade to an empty-state / CTA — BrainDump, Ranking (0), Decompose, Process (`nothingToDo`), Focus (0 described / 0 matched). ✅ No blank screen, no dead-end.
+- **Clicking the current step**: a link to itself = no-op (no new history entry / re-render). ✅
+- **Session persistence after "Leave"**: the snapshot is saved by an effect (`FocusView.tsx:191`) before navigation; return → `SessionResumeBanner`. ✅
+- **Details actions reorder**: the archived (read-only list + Unarchive above it) and completed (`RunCompleted` CTA above the list) states are consistent; an empty task list has an empty-state (`RunTaskList.tsx:65`) and is now at the bottom. ✅
+- **No-active-Run guard**: the funnel routes are protected by `RequireActiveRun`; the stepper renders only after passing the guard. ✅
+- **Storage failure on stepper navigation**: navigation doesn't write — no new write-failure path. ✅
 
 ### Priority (feature)
-1. **🟡 CS-2** — affordance klikalnych „przyszłych" kroków (muted = wygląda disabled). Najwyższy user-impact z nowych; dla persony ADHD mylące. → `proto-design`/`proto-polish`.
-2. **🟡 CS-1** — guard sesji tylko na stepperze (niespójność z back/reload). Decyzja: zaakceptować + udokumentować, albo rozszerzyć. → `proto-harden` (jeśli rozszerzać) / świadomy kompromis.
-3. **🟢 CS-3 / CS-4 / CS-5 / CS-6** — polish / copy / rzadkie stany. → `proto-polish` lub świadome odłożenie.
+1. **🟡 CS-2** — affordance of clickable "future" steps (muted = looks disabled). The highest user-impact of the new ones; misleading for an ADHD persona. → `proto-design`/`proto-polish`.
+2. **🟡 CS-1** — session guard only on the stepper (inconsistency with back/reload). Decision: accept + document, or extend. → `proto-harden` (if extending) / conscious compromise.
+3. **🟢 CS-3 / CS-4 / CS-5 / CS-6** — polish / copy / rare states. → `proto-polish` or conscious deferral.
 
 ### Hand-off (feature)
-- **CS-2 → `proto-design`/`proto-polish`** (affordance stepper'a — to design, nie stan).
-- **CS-1 → `proto-harden`** (decyzja + ew. rozszerzenie guardu na inne drogi) LUB świadomy kompromis (odnotować w specu: guard = tylko stepper).
-- **CS-3 → `proto-harden`** (dobić warunek guardu na `currentTask`) — drobne, razem z CS-1.
-- **CS-4 / CS-5 / CS-6 → `proto-polish`** (copy / degenerowany stan / a11y) lub odłożyć.
-- Brak 🔴 i brak luk wymagających `proto-lofi` (żadnych nowych ekranów) — feature jest funkcjonalnie kompletny; reszta to affordance/polish.
+- **CS-2 → `proto-design`/`proto-polish`** (stepper affordance — this is design, not a state).
+- **CS-1 → `proto-harden`** (decision + possibly extending the guard to other paths) OR a conscious compromise (note in the spec: guard = stepper only).
+- **CS-3 → `proto-harden`** (tighten the guard condition on `currentTask`) — minor, alongside CS-1.
+- **CS-4 / CS-5 / CS-6 → `proto-polish`** (copy / degenerate state / a11y) or defer.
+- No 🔴 and no gaps requiring `proto-lofi` (no new screens) — the feature is functionally complete; the rest is affordance/polish.
 
 ### Resolution (feature)
-- **CS-3 ✅** — guard wymaga teraz obecności taska (gated na `currentTask`): `screen === 'session' && currentTask && running` (`FocusView.tsx:413`). Over-trigger w stanie safeguard (sesja, task zniknął) wyeliminowany.
-- **CS-1 ✅ (zaakceptowane + udokumentowane)** — guard sesji zostaje **stepper-only**; inne drogi (back/reload/linki w nagłówku) wychodzą milcząco, ale bezpiecznie (snapshot `focus:session` persystuje per-Run niezależnie od drogi → bez utraty danych, wznawialne). Udokumentowane w `run.md` (Edge Cases). Rozszerzenie na wszystkie drogi odłożone (fragile, MVP-nieuzasadnione).
-- **CS-2 ✅** — wdrożone w `proto-polish` (ADR 0050: affordance klikalnego stepper'a).
-- **CS-4 / CS-5 / CS-6 ❌ (odłożone)** — copy w module `process` / degenerowany stan rankinga (1 stresor) / a11y tab-stopów. Świadome — → ew. `proto-polish`, nie blokują.
+- **CS-3 ✅** — the guard now requires a task to be present (gated on `currentTask`): `screen === 'session' && currentTask && running` (`FocusView.tsx:413`). Over-triggering in the safeguard state (session, task disappeared) is eliminated.
+- **CS-1 ✅ (accepted + documented)** — the session guard stays **stepper-only**; other paths (back/reload/header links) leave silently but safely (the `focus:session` snapshot persists per-Run regardless of the path → no data loss, resumable). Documented in `run.md` (Edge Cases). Extending to all paths is deferred (fragile, unjustified for the MVP).
+- **CS-2 ✅** — implemented in `proto-polish` (ADR 0050: clickable-stepper affordance).
+- **CS-4 / CS-5 / CS-6 ❌ (deferred)** — copy in the `process` module / degenerate ranking state (1 stressor) / tab-stop a11y. Conscious — → possibly `proto-polish`, not blocking.
 
 ---
 
 ## Feature audit: estimated-time totals (ADR 0059/0060/0061)
 
-Scope: NOWE powierzchnie feature'u *run-estimated-time-totals* — agregat `estimatedTotalMin`/`estimatedRemainingMin` w `deriveRunStats` (`run/stats.ts`) + 3 display'e: 4. kafel i sub-linia w `RunStatTiles` (Szczegóły), segment w `DominantRunCard` (dashboard), licznik czasu w `SessionFilter`/`FocusView` (focus). Reszta modułu — patrz audyty powyżej. Feature jest **read-only** (żadnych nowych akcji/zapisów — agregat wyprowadzany, nie persystowany), więc klasyczne luki (formularze, awarie zapisu, dead-endy) w większości nie mają zastosowania; audit skupia się na **coherence wyświetlania** i stanach braku/niepełnych szacunków.
+Scope: NEW surfaces of the *run-estimated-time-totals* feature — the `estimatedTotalMin`/`estimatedRemainingMin` aggregate in `deriveRunStats` (`run/stats.ts`) + 3 displays: a 4th tile and sub-line in `RunStatTiles` (Details), a segment in `DominantRunCard` (dashboard), a time counter in `SessionFilter`/`FocusView` (focus). The rest of the module — see the audits above. The feature is **read-only** (no new actions/writes — the aggregate is derived, not persisted), so classic gaps (forms, write failures, dead-ends) mostly don't apply; the audit focuses on **display coherence** and no-estimate / partial-estimate states.
 
 ### Coverage (feature)
-- **Już obsłużone w kodzie**:
-  - Brak szacunków (`estimatedTotalMin === 0`): kafel „—" zamiast mylącego „0m" (`RunStatTiles.tsx:29`); segment na dominującej karcie pominięty (`DominantRunCard.tsx:93`); sub-linia remaining pominięta (`RunStatTiles.tsx:55`, guard `totalEst > 0`).
-  - Filtr focus: `matchedEstimateMin` >0 zawsze gdy `matchCount > 0` (matched taski mają `EstimatedTime` gwarantowane przez filtr `attributed` w `FocusView.tsx:94-106`); segment czasu pokazywany przy dopasowaniach (`SessionFilter.tsx:165`).
-  - Reaktywność: po Done/Dismiss z listy `deriveRunStats` przelicza `estimatedRemainingMin` na żywo (`RunDetails.tsx` — dziedziczy instancję `useTasks` z fixu R2-1).
-  - Stara persistowana data bez nowych pól: bezpieczna — `useLiveRuns`/`RunDetails` re-deriwują stats przed odczytem; `RunCard` (mini) czyta tylko stare pola (brak dostępu do niezdefiniowanych; `tsc` potwierdza).
-- **Nowe luki**: 3 · 🔴 0 · 🟡 2 · 🟢 1.
+- **Already handled in code**:
+  - No estimates (`estimatedTotalMin === 0`): a "—" tile instead of a misleading "0m" (`RunStatTiles.tsx:29`); the dominant-card segment omitted (`DominantRunCard.tsx:93`); the remaining sub-line omitted (`RunStatTiles.tsx:55`, guard `totalEst > 0`).
+  - Focus filter: `matchedEstimateMin` >0 whenever `matchCount > 0` (matched tasks have `EstimatedTime` guaranteed by the `attributed` filter in `FocusView.tsx:94-106`); the time segment shown on matches (`SessionFilter.tsx:165`).
+  - Reactivity: after Done/Dismiss from the list, `deriveRunStats` recomputes `estimatedRemainingMin` live (`RunDetails.tsx` — inherits the `useTasks` instance from the R2-1 fix).
+  - Old persisted data without the new fields: safe — `useLiveRuns`/`RunDetails` re-derive stats before reading; `RunCard` (mini) reads only old fields (no access to undefined; `tsc` confirms).
+- **New gaps**: 3 · 🔴 0 · 🟡 2 · 🟢 1.
 
-> Brak 🔴 — feature read-only, bez utraty danych / dead-endów / alertów. Największa fragmentaryczność to **coherence dwóch liczników „left"** (liczba tasków vs minuty-po-subset) oraz **render „~0m left" na ukończonym Runie**.
+> No 🔴 — a read-only feature, with no data loss / dead-ends / alerts. The biggest gaps are **coherence of the two "left" counters** (task count vs subset-minutes) and **rendering "~0m left" on a completed Run**.
 
 ### Inventory (feature)
 
 | # | Sev | Category | Edge case | Behavior today | Suggested behavior | Where |
 |---|-----|----------|-----------|----------------|--------------------|-------|
-| ET-1 | 🟡 | Data states / coherence | Ukończony Run pokazuje „~0m left of ~Xh estimated" | Gdy wszystkie wyestymowane taski done/dismissed: `estimatedRemainingMin = 0` ale `totalEst > 0` → sub-linia renderuje `~0m left of ~1h 30m estimated` (`formatMinutes(0)` = „0m"). Renderuje się nad sekcją celebracji (ST-1) ukończonego Runa — dziwne | Dobić guard sub-linii na `totalEst > 0 && remEst > 0` (ukryj gdy nic nie zostało), ALBO rephrase na „~1h 30m estimated · all done" | `RunStatTiles.tsx:55` (guard tylko `totalEst > 0`) |
-| ET-2 | 🟡 | Data states / coherence | Dwa liczniki „left" znaczą co innego przy niepełnych szacunkach | Linia rozbicia: `{remaining}` (liczba WSZYSTKICH nie-zrobionych tasków, `runRemaining`). Sub-linia: `~{remEst}` (minuty, tylko po WYESTYMOWANYCH nie-zrobionych). Gdy są nie-zrobione taski bez `EstimatedTime` → rozjazd: np. „3 left · ~45m left of ~1h 45m estimated" — 45m obejmuje tylko 2 z 3 tasków, ale user może czytać jako całkowity czas pozostałych | Klaryfikacja copy sub-linii („~45m of estimated work left") LUB display remaining-minut tylko gdy wszystkie taski wyestymowane LUB dopisek „(of N tasks)" wyjaśniający subset | `RunStatTiles.tsx:51` (count „left") + `:55-59` (minuty „left") |
-| ET-3 | 🟢 | a11y / clarity | Kafel „—" przy braku szacunków niekomunikatywny | Label „estimated" + wartość „—" → czytnik ekranu czyta „estimated dash"; wzrokowo user może nie połączyć „—" z „jeszcze bez szacunków" | `aria-label`/`title` na kafel („No time estimates yet") i/lub tooltip. Spójne z DS-3 (świeży Run „0/0") | `RunStatTiles.tsx:29` |
+| ET-1 | 🟡 | Data states / coherence | A completed Run shows "~0m left of ~Xh estimated" | When all estimated tasks are done/dismissed: `estimatedRemainingMin = 0` but `totalEst > 0` → the sub-line renders `~0m left of ~1h 30m estimated` (`formatMinutes(0)` = "0m"). It renders above the celebration section (ST-1) of a completed Run — odd | Tighten the sub-line guard to `totalEst > 0 && remEst > 0` (hide when nothing's left), OR rephrase to "~1h 30m estimated · all done" | `RunStatTiles.tsx:55` (guard only `totalEst > 0`) |
+| ET-2 | 🟡 | Data states / coherence | The two "left" counters mean different things with partial estimates | Breakdown line: `{remaining}` (count of ALL not-done tasks, `runRemaining`). Sub-line: `~{remEst}` (minutes, only over ESTIMATED not-done). When there are not-done tasks without `EstimatedTime` → divergence: e.g. "3 left · ~45m left of ~1h 45m estimated" — the 45m covers only 2 of 3 tasks, but the user may read it as the total time remaining | Clarify the sub-line copy ("~45m of estimated work left") OR show remaining-minutes only when all tasks are estimated OR add an "(of N tasks)" note explaining the subset | `RunStatTiles.tsx:51` (count "left") + `:55-59` (minutes "left") |
+| ET-3 | 🟢 | a11y / clarity | The "—" tile with no estimates is uncommunicative | Label "estimated" + value "—" → a screen reader reads "estimated dash"; visually the user may not connect "—" with "no estimates yet" | An `aria-label`/`title` on the tile ("No time estimates yet") and/or a tooltip. Consistent with DS-3 (a fresh Run "0/0") | `RunStatTiles.tsx:29` |
 
-### Kategorie sprawdzone bez nowych luk (feature)
-- **Forms & input**: read-only — brak nowych pól (`EstimatedTime` wpisywane w `process`, tam zahardenowane).
-- **Action outcomes / destructive**: brak nowych akcji; Done/Dismiss z listy mają undo/honest-persistence (R2-2/R2-4); agregat reaguje reaktywnie.
-- **State transitions**: agregat bez własnego stanu; reaktywnie odzwierciedla `TaskState` (po Done/Dismiss `estimatedRemainingMin` spada; `skipped` liczy się jako remaining — spójne z `remaining` i grupą „To do").
-- **Errors**: brak nowych ścieżek; błędy odczytu storage obsłużone (LE-1 → `RunReadError`).
-- **Navigation / flow**: brak nowych ekranów/deep-linków.
-- **Prototype-specific (storage)**: brak nowych zapisów; awaria zapisu tasków nie psuje spójności (honest-persistence — stan się nie zmienia → stats stałe).
-- **Cross-module referential**: usunięcie/edycja `EstimatedTime`/taska → `deriveRunStats` przelicza reaktywnie; stara data bezpieczna (re-deriwacja przed odczytem).
-- **Loading/async**: `useLocalStorage` czyta synchronicznie → `deriveRunStats` ma realne taski przy pierwszym renderze; brak flasha „—".
-- **Semantyka `active`**: `active` liczy pełny szacunek jako remaining (nie odejmujemy `timerElapsed`); akceptowalne — `active` efemeryczny (ADR 0019), nie śledzimy częściowego zużycia.
-- **SessionFilter estimate**: ~czas to szacunek sesji (timer liczy w górę) — inherentne; display informacyjny, nie obietnica dokładnej długości. Bardzo duże zbiory (`formatMinutes` → „50h") obsługiwane, brak przepełnienia.
+### Categories checked with no new gaps (feature)
+- **Forms & input**: read-only — no new fields (`EstimatedTime` is entered in `process`, hardened there).
+- **Action outcomes / destructive**: no new actions; Done/Dismiss from the list have undo/honest-persistence (R2-2/R2-4); the aggregate reacts reactively.
+- **State transitions**: the aggregate has no state of its own; it reactively reflects `TaskState` (after Done/Dismiss `estimatedRemainingMin` drops; `skipped` counts as remaining — consistent with `remaining` and the "To do" group).
+- **Errors**: no new paths; storage read errors are handled (LE-1 → `RunReadError`).
+- **Navigation / flow**: no new screens/deep-links.
+- **Prototype-specific (storage)**: no new writes; a task write failure doesn't break coherence (honest-persistence — the state doesn't change → stats stay).
+- **Cross-module referential**: deleting/editing `EstimatedTime`/a task → `deriveRunStats` recomputes reactively; old data is safe (re-derivation before reading).
+- **Loading/async**: `useLocalStorage` reads synchronously → `deriveRunStats` has real tasks on first render; no "—" flash.
+- **`active` semantics**: `active` counts the full estimate as remaining (we don't subtract `timerElapsed`); acceptable — `active` is ephemeral (ADR 0019), we don't track partial consumption.
+- **SessionFilter estimate**: ~the time is a session estimate (the timer counts up) — inherent; the display is informational, not a promise of exact length. Very large sets (`formatMinutes` → "50h") are handled, no overflow.
 
 ### Priority (feature)
-1. **🟡 ET-1** — „~0m left" na ukończonym Runie (jarring display-bug na częstym stanie; trywialny fix — dobicie guardu). Najwyższy user-impact z nowych.
-2. **🟡 ET-2** — rozjazd dwóch „left" przy niepełnych szacunkach (coherence głównego ekranu statystyk). Wymaga krótkiej decyzji copy/zakresu (design).
-3. **🟢 ET-3** — a11y/klaryfikacja „—". → `proto-polish`.
+1. **🟡 ET-1** — "~0m left" on a completed Run (a jarring display-bug on a common state; a trivial fix — tightening the guard). The highest user-impact of the new ones.
+2. **🟡 ET-2** — divergence of the two "left" counters with partial estimates (coherence of the main stats screen). Needs a short copy/scope decision (design).
+3. **🟢 ET-3** — "—" a11y/clarification. → `proto-polish`.
 
 ### Hand-off (feature)
-- **ET-1 → `proto-harden` (priorytet, direct-edit)**: dobicie guardu sub-linii na `remEst > 0` (albo rephrase „all done"). Trywialne, duży efekt czytelności ukończonego Runa.
-- **ET-2 → `proto-harden` + decyzja design**: coherence „left" — copy albo ograniczenie display'u (krótka decyzja z designerem).
-- **ET-3 → `proto-polish`** (a11y „—" / klaryfikacja braku szacunków).
+- **ET-1 → `proto-harden` (priority, direct-edit)**: tighten the sub-line guard to `remEst > 0` (or rephrase "all done"). Trivial, big readability effect on a completed Run.
+- **ET-2 → `proto-harden` + design decision**: "left" coherence — copy or display restriction (a short decision with the designer).
+- **ET-3 → `proto-polish`** ("—" a11y / clarifying the lack of estimates).
 
-> Brak 🔴 i brak luk wymagających `proto-lofi` — feature funkcjonalnie kompletny; reszta to coherence/polish display'u.
+> No 🔴 and no gaps requiring `proto-lofi` — the feature is functionally complete; the rest is display coherence/polish.
 
 ### Resolution (proto-harden, 2026-07-08)
 
-| # | Status | Gdzie teraz |
+| # | Status | Where it is now |
 |---|--------|-------------|
-| ET-1 | ✅ | `RunStatTiles.tsx:55` — guard sub-linii dobity na `totalEst > 0 && remEst > 0`; ukończony Run (i „wszystkie wyestymowane done") nie renderuje już „~0m left". Widoczne w story `Run/RunStatTiles → Completed` (`remEst=0`). |
-| ET-2 | ✅ | `RunStatTiles.tsx:56` — sub-linia zyskała prefiks „Estimated:" (`Estimated: ~X left of ~Y`), scope'ując ją jako metrykę szacunkową i odróżniając od licznika tasków „N left" w linii rozbicia. Decyzja (default po AFK): przeformułowanie copy zamiast restrykcji display'u — info pozostaje, dwuznaczność zdjęta. |
-| ET-3 | ✅ (`proto-polish`) | `RunStatTiles.tsx:33` — kafl „estimated" zyskał `title="No time estimates yet"` w stanie „—" (hover tooltip + kontekst dla SR; `title={undefined}` przy wartości, więc tooltip pojawia się tylko tam, gdzie „—" jest ambiwalentne). |
+| ET-1 | ✅ | `RunStatTiles.tsx:55` — the sub-line guard tightened to `totalEst > 0 && remEst > 0`; a completed Run (and "all estimated done") no longer renders "~0m left". Visible in the `Run/RunStatTiles → Completed` story (`remEst=0`). |
+| ET-2 | ✅ | `RunStatTiles.tsx:56` — the sub-line gained an "Estimated:" prefix (`Estimated: ~X left of ~Y`), scoping it as an estimate metric and distinguishing it from the "N left" task counter in the breakdown line. Decision (default after AFK): rephrasing the copy instead of restricting the display — the info stays, the ambiguity is removed. |
+| ET-3 | ✅ (`proto-polish`) | `RunStatTiles.tsx:33` — the "estimated" tile gained `title="No time estimates yet"` in the "—" state (hover tooltip + SR context; `title={undefined}` on a value, so the tooltip only appears where "—" is ambiguous). |
 
-**Zamknięte: 3 (ET-1, ET-2, ET-3).** Feature w pełni zahardenowany + wypolerowany.
+**Closed: 3 (ET-1, ET-2, ET-3).** The feature is fully hardened + polished.
 
-> *Bonus accuracy (`proto-polish`)*: usunięto mylną, stłą caption „Live stats … per-run breakdown comes later" w `RunStatTiles` (nieprawdziwa od ADR 0044 — re-audit per-run explicite o to prosił) oraz poprawiono stare komentarze „global/per-run-deferred (ADR 0020)" w `run/stats.ts`, `run/types/run.ts`, `RunTaskList.tsx`, `scenarios/data/run.ts`.
+> *Bonus accuracy (`proto-polish`)*: removed the misleading, stale caption "Live stats … per-run breakdown comes later" in `RunStatTiles` (untrue since ADR 0044 — the per-run re-audit explicitly asked for this) and fixed the old "global/per-run-deferred (ADR 0020)" comments in `run/stats.ts`, `run/types/run.ts`, `RunTaskList.tsx`, `scenarios/data/run.ts`.
