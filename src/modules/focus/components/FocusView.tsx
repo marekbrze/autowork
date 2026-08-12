@@ -32,25 +32,25 @@ import { SessionFilter } from './SessionFilter';
 import { SessionSummary } from './SessionSummary';
 
 /**
- * Ekran Focus (krok 5–7 lejka) — payoff całego narzędzia. Maszyna stanów:
+ * The Focus screen (funnel steps 5–7) — the payoff of the whole tool. State machine:
  * `filter` (SessionFilter) → `session` (FocusTaskScreen, jedno zadanie pod
  * timerem) → `summary` (SessionSummary, celebracja). Kolejka sesji uszeregowana
- * po randku stresora (najbardziej stresujący → pierwsze). Timer liczy w górę
+ * by stressor rank (most stressful → first). The timer counts up
  * (model B, ADR 0016); stany taska Done/Skip/Dismiss (+undo)/Back.
  *
- * Kontener — pobiera dane hookami i przekazuje do ekranów prezentacyjnych.
+ * Container — fetches data with hooks and passes it to the presentational screens.
  *
  * HARDEN:
- * - **Honest persistence** — każdy handler sprawdza wynik `updateTask`/`deleteTask`
+ * - **Honest persistence** — every handler checks the result of `updateTask`/`deleteTask`
  *   i przy awarii zapisu NIE advance'uje / nie zmienia ekranu (wzorzec z ProcessView).
  *   `StorageStatusToast` z retry zostaje widoczny, user zostaje na tasku.
  * - **Resume sesji** — snapshot (kolejka+pozycja) persystowany w `focus:session`;
- *   wejście w `/focus` z przerwaną sesją pokazuje banner „Wznów" (Exit/refresh/back).
- * - **Persystencja filtra** — wybór kontekstów/energii trzymany w `focus:filter`;
- *   kontynuacja Runu z dashboardu pokazuje zapamiętany filtr (punkt startowy), a nie
- *   pusty ekran „żadne filtry".
- * - **Rekonsyliacja mid-session** — task rozwiązany w innej karcie nie wyskakuje jako
- *   bieżący: przewijamy do następnego pending w kolejce.
+ *   entering `/focus` with an interrupted session shows a "Resume" banner (Exit/refresh/back).
+ * - **Filter persistence** — the context/energy selection is held in `focus:filter`;
+ *   continuing a Run from the dashboard shows the remembered filter (the starting point), not
+ *   an empty "no filters" screen.
+ * - **Mid-session reconciliation** — a task resolved in another tab doesn't pop up as
+ *   current: we advance to the next pending in the queue.
  */
 export function FocusView() {
   const activeRunId = useActiveRunId();
@@ -63,34 +63,34 @@ export function FocusView() {
 
   const [screen, setScreen] = useState<FocusScreen>('filter');
   // Persystencja wyboru filtra — per-Run (ADR 0044). Kontynuacja Runa z dashboardu
-  // nie może resetować kontekstów/energii do pustego ekranu („żadne filtry…").
-  // Zapamiętany filtr = punkt startowy przy powrocie do pracy; user może go zmienić.
+  // must not reset contexts/energy to an empty screen ("no filters…").
+  // The remembered filter = the starting point on returning to work; the user can change it.
   const [persistedSelection, setSelection] = useLocalStorage<FilterSelection>(focusFilterKey(rid), EMPTY_FILTER);
   const [queue, setQueue] = useState<string[]>([]);
   const [cursor, setCursor] = useState(0);
   const [running, setRunning] = useState(true);
   const [dismissUndo, setDismissUndo] = useState<{ taskId: string; text: string } | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
-  // F2-1: potwierdzenie „Reset to default" (destruktywne — trwale czyści ręczny TaskOrder).
+  // F2-1: a "Reset to default" confirmation (destructive — permanently clears the manual TaskOrder).
   const [confirmReset, setConfirmReset] = useState(false);
-  // ADR 0048: guard przed wyjściem z aktywnej sesji focus przez klikalny stepper.
+  // ADR 0048: guard against leaving an active focus session via the clickable stepper.
   const navigate = useNavigate();
   const [leaveTarget, setLeaveTarget] = useState<string | null>(null);
 
   // Snapshot przerwanej sesji — per-Run (ADR 0044); best-effort (utrata = brak wznowienia).
   const [snapshot, setSnapshot, removeSnapshot] = useLocalStorage<SessionSnapshot | null>(focusSessionKey(rid), null);
 
-  // Ręczny porządek kolejki — per-Run (ADR 0044/0036): default (pusty) = rank stresora;
-  // przełożenie w filtrze nadpisuje. Ten sam porządek sortuje listę tu, kolejkę sesji i listę na run.
+  // Manual queue order — per-Run (ADR 0044/0036): default (empty) = stressor rank;
+  // reordering in the filter overrides. The same order sorts the list here, the session queue, and the run list.
   const [taskOrder, setTaskOrder, removeTaskOrder, taskOrderStorage] = useLocalStorage<string[]>(focusTaskOrderKey(rid), []);
   const hasManualOrder = taskOrder.length > 0;
 
-  // Pozycja stresora w tablicy = jego rank (najbardziej stresujący = 0).
+  // A stressor's position in the array = its rank (most stressful = 0).
   const stressorRank = useMemo(() => new Map(stressors.map((s, i) => [s.id, i])), [stressors]);
 
-  // Pending i skipped taski z pełnymi atrybutami — kandydaci do sesji. Skipped = odłożone
-  // („nie teraz"), ale nadal dostępne w puli; przywracane do `pending` przy starcie nowej
-  // sesji (patrz `start`). Sortowanie po ranku stresora (najbardziej stresujący → pierwsze).
+  // Pending and skipped tasks with full attributes — session candidates. Skipped = deferred
+  // ("not now"), but still available in the pool; restored to `pending` at the start of a new
+  // session (see `start`). Sorted by stressor rank (most stressful → first).
   const attributed = useMemo(
     () =>
       tasks
@@ -105,9 +105,9 @@ export function FocusView() {
     [tasks, stressorRank],
   );
 
-  // Atrybuowane taski już rozwiązane (completed/dismissed) — do rozdzielenia empty-state
-  // (#4): „nic nie opisano" vs „wszystko zrobione". Skipped NIE liczy się jako rozwiązane
-  // (to odłożone, nadal w puli — patrz `attributed`); różne od terminalnego dismissed.
+  // Attributed tasks already resolved (completed/dismissed) — for splitting the empty-state
+  // (#4): "nothing described yet" vs "everything done". Skipped does NOT count as resolved
+  // (it's deferred, still in the pool — see `attributed`); different from terminal dismissed.
   const resolvedAttributed = useMemo(
     () =>
       tasks.filter(
@@ -116,8 +116,8 @@ export function FocusView() {
     [tasks],
   );
 
-  // Sanitize odtworzony filtr — odrzuć konteksty/energie spoza słownika (stary/uszkodzony
-  // storage nie tworzy fantomowych chipów ani martwego filtra 0-dopasowań).
+  // Sanitize the restored filter — reject contexts/energy outside the dictionary (old/corrupt
+  // storage doesn't create phantom chips or a dead 0-match filter).
   const selection = useMemo<FilterSelection>(
     () => ({
       contexts: persistedSelection.contexts.filter((c) => CONTEXT_ORDER.includes(c)),
@@ -126,8 +126,8 @@ export function FocusView() {
     [persistedSelection],
   );
 
-  // Dopasowane taski w porządku `TaskOrder` (default = rank stresora). Ten sam porządek trafia
-  // na listę w filtrze, do kolejki sesji (Start) i na listę na run (ADR 0036).
+  // Matched tasks in `TaskOrder` order (default = stressor rank). The same order goes
+  // to the filter list, the session queue (Start), and the run list (ADR 0036).
   const matchedTasks = useMemo(() => {
     const orderIndex = (id: string) => {
       const i = taskOrder.indexOf(id);
@@ -145,18 +145,18 @@ export function FocusView() {
       });
   }, [attributed, selection, taskOrder, stressorRank]);
   const matchCount = matchedTasks.length;
-  // Łączny szacunek dopasowanych tasków (min) — pokazany w filtrze (ADR 0060). Matched zawsze
-  // mają `estimatedTime` (filtr `attributed` tego wymaga), więc >0 gdy matchCount>0.
+  // Total estimate of matched tasks (min) — shown in the filter (ADR 0060). Matched always
+  // have `estimatedTime` (the `attributed` filter requires it), so >0 when matchCount>0.
   const matchedEstimateMin = useMemo(
     () => matchedTasks.reduce((sum, t) => sum + (t.estimatedTime ?? 0), 0),
     [matchedTasks],
   );
 
   /**
-   * Rekonsyliacja (#5): pierwszy indeks ≥ `start`, pod którym task istnieje i jest
-   * `pending`. -1 = w kolejce nie ma już pending (sesja wyczerpana / task usunięty).
-   * Uwzględnia zmiany stanu z innych kart (storage event) — task rozwiązany „za
-   * plecami" nie zostanie pokazany jako bieżący.
+   * Reconciliation (#5): the first index ≥ `start` at which a task exists and is
+   * `pending`. -1 = no more pending in the queue (session exhausted / task deleted).
+   * Accounts for state changes from other tabs (storage event) — a task resolved "behind
+   * your back" won't be shown as current.
    */
   const firstPendingFrom = (q: string[], start: number): number => {
     for (let i = start; i < q.length; i++) {
@@ -166,10 +166,10 @@ export function FocusView() {
     return -1;
   };
 
-  // Bieżąca pozycja w sesji po rekonsyliacji; -1 gdy brak pending.
+  // Current position in the session after reconciliation; -1 when no pending.
   const activeCursor = screen === 'session' ? firstPendingFrom(queue, cursor) : -1;
-  // Odłożone (skip) przed bieżącym kursorem — wskaźnik pozycji musi je odróżnić od załatwionych,
-  // inaczej "X / Y" myli, licząc skip jako done (ADR 0038).
+  // Deferred (skip) before the current cursor — the position indicator must distinguish them from handled,
+  // otherwise "X / Y" misleads, counting skip as done (ADR 0038).
   const deferredEarlier =
     activeCursor > 0
       ? queue.slice(0, activeCursor).filter((id) => tasks.find((t) => t.id === id)?.state === 'skipped').length
@@ -183,8 +183,8 @@ export function FocusView() {
   );
   const currentVision = currentTask ? visions[currentTask.stressorId] : undefined;
 
-  // Reaguj na zmiany stanu mid-session (inna karta): przewiń do następnego pending
-  // albo zakończ sesję, gdy wyczerpana.
+  // React to mid-session state changes (another tab): advance to the next pending
+  // or end the session when exhausted.
   useEffect(() => {
     if (screen !== 'session') return;
     if (activeCursor === -1) {
@@ -202,20 +202,20 @@ export function FocusView() {
     if (screen === 'session' && queue.length > 0) setSnapshot({ queue, cursor });
   }, [screen, queue, cursor, setSnapshot]);
 
-  // Snapshot wciąż możliwy do wznowienia? (taski istnieją, jest pending od kursora).
-  // `firstPendingFrom` domyka się nad `tasks` — w depach, więc memo przelicza się poprawnie.
+  // Is the snapshot still resumable? (tasks exist, there's a pending from the cursor).
+  // `firstPendingFrom` closes over `tasks` — it's in deps, so the memo recomputes correctly.
   const resumableSnapshot = useMemo<SessionSnapshot | null>(() => {
     if (!snapshot || snapshot.queue.length === 0) return null;
     const idx = firstPendingFrom(snapshot.queue, snapshot.cursor);
     return idx >= 0 ? { queue: snapshot.queue, cursor: idx } : null;
   }, [snapshot, tasks]);
 
-  // Porzuć nieaktualny snapshot (wszystkie taski rozwiązane/usunięte).
+  // Discard the stale snapshot (all tasks resolved/deleted).
   useEffect(() => {
     if (snapshot && screen === 'filter' && !resumableSnapshot) removeSnapshot();
   }, [snapshot, screen, resumableSnapshot, removeSnapshot]);
 
-  // Timer (model B): liczy w górę od zapamiętanego `timerElapsed` bieżącego taska.
+  // Timer (model B): counts up from the current task's remembered `timerElapsed`.
   const persistElapsed = (sec: number) => {
     if (currentTask) updateTask(currentTask.id, { timerElapsed: sec });
   };
@@ -237,11 +237,11 @@ export function FocusView() {
   // --- nawigacja / akcje ---
 
   const start = () => {
-    // Skip = tymczasowe: przy starcie NOWEJ sesji ominięte zadania wracają do puli jako
-    // `pending` (spec focus.md §Skip: „wraca jako pending przy następnej sesji"). Tu, a nie
-    // przy wyjściu/nawigacji — dzięki temu skip nie zależy od tego, którą drogą wracasz.
+    // Skip = temporary: at the start of a NEW session the skipped tasks return to the pool as
+    // `pending` (spec focus.md §Skip: "returns as pending at the next session"). Here, not
+    // on exit/navigation — so skip doesn't depend on which way you return.
     returnSkippedToPool();
-    const matched = matchedTasks.map((t) => t.id); // porządek `TaskOrder` (ADR 0036)
+    const matched = matchedTasks.map((t) => t.id); // `TaskOrder` order (ADR 0036)
     if (matched.length === 0) return;
     setQueue(matched);
     setCursor(0);
@@ -250,11 +250,11 @@ export function FocusView() {
     setScreen('session');
   };
 
-  /** Zapisz nową kolejność dopasowanych do `TaskOrder` (pozycje poza filtrem zachowane). */
+  /** Save a new order of matched tasks to `TaskOrder` (out-of-filter positions preserved). */
   const reorderMatched = (newMatchedIds: string[]) => {
     const matchedSet = new Set(newMatchedIds);
     const rest = taskOrder.filter((id) => !matchedSet.has(id));
-    setTaskOrder([...newMatchedIds, ...rest]); // honest persistence: przy awarii stan się nie psuje
+    setTaskOrder([...newMatchedIds, ...rest]); // honest persistence: on failure the state doesn't break
   };
   const resetOrder = () => setConfirmReset(true); // F2-1: potwierdzenie przed wyczyszczeniem
   const doResetOrder = () => {
@@ -262,7 +262,7 @@ export function FocusView() {
     setConfirmReset(false);
   };
 
-  /** Wznów przerwaną sesję z persystowanego snapshotu (#2). */
+  /** Resume an interrupted session from the persisted snapshot (#2). */
   const resumeSession = () => {
     if (!resumableSnapshot) return;
     setQueue(resumableSnapshot.queue);
@@ -279,14 +279,14 @@ export function FocusView() {
     } else {
       setRunning(false);
       setScreen('summary');
-      removeSnapshot(); // sesja wyczerpana — nie ma czego wznawiać
+      removeSnapshot(); // session exhausted — nothing to resume
     }
   };
 
   const done = () => {
     if (!currentTask) return;
     flush();
-    // Honest persistence: przy nieudanym zapisie NIE advance'uj — toast retry już widać.
+    // Honest persistence: on a failed write DON'T advance — the retry toast is already visible.
     if (!updateTask(currentTask.id, { state: 'completed' })) return;
     advance();
   };
@@ -303,7 +303,7 @@ export function FocusView() {
     flush();
     if (!updateTask(currentTask.id, { state: 'dismissed' })) return;
     setDismissUndo({ taskId: currentTask.id, text: currentTask.text });
-    advance(true); // zachowaj undo (#3 — toast żyje teraz na poziomie FocusView)
+    advance(true); // keep undo (#3 — the toast now lives at the FocusView level)
   };
 
   const undoDismiss = () => {
@@ -314,7 +314,7 @@ export function FocusView() {
     if (idx >= 0) {
       setCursor(idx);
       setRunning(true);
-      setScreen('session'); // #3: undo działa też z ekranu podsumowania
+      setScreen('session'); // #3: undo also works from the summary screen
     }
   };
 
@@ -324,7 +324,7 @@ export function FocusView() {
     const prevId = queue[activeCursor - 1];
     const prev = tasks.find((t) => t.id === prevId);
     // #9: Back otwiera na nowo TYLKO completed/skipped; dismissed pozostawia
-    // (od-cofnięcie Dismiss to osobna ścieżka undo, nie Back).
+    // (un-dismissing is a separate undo path, not Back).
     if (prev && (prev.state === 'completed' || prev.state === 'skipped')) {
       if (!updateTask(prevId, { state: 'pending' })) return; // honest persistence
     }
@@ -335,11 +335,11 @@ export function FocusView() {
 
   const togglePause = () => setRunning((r) => !r);
 
-  // Skip = tymczasowe: ominięte zadania wracają do puli jako `pending`. Główny moment
-  // przywracania to start nowej sesji (`start`) — niezależny od tego, jak user opuścił
-  // sesję (Exit / Dashboard / refresh / abandona snapshota). `clearCompleted` i `onNewSession`
-  // wołają to też (idempotentne bezpieczeństwo na końcu sesji). `exit()` NIE — skips zostają
-  // odłożone aż do Startu (ADR 0038); pulę i tak widać `skipped` w `attributed`.
+  // Skip = temporary: skipped tasks return to the pool as `pending`. The main moment
+  // to restore is the start of a new session (`start`) — independent of how the user left
+  // the session (Exit / Dashboard / refresh / snapshot abandon). `clearCompleted` and `onNewSession`
+  // call it too (idempotent end-of-session safety). `exit()` does NOT — skips stay
+  // deferred until Start (ADR 0038); the pool is still visible as `skipped` in `attributed`.
   const returnSkippedToPool = () => {
     tasks.filter((t) => t.state === 'skipped').forEach((t) => updateTask(t.id, { state: 'pending' }));
   };
@@ -348,8 +348,8 @@ export function FocusView() {
     flush();
     setRunning(false);
     // Snapshot sesji utrzymywany przez sync-effect — zostaje do wznowienia (#2).
-    // Celowo NIE przywracamy skipped → pending: skips zostają odłożone aż do świeżego Startu,
-    // inaczej Resume (kursor za skipami) by ich nie sięgnął (ADR 0038).
+    // We deliberately DON'T restore skipped → pending: skips stay deferred until a fresh Start,
+    // otherwise Resume (cursor past the skips) wouldn't reach them (ADR 0038).
     setScreen('filter');
   };
 
@@ -375,8 +375,8 @@ export function FocusView() {
 
   const clearCompleted = () => {
     const targets = tasks.filter((t) => t.state === 'completed' || t.state === 'dismissed');
-    // Każdy deleteTask to osobny zapis; przy awarii przerywamy (toast retry widać),
-    // NIE czyścimy lokalnego stanu sesji — dane pozostają nienaruszone.
+    // Each deleteTask is a separate write; on failure we abort (the retry toast is visible),
+    // we DON'T clear the local session state — the data stays intact.
     for (const t of targets) {
       if (!deleteTask(t.id)) {
         setConfirmClear(false);
@@ -384,7 +384,7 @@ export function FocusView() {
       }
     }
     setConfirmClear(false);
-    setDismissUndo(null); // usunięto dismissed — undo bezcelowe
+    setDismissUndo(null); // dismissed removed — undo is pointless
     returnSkippedToPool();
     removeSnapshot();
     setQueue([]);
@@ -392,8 +392,8 @@ export function FocusView() {
     setScreen('filter');
   };
 
-  // Status persystencji agregowany po pięciu storach, od których ekran zależy.
-  // (Snapshot `focus:session` celowo POMIĘTY — jego awaria ≠ awaria danych Task.)
+  // Persistence status aggregated across the five stores the screen depends on.
+  // (The `focus:session` snapshot is deliberately OMITTED — its failure ≠ a Task data failure.)
   const storageView = {
     writeError: taskStorage.writeError || taskOrderStorage.writeError,
     readError:
@@ -426,8 +426,8 @@ export function FocusView() {
       <FunnelStepper
         current="focus"
         onBeforeNavigate={(_stage, route) => {
-          // Aktywna sesja (task pod timerem, timer leci) → zapytaj przed wyjściem (ADR 0048).
-          // `currentTask` gates out the rare safeguard state (sesja, ale task zniknął) — CS-3.
+          // Active session (task under the timer, timer running) → ask before leaving (ADR 0048).
+          // `currentTask` gates out the rare safeguard state (session, but the task disappeared) — CS-3.
           if (screen === 'session' && currentTask && running) {
             setLeaveTarget(route);
             return false;
@@ -436,7 +436,7 @@ export function FocusView() {
         }}
       />
 
-      {/* #10: awaria odczytu storage → stan błędu (nie mylny empty-state listy). */}
+      {/* #10: storage read failure → error state (not a misleading list empty-state). */}
       {screen === 'filter' && storageView.readError ? (
         <ReadErrorState onReload={() => window.location.reload()} />
       ) : screen === 'filter' ? (
@@ -488,7 +488,7 @@ export function FocusView() {
         />
       )}
 
-      {/* Safeguard: wejście w sesję, ale task zniknął (np. usunięty z innej karty). */}
+      {/* Safeguard: entered a session, but the task disappeared (e.g. deleted from another tab). */}
       {screen === 'session' && !currentTask && (
         <div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
           No current task in the session.
@@ -531,7 +531,7 @@ export function FocusView() {
         entityLabel={taskStorage.readError ? 'tasks' : 'data'}
       />
 
-      {/* #3: undo Dismiss na poziomie FocusView — przeżywa skok do podsumowania. */}
+      {/* #3: Dismiss undo at the FocusView level — survives the jump to the summary. */}
       {dismissUndo && <DismissUndoToast text={dismissUndo.text} onUndo={undoDismiss} />}
 
       <ConfirmDialog
@@ -543,7 +543,7 @@ export function FocusView() {
         onCancel={() => setConfirmClear(false)}
       />
 
-      {/* F2-1: potwierdzenie resetu kolejki (destruktywne — utrata ręcznego porządku). */}
+      {/* F2-1: queue-reset confirmation (destructive — loss of the manual order). */}
       <ConfirmDialog
         open={confirmReset}
         title="Reset task order?"
@@ -553,7 +553,7 @@ export function FocusView() {
         onCancel={() => setConfirmReset(false)}
       />
 
-      {/* ADR 0048: potwierdzenie wyjścia z aktywnej sesji focus przez klikalny stepper. */}
+      {/* ADR 0048: confirmation before leaving an active focus session via the clickable stepper. */}
       <ConfirmDialog
         open={leaveTarget !== null}
         title="Leave the active session?"
