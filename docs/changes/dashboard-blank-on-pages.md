@@ -8,10 +8,10 @@ Bug (diagnosed by proto-bug)
 
 ## Reproduction
 1. Open the deployed site: `https://marekbrze.github.io/autowork/` (also reproducible locally at `http://localhost:4321/autowork/`).
-2. The page renders the heading **"autowork"** and the copy **"Moduł `autowork` — ekrany do zbudowania w `proto-lofi`."** with a **"← Wróć do Dashboardu"** link.
+2. The page renders the heading **"autowork"** and the copy **"Module `autowork` — screens to build in `proto-lofi`."** with a **"← Back to Dashboard"** link.
 3. No dashboard, no run cards, no "Continue / Start new" runway.
 
-**Expected**: the entry URL shows the Dashboard (runway — dominant run card + Start new). See `docs/modules/dashboard.md` §Vision: *"User otwiera apkę i od razu widzi możliwość działania"*.
+**Expected**: the entry URL shows the Dashboard (runway — dominant run card + Start new). See `docs/modules/dashboard.md` §Vision: *"The user opens the app and immediately sees a way to act"*.
 **Actual**: the entry URL renders `ModulePlaceholder` for `moduleName="autowork"`.
 **Reliability**: every time, on every visit, dev and prod. Independent of data/state.
 **Location**: routing decision in `src/App.tsx:18` (`<BrowserRouter>` with no `basename`) → the catch-all `src/App.tsx:40` `<Route path="/:moduleName" element={<ModulePlaceholder />} />` wins. Placeholder content: `src/shared/components/ModulePlaceholder.tsx:20-36`.
@@ -58,7 +58,7 @@ Because all 33 navigation call sites (`<Link>` ×19, `useNavigate` ×12, `<Navig
 **Spec impact**: none. The dashboard spec already treats `/` (the runway) as the landing screen; this restores that intent on the deployed path.
 
 ## Regression scope
-- **Internal navigation (low risk)**: every `<Link to>`, `<Navigate to>`, `useNavigate(...)` is now prefixed by `basename`. Verify the cross-module flows still land correctly — most exposed: `Continue` from `DominantRunCard.tsx` / `DashboardView.tsx` (smart-routing to a funnel step), `← Wróć do Dashboardu` in `ModulePlaceholder.tsx:32`, the `/run` → `/` redirect at `App.tsx:25`. Expect all to resolve under `/autowork/...`.
+- **Internal navigation (low risk)**: every `<Link to>`, `<Navigate to>`, `useNavigate(...)` is now prefixed by `basename`. Verify the cross-module flows still land correctly — most exposed: `Continue` from `DominantRunCard.tsx` / `DashboardView.tsx` (smart-routing to a funnel step), `← Back to Dashboard` in `ModulePlaceholder.tsx:32`, the `/run` → `/` redirect at `App.tsx:25`. Expect all to resolve under `/autowork/...`.
 - **No manual URL construction found**: the only `window.location` usages are `window.location.reload()` (`FocusView.tsx:353`, `DashboardView.tsx:61`, `ArchivedRuns.tsx:40`, `scenarios/loader.ts:20`, `RunStates.stories.tsx:21`) — basename-safe.
 - **Storybook stories** that mount `<Routes>` with absolute paths (`ReviewRun.stories.tsx`, `RunDetails.stories.tsx`) run under Storybook's own router, not the production `BrowserRouter` — unaffected.
 - **Deep-link refresh**: the `cp dist/index.html dist/404.html` step in `.github/workflows/deploy.yml:33` already supports refresh on client-side routes; with `basename` set, `/autowork/run/:id` will resolve correctly on a hard refresh too.

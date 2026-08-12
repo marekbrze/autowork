@@ -4,7 +4,7 @@
 Bug (diagnosed by proto-bug)
 
 ## Severity
-🔴 high — The Dashboard is the app's entry screen and its stated core value is **momentum by progress** (ADR 0026: „motywacja = głównie momentum progresem"). For a real run with stressors and tasks, the dominant card renders **0%** and **„No tasks yet — start with a brain dump"**, and **Continue** always routes back to brain dump — i.e. the screen's two primary promises (progress + one-click resume) are both non-functional in production. Not data loss (the funnel data is intact and correct), but a **broken primary flow on the entry screen** that actively misleads the user.
+🔴 high — The Dashboard is the app's entry screen and its stated core value is **momentum by progress** (ADR 0026: "motivation = mainly progress momentum"). For a real run with stressors and tasks, the dominant card renders **0%** and **„No tasks yet — start with a brain dump"**, and **Continue** always routes back to brain dump — i.e. the screen's two primary promises (progress + one-click resume) are both non-functional in production. Not data loss (the funnel data is intact and correct), but a **broken primary flow on the entry screen** that actively misleads the user.
 
 ## Reproduction
 1. Deploy (or `npm run dev`), land on the Dashboard, click **Start your first run** → a Run is created (`use-runs.ts:27`, `stats = {0,0,0,0}`, `lastReachedStep = 'brain-dump'`) and you are routed to `/capture`.
@@ -27,7 +27,7 @@ Bug (diagnosed by proto-bug)
 
 A grep for `useRuns` / `Run` across `capture` / `decompose` / `process` / `focus` returns **no hits** — the funnel does not know runs exist. The only writes to `run.stats` / `lastReachedStep` / `lastActiveAt` in the whole codebase are `createRun` (zeros) and Storybook/scenario mocks (`scenarios/data/run.ts`). The Dashboard reads the frozen `run.stats`, so it renders the initial zeros forever.
 
-Crucially, the **data needed to compute progress already exists** in `decompose:tasks`: each `Task` carries a `state` (`'pending' | 'active' | 'completed' | 'skipped' | 'dismissed'`, `decompose/types/task.ts:19`) and `updateTask` **persists** focus transitions back into the store (`decompose/hooks/use-tasks.ts:28`; focus writes at `FocusView.tsx:219,233,271`). So the integration is feasible today; it was simply never connected. The spec itself flags this as deferred: `docs/modules/run.md:75` and `docs/modules/dashboard.md:69` — *„W prototypie statystyki / lastReachedStep są mockiem (dane lejka globalne)… Realne spięcie per-Run odłożone do fazy integracji (cross-module)."* The deployed app surfaced that deferral as a user-visible bug.
+Crucially, the **data needed to compute progress already exists** in `decompose:tasks`: each `Task` carries a `state` (`'pending' | 'active' | 'completed' | 'skipped' | 'dismissed'`, `decompose/types/task.ts:19`) and `updateTask` **persists** focus transitions back into the store (`decompose/hooks/use-tasks.ts:28`; focus writes at `FocusView.tsx:219,233,271`). So the integration is feasible today; it was simply never connected. The spec itself flags this as deferred: `docs/modules/run.md:75` and `docs/modules/dashboard.md:69` — *"In the prototype stats / lastReachedStep are a mock (funnel data global)… Real per-Run wiring deferred to the integration phase (cross-module)."* The deployed app surfaced that deferral as a user-visible bug.
 
 **Counting semantics** (confirmed with the user, matches spec): progress = `(completed + dismissed) / total tasks`, where **total = all Tasks** in `decompose:tasks` (NOT the session-filtered subset — the filter only narrows one focus session, ADR 0013). `completed` + `dismissed` count as done; `skipped` does **not** (reverts to `pending` next session, `FocusView.tsx:271`); `pending`/`active` are not done. `timeSpentSec` ≈ Σ `task.timerElapsed` over completed tasks.
 
@@ -42,7 +42,7 @@ Crucially, the **data needed to compute progress already exists** in `decompose:
 - Spec (intent): `docs/modules/run.md:75`, `docs/modules/dashboard.md:69` — deferral note; `docs/modules/run.md` §Continue (ADR 0022) and §Vision — the live behaviour expected by the user.
 
 ## Fix plan
-**Chosen direction** (confirmed with user): **derive progress live** from `decompose:tasks` instead of reading the frozen `run.stats`. This is the minimal change that resolves the reported symptom and matches the user's mental model („ile wszystkich zadań z capture jest zrobionych vs niezrobionych").
+**Chosen direction** (confirmed with user): **derive progress live** from `decompose:tasks` instead of reading the frozen `run.stats`. This is the minimal change that resolves the reported symptom and matches the user's mental model ("how many of all the tasks from capture are done vs not done").
 
 **Change**:
 1. Add a pure derivation helper, e.g. `deriveRunStats(tasks: Task[]): RunStats` (in `src/modules/run/types/run.ts` or a new `src/modules/run/stats.ts`):
@@ -55,7 +55,7 @@ Crucially, the **data needed to compute progress already exists** in `decompose:
 
 **Multi-run caveat (honest)**: `decompose:tasks` is global (no `runId`), so in the prototype every run card shows the **same** live progress — acceptable for single-active-run usage; true per-run stats stay deferred (ADR 0020). State this caveat in the UI or a tooltip so the number is not misleading once multiple runs exist.
 
-**Spec impact**: update `docs/modules/run.md:75` and `docs/modules/dashboard.md:69` — the „stats są mockiem / odłożone" note is partially superseded: progress (`totalTasks`/`doneCount`/`timeSpent`) is now **derived live**; only true per-run scoping + `lastReachedStep` auto-advance remain deferred.
+**Spec impact**: update `docs/modules/run.md:75` and `docs/modules/dashboard.md:69` — the "stats are a mock / deferred" note is partially superseded: progress (`totalTasks`/`doneCount`/`timeSpent`) is now **derived live**; only true per-run scoping + `lastReachedStep` auto-advance remain deferred.
 
 ## Regression scope
 - **Every reader of `run.stats` must receive the merged/derived value** (else it still reads zeros):

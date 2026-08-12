@@ -4,7 +4,7 @@
 Bug (diagnosed by proto-bug)
 
 ## Severity
-🔴 high — Skip and Dismiss („Not relevant") are **two different actions by design** (ADR 0017): Skip = „nie teraz, wrócę" (task lives, returns as `pending` next session); Dismiss = terminal, never returns. In practice, the moment the user leaves a focus session by **any path other than the Exit / New-session / Clear buttons** — i.e. navigating to the Dashboard (the app's primary „Continue" loop), refreshing, or abandoning the resume snapshot — every skipped task is **stuck in `skipped` forever**, invisible in the filter and never re-queued. There is **no in-UI recovery**: skipped tasks persist in `decompose:tasks` but nothing surfaces them again, so to the user Skip is indistinguishable from Dismiss. A silent loss of access to work on a core action, and it collapses the key Skip/Dismiss distinction the spec is built around. Not true deletion (data sits in storage), hence arguably 🟡 — but the user reports it as exactly the wrong behaviour on a primary flow, so 🔴.
+🔴 high — Skip and Dismiss („Not relevant") are **two different actions by design** (ADR 0017): Skip = "not now, I'll come back" (task lives, returns as `pending` next session); Dismiss = terminal, never returns. In practice, the moment the user leaves a focus session by **any path other than the Exit / New-session / Clear buttons** — i.e. navigating to the Dashboard (the app's primary „Continue" loop), refreshing, or abandoning the resume snapshot — every skipped task is **stuck in `skipped` forever**, invisible in the filter and never re-queued. There is **no in-UI recovery**: skipped tasks persist in `decompose:tasks` but nothing surfaces them again, so to the user Skip is indistinguishable from Dismiss. A silent loss of access to work on a core action, and it collapses the key Skip/Dismiss distinction the spec is built around. Not true deletion (data sits in storage), hence arguably 🟡 — but the user reports it as exactly the wrong behaviour on a primary flow, so 🔴.
 
 ## Reproduction
 1. `npm run dev`, go to `/focus`, pick a filter with ≥2 attributed tasks, **Start**.
@@ -12,7 +12,7 @@ Bug (diagnosed by proto-bug)
 3. **Do not** click Exit / New session / Clear. Instead click **← Dashboard** (`FocusView.tsx:427`) or any FunnelStepper link → `FocusView` unmounts (`App.tsx:41`, route swap). (Equivalently: refresh the page, or come back later via Dashboard → Continue, or abandon the „Resume" banner.)
 4. Re-enter `/focus`.
 
-**Expected**: the skipped task is **still in the available pool** — counted in the filter's match count and queued when you Start the next session — because Skip is „nie teraz, wrócę… przy następnej sesji / następnym filtrowaniu" (`docs/modules/focus.md:26,33,57`; `docs/GLOSSARY.md:38`; `docs/ACTIONS.md:65`; `src/modules/run/stats.ts:19`).
+**Expected**: the skipped task is **still in the available pool** — counted in the filter's match count and queued when you Start the next session — because Skip is "not now, I'll come back… at the next session / next filter" (`docs/modules/focus.md:26,33,57`; `docs/GLOSSARY.md:38`; `docs/ACTIONS.md:65`; `src/modules/run/stats.ts:19`).
 **Actual**: the skipped task is **gone from the pool** — filter match count excludes it, Start never queues it. It behaves exactly like Dismiss („Not relevant"), which is the *only* action meant to remove a task permanently.
 **Reliability**: every time, for any task, as long as the user leaves via a non-button path (which is the norm in a Dashboard-„Continue"-driven app). Skip works *only* if the user exits the session through the Exit button, the summary's „New session", or Clear-completed.
 **Location**: pool definition `src/modules/focus/components/FocusView.tsx:79` (admits only `state === 'pending'`); the only reset path `returnSkippedToPool` `FocusView.tsx:270-272`, called from just three handlers — `exit` (`:277`), `clearCompleted` (`:314`), `onNewSession` (`:416`). Module: `focus`, screen: SessionFilter / FocusTaskScreen, action: Skip → navigate away → return.
@@ -30,7 +30,7 @@ That reset is invoked from **only three places**: `exit()` (`:277`), `clearCompl
 - **Session exhausts → summary, then navigate away** — `advance()` reaches summary (`:208-212`) without resetting; only the summary's „New session" button resets, so leaving summary any other way leaks.
 - **Snapshot auto-pruned as non-resumable** — the effect at `:166-168` removes a dead snapshot but does not reset skipped tasks.
 
-So the design's correctness hinges on the user always exiting through one of three buttons. In a Dashboard-„Continue"-centric app, they routinely don't — and every such departure silently strands skipped tasks in `skipped`, which `attributed` (`:79`) then excludes forever. The data model treats `skipped` as „resolved enough to hide", but the spec says `skipped` is **temporary** and must return (`focus.md:26`: *„wraca jako `pending` przy następnej sesji (nie doklejane do bieżącej kolejki)"*; `stats.ts:19`: *„`skipped` NIE liczy się (wraca w kolejnej sesji)"*).
+So the design's correctness hinges on the user always exiting through one of three buttons. In a Dashboard-„Continue"-centric app, they routinely don't — and every such departure silently strands skipped tasks in `skipped`, which `attributed` (`:79`) then excludes forever. The data model treats `skipped` as "resolved enough to hide", but the spec says `skipped` is **temporary** and must return (`focus.md:26`: *"returns as `pending` at the next session (not appended to the current queue)"*; `stats.ts:19`: *"`skipped` does NOT count (it returns in the next session)"*).
 
 **Evidence**:
 - `src/modules/focus/components/FocusView.tsx:79` — pool filter `t.state === 'pending'` ⇒ `skipped` excluded; this is the line that makes a skipped task „disappear".
@@ -42,21 +42,21 @@ So the design's correctness hinges on the user always exiting through one of thr
 - Spec (intent): `docs/modules/focus.md:26,33,57` (Skip = temporary, returns `pending` next session), `docs/GLOSSARY.md:38` (`Skip` wraca do `pending`; `Dismiss` terminal), `docs/ACTIONS.md:65` vs `:67` (Skip vs Dismiss), `src/modules/run/stats.ts:19` (skipped not counted as done). Prior audit `docs/modules/focus-edgecases.md:22` noted Exit „resetuje wszystkie skipped" but only fixed *session-position* persistence (the snapshot) — the cross-unmount skip leak was never addressed.
 
 ## Fix plan
-**Chosen direction**: make the pool treat `skipped` as **available** (a deferral, not a resolution), and restore `skipped → pending` at the **start of each new session** — the true „następna sesja" boundary the spec names. This makes skipped tasks always visible in the filter and re-queued next session, and it **does not depend on which button the user clicks or on component-unmount timing**.
+**Chosen direction**: make the pool treat `skipped` as **available** (a deferral, not a resolution), and restore `skipped → pending` at the **start of each new session** — the true "next session" boundary the spec names. This makes skipped tasks always visible in the filter and re-queued next session, and it **does not depend on which button the user clicks or on component-unmount timing**.
 
 Three edits in `src/modules/focus/components/FocusView.tsx`:
 
 1. **`:79` — include `skipped` in the pool.**
    - now: `.filter((t) => t.state === 'pending' && t.context && t.energy && t.estimatedTime)`
    - change to: `.filter((t) => (t.state === 'pending' || t.state === 'skipped') && t.context && t.energy && t.estimatedTime)`
-   - why: a skipped task is still work-to-do; it must remain visible in the filter's match count (`matchCount`, `:105`) and eligible for the next queue, matching *„przy następnym filtrowaniu będę je robić"*.
+   - why: a skipped task is still work-to-do; it must remain visible in the filter's match count (`matchCount`, `:105`) and eligible for the next queue, matching *"I'll do them at the next filter"*.
 2. **`:91` — stop counting `skipped` as „resolved".**
    - now: `.filter((t) => t.context && t.energy && t.estimatedTime && t.state !== 'pending')`
    - change to: `.filter((t) => t.context && t.energy && t.estimatedTime && (t.state === 'completed' || t.state === 'dismissed'))`
    - why: `resolvedAttributed` drives the „All tasks done — well done" empty-state branch (`SessionFilter.tsx:84-99`). With `skipped` now in the pool, it must not also count as resolved, or that branch mis-fires.
 3. **`:182` (`start()`) — restore skipped → pending for the new session, before building the queue.**
    - add as the first line of `start()`: `returnSkippedToPool();`
-   - why: with edit 1, skipped IDs enter `matched`, but the live session only advances on `pending` (`firstPendingFrom`, `:119-125`), so a still-`skipped` task would be queued yet never shown. Restoring to `pending` at the „new session" moment (Start; *not* Resume) makes them appear — and only here, so they do **not** re-appear in the session they were skipped in (spec: *„nie doklejane do bieżącej kolejki"*).
+   - why: with edit 1, skipped IDs enter `matched`, but the live session only advances on `pending` (`firstPendingFrom`, `:119-125`), so a still-`skipped` task would be queued yet never shown. Restoring to `pending` at the "new session" moment (Start; *not* Resume) makes them appear — and only here, so they do **not** re-appear in the session they were skipped in (spec: *"not appended to the current queue"*).
 
 **Why not the surgical alternative** (add `returnSkippedToPool()` to unmount / abandon / exhaustion): an unmount cleanup captures a stale `tasks` closure (empty-deps effect ⇒ initial render; `tasks`-deps effect ⇒ fires mid-session), and React state-set-after-unmount is unreliable; it also wouldn't make skipped tasks *visible in the filter* before Start. The pool-redefinition above is robust to all of that and is fewer conceptual moving parts.
 
