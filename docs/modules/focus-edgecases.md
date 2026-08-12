@@ -1,16 +1,16 @@
 # Focus — Edge Cases
 
 ## Coverage
-- **Spec already captured** (`docs/modules/focus.md` → Edge Cases): 0 dopasowań w filtrze · wczesne wyjście (active+resume) · overtime · sesja 1-zadaniowa · undo Dismiss · motywacja brakująca · Back na pierwszym zadaniu.
+- **Spec already captured** (`docs/modules/focus.md` → Edge Cases): 0 matches in the filter · early exit (active+resume) · overtime · single-task session · undo Dismiss · missing motivation · Back on the first task.
 - **Already handled in code**:
-  - 0 dopasowań → `SessionFilter.tsx:60-61, 115-116` („Zacznij" zablokowany + info)
+  - 0 matches → `SessionFilter.tsx:60-61, 115-116` ("Start" disabled + info)
   - overtime → `FocusTimer.tsx` (czerwono po progu oszacowania)
   - sesja 1-zadaniowa → `FocusView.tsx:104-110` (`advance` → summary na ostatnim)
-  - undo Dismiss → `FocusView.tsx:127-144` (+ toast `FocusTaskScreen.tsx:175-188`) — z zastrzeżeniem: luka #3
-  - motywacja brakująca → `MotivationPanel.tsx` (empty state)
+  - undo Dismiss → `FocusView.tsx:127-144` (+ toast `FocusTaskScreen.tsx:175-188`) — with a caveat: gap #3
+  - missing motivation → `MotivationPanel.tsx` (empty state)
   - Back na pierwszym → `FocusTaskScreen.tsx:89` (`disabled={!canGoBack}`)
-  - zniknięcie bieżącego taska (usunięty z innej karty) → `FocusView.tsx:266-275` (safeguard)
-- **Spec case NOT handled**: „wczesne wyjście → task zostaje `active` + wznowienie" — lo-fi odkłada task jako `pending` i porzuca sesję (patrz #2).
+  - current task disappearing (deleted from another tab) → `FocusView.tsx:266-275` (safeguard)
+- **Spec case NOT handled**: "early exit → task stays `active` + resume" — the lo-fi defers the task as `pending` and abandons the session (see #2).
 - **New gaps found**: 10
 - **By severity**: 🔴 1 · 🟡 4 · 🟢 5
 
@@ -18,86 +18,86 @@
 
 | # | Severity | Category | Edge case | Behavior today | Suggested behavior | Where |
 |---|----------|----------|-----------|----------------|--------------------|-------|
-| 1 | 🔴 | Prototype-specific (persistence) | Storage write fails (quota/disabled) mid-action | `updateTask`/`deleteTask` zwracają boolean (honest persistence), ale handlery **ignorują wynik** — `done/skip/dismiss` wołają `advance()` niezależnie, a kolejna akcja nadpisuje `pendingRef` w `useLocalStorage`. UI idzie dalej (Done→następny), a stan się nie zapisał → po reloadzie task wraca jako `pending`. Klasyczna cicha utrata danych. | Jak w `ProcessView.tsx:185-199` (`if (!ok) return;`): przy nieudanym zapisie **nie advance'uj / nie zmieniaj ekranu** — zostań na tasku, pozwól `StorageStatusToast` (już widocznemu) obsłużyć retry. Dotyczy też `persistElapsed` timera. | `FocusView.tsx:113-203` (`done/skip/dismiss/back/undoDismiss/clearCompleted/returnSkippedToPool`), `:79-81` (`persistElapsed`) |
-| 2 | 🟡 | Navigation & flow | Sesja nie jest persystowana — Exit / refresh / browser-back porzucają bieżącą sesję | Stan sesji (`screen/queue/cursor/running`) jest efemeryczny (`FocusView.tsx:37-43`). Exit odkłada bieżący task jako `pending` i resetuje wszystkie skipped (`:167-172`). Refresh/back → powrót do filtra, pozycja w sesji stracona; do 5 s timera może być niezapersistowane (flush co ~5 s). Stan `active` nigdy nie jest ustawiany. | Persystuj snapshot sesji (screen/queue/cursor/activeId) do localStorage i wznawiaj przy wejściu w `/focus` — albo dopasuj spec do lo-fi (Exit = porzucenie). Spełnia obietnicę „wznowienie od tego samego taska". | `FocusView.tsx:37-43`, `:167-172`; spec `focus.md:42-43, 67` |
-| 3 | 🟡 | Action outcomes / state | Dismiss ostatniego taska → undo niedostępne | Dismiss na ostatnim tasku: `advance(true)` skacze od razu do summary (`:127-133`), a toast undo żyje tylko w `FocusTaskScreen` (`:175-188`), który się odmontowuje → undo ginie. Undo obsługuje też tylko ostatni Dismiss. | Pokazuj undo Dismiss też na ekranie summary (dopóki nie kliknięto „Usuń skończone"), albo utrzymuj toast na poziomie `FocusView`. | `FocusView.tsx:127-133`; `FocusTaskScreen.tsx:175-188` |
-| 4 | 🟡 | Data states | Puste „atrybuty", choć taski są — mylny komunikat | Gdy taski istnieją, ale żadne nie są `pending`+atrybuowane (wszystkie done/skipped/dismissed), `attributed.length === 0` → komunikat „Brak zadań opisanych atrybutami" (`SessionFilter.tsx:72-78`) jest mylny (są opisane, tylko rozwiązane). | Rozróżnij „brak atrybuowanych w ogóle" od „wszystkie rozwiązane" — np. „Wszystkie zadania zrobione — brawo." + CTA do dashboardu/procesowania. | `SessionFilter.tsx:72-78`; `FocusView.tsx:49-59` (`attributed`) |
-| 5 | 🟡 | Cross-module / lifecycle | Zmiana stanu taska z innej karty mid-session nie jest rekonsyliowana | `currentTask` jest szukany po `id` bez walidacji stanu (`:69`). Task rozwiązany (completed/dismissed) w innej karty może zostać pokazany jako bieżący w sesji. (Przypadek *usunięcia* jest obsłużony safeguardiem `:266`; zmiana *stanu* — nie.) | Przy lądowaniu na tasku sprawdź jego stan; jeśli już rozwiązany — przewiń do następnego pending w kolejce. | `FocusView.tsx:69` (brak walidacji stanu); `:266` (safeguard tylko dla usunięcia) |
-| 6 | 🟢 | Loading & async / a11y | Brak skrótów klawiaturowych na ekranie zadania | Akcje Done/Skip/Dismiss/Back/Pause są tylko przyciskami — brak handlera klawiatury, podczas gdy `ProcessView` jest keyboard-first (Enter/Esc/strzałki). | Dodaj skróty (np. Enter/D = Done, S = Skip, X = Dismiss, ← = Back, Spacja = Pauza) z `aria-keyshortcuts`, nie przechwytując przy fokosie na przycisku. | `FocusTaskScreen.tsx:160-170` (brak globalnego keydown) |
-| 7 | 🟢 | Data states | Ucięty tekst taska w podsumowaniu bez tooltipa | Lista zrobionych ucina tekst (`truncate`) bez `title` → długie nazwy niedo odczytu. | Dodaj `title={t.text}` (jak breadcrumb w `FocusTaskScreen.tsx:114`). | `SessionSummary.tsx:60` |
-| 8 | 🟢 | Data states | „Sesja zakończona" + ✓ przy sesji z 0 zrobionych | Nagłówek celebracyjny renderuje się zawsze, też gdy wszystko skipnięte (0 done, 0 dismissed) — mylny ton. | Tonuj nagłówek/generuj inny, gdy nic nie zrobiono (np. „Nic z tego nie teraz — OK"). | `SessionSummary.tsx:34-50` |
-| 9 | 🟢 | State transitions | Back cicho odkłada (un-dismisses) wcześniej odrzucony task | `back()` ustawia poprzedni task na `pending` niezależnie od stanu (`:152`) — Dismissed task można przywrócić do puli bez użycia undo, omijając affordance. | Przy Back rozróżnij: reopen tylko completed/skipped; dla dismissed zostaw ostrzeżenie lub użyj tej samej ścieżki undo. | `FocusView.tsx:146-156` |
-| 10 | 🟢 | Errors | Mylny empty-state przy błędzie ODCZYTU storage | Przy `readError` hook fallbackuje do `[]` → `attributed` puste → „Brak zadań opisanych atrybutami", choć to awaria odczytu, nie brak danych (toast `readError` pokazuje się obok). | Gdy `readError` — pokaż stan błędu zamiast empty-state listy. | `SessionFilter.tsx:72-78`; `FocusView.tsx:208-213` |
+| 1 | 🔴 | Prototype-specific (persistence) | Storage write fails (quota/disabled) mid-action | `updateTask`/`deleteTask` return a boolean (honest persistence), but handlers **ignore the result** — `done/skip/dismiss` call `advance()` regardless, and the next action overwrites `pendingRef` in `useLocalStorage`. The UI moves on (Done→next), but the state wasn't saved → after reload the task returns as `pending`. A classic silent data loss. | Like `ProcessView.tsx:185-199` (`if (!ok) return;`): on a failed write **don't advance / don't change screen** — stay on the task, let `StorageStatusToast` (already visible) handle retry. Also applies to the timer's `persistElapsed`. | `FocusView.tsx:113-203` (`done/skip/dismiss/back/undoDismiss/clearCompleted/returnSkippedToPool`), `:79-81` (`persistElapsed`) |
+| 2 | 🟡 | Navigation & flow | The session isn't persisted — Exit / refresh / browser-back abandon the current session | Session state (`screen/queue/cursor/running`) is ephemeral (`FocusView.tsx:37-43`). Exit defers the current task as `pending` and resets all skipped (`:167-172`). Refresh/back → return to the filter, session position lost; up to 5 s of timer may be unpersisted (flush every ~5 s). The `active` state is never set. | Persist a session snapshot (screen/queue/cursor/activeId) to localStorage and resume on entering `/focus` — or align the spec to the lo-fi (Exit = abandonment). Fulfills the "resume from the same task" promise. | `FocusView.tsx:37-43`, `:167-172`; spec `focus.md:42-43, 67` |
+| 3 | 🟡 | Action outcomes / state | Dismiss the last task → undo unavailable | Dismiss on the last task: `advance(true)` jumps straight to summary (`:127-133`), and the undo toast lives only in `FocusTaskScreen` (`:175-188`), which unmounts → undo is lost. Undo also only handles the most recent Dismiss. | Show the Dismiss undo on the summary screen too (until "Remove finished" is clicked), or keep the toast at the `FocusView` level. | `FocusView.tsx:127-133`; `FocusTaskScreen.tsx:175-188` |
+| 4 | 🟡 | Data states | Empty "attributes" even though tasks exist — misleading message | When tasks exist but none are `pending`+attributed (all done/skipped/dismissed), `attributed.length === 0` → the "No tasks described with attributes" message (`SessionFilter.tsx:72-78`) is misleading (they are described, just resolved). | Distinguish "no attributed at all" from "all resolved" — e.g. "All tasks done — well done." + a CTA to the dashboard/processing. | `SessionFilter.tsx:72-78`; `FocusView.tsx:49-59` (`attributed`) |
+| 5 | 🟡 | Cross-module / lifecycle | A task's state change from another tab mid-session isn't reconciled | `currentTask` is looked up by `id` without state validation (`:69`). A task resolved (completed/dismissed) in another tab can still be shown as current in the session. (The *deletion* case is handled by the `:266` safeguard; a *state* change is not.) | On landing on a task, check its state; if already resolved — advance to the next pending in the queue. | `FocusView.tsx:69` (no state validation); `:266` (safeguard only for deletion) |
+| 6 | 🟢 | Loading & async / a11y | No keyboard shortcuts on the task screen | The Done/Skip/Dismiss/Back/Pause actions are buttons only — no keyboard handler, whereas `ProcessView` is keyboard-first (Enter/Esc/arrows). | Add shortcuts (e.g. Enter/D = Done, S = Skip, X = Dismiss, ← = Back, Space = Pause) with `aria-keyshortcuts`, not capturing when a button is focused. | `FocusTaskScreen.tsx:160-170` (no global keydown) |
+| 7 | 🟢 | Data states | Truncated task text in the summary with no tooltip | The done list truncates text (`truncate`) without `title` → long names unreadable. | Add `title={t.text}` (like the breadcrumb in `FocusTaskScreen.tsx:114`). | `SessionSummary.tsx:60` |
+| 8 | 🟢 | Data states | "Session finished" + ✓ on a session with 0 done | The celebration header always renders, even when everything was skipped (0 done, 0 dismissed) — a misleading tone. | Tone down / generate a different header when nothing was done (e.g. "None of it right now — OK"). | `SessionSummary.tsx:34-50` |
+| 9 | 🟢 | State transitions | Back silently re-adds (un-dismisses) a previously rejected task | `back()` sets the previous task to `pending` regardless of state (`:152`) — a Dismissed task can be returned to the pool without using undo, bypassing the affordance. | On Back, distinguish: reopen only completed/skipped; for dismissed leave a warning or use the same undo path. | `FocusView.tsx:146-156` |
+| 10 | 🟢 | Errors | Misleading empty-state on a storage READ error | On `readError` the hook falls back to `[]` → `attributed` empty → "No tasks described with attributes", even though it's a read failure, not missing data (a `readError` toast shows alongside). | When `readError` — show an error state instead of the list empty state. | `SessionFilter.tsx:72-78`; `FocusView.tsx:208-213` |
 
-*Dodatkowo odnotowano (poza tabelą): długa nazwa taska na ekranie zadania zawija się w wielu liniach (`FocusTaskScreen.tsx:124`, `break-words`) — do rozważenia `line-clamp`/scroll; `pluralZadanie` zduplikowane w `SessionFilter`/`SessionSummary` (DRY, poza zakresem edge-case).*
+*Also noted (outside the table): a long task name on the task screen wraps across multiple lines (`FocusTaskScreen.tsx:124`, `break-words`) — consider `line-clamp`/scroll; `pluralZadanie` is duplicated in `SessionFilter`/`SessionSummary` (DRY, outside the edge-case scope).*
 
 ## Priority list
-1. **🔴 #1 — Honest persistence**: handlery ignorują wynik `updateTask`/`deleteTask`; przy awarii zapisu UI idzie dalej, a kolejna akcja nadpisuje `pendingRef` → cicha utrata. Największy wpływ, najniższe ryzyko naprawy (skopiować wzorzec `if (!ok) return` z `ProcessView`).
-2. **🟡 #2 — Brak persystencji sesji**: Exit/refresh/back gubią miejsce w sesji; spec obiecuje wznowienie. Najczęstsza droga utraty pracy mid-focus.
-3. **🟡 #3 — Undo Dismiss nieosiągalne dla ostatniego taska**: ADR 0017 obiecuje undo, ale dismissing ostatniego skacze do summary i toast ginie.
-4. **🟡 #4 — Mylny empty-state**: „Brak atrybutów" pokazuje się też gdy wszystko zrobione — frustrujące na końcu lejka.
-5. **🟡 #5 — Rekonsyliacja stanu mid-session**: task rozwiązany w innej karty może wyskoczyć jako bieżący.
+1. **🔴 #1 — Honest persistence**: handlers ignore the result of `updateTask`/`deleteTask`; on a write failure the UI moves on, and the next action overwrites `pendingRef` → silent loss. Highest impact, lowest fix risk (copy the `if (!ok) return` pattern from `ProcessView`).
+2. **🟡 #2 — No session persistence**: Exit/refresh/back lose the session position; the spec promises resume. The most common path to losing work mid-focus.
+3. **🟡 #3 — Undo Dismiss unreachable for the last task**: ADR 0017 promises undo, but dismissing the last one jumps to summary and the toast is lost.
+4. **🟡 #4 — Misleading empty-state**: "No attributes" also shows when everything is done — frustrating at the end of the funnel.
+5. **🟡 #5 — Mid-session state reconciliation**: a task resolved in another tab can pop up as current.
 
 ## Hardening status (proto-harden, 2026-06-29)
 
 | # | Status | Gdzie teraz |
 |---|--------|-------------|
-| 1 | ✅ | `FocusView.tsx:192-240` (`done`/`skip`/`dismiss`/`back`/`undoDismiss` — `if (!updateTask) return`), `:279-296` (`clearCompleted` — przerwij pętlę `deleteTask` przy awarii) |
+| 1 | ✅ | `FocusView.tsx:192-240` (`done`/`skip`/`dismiss`/`back`/`undoDismiss` — `if (!updateTask) return`), `:279-296` (`clearCompleted` — abort the `deleteTask` loop on failure) |
 | 2 | ✅ | `FocusView.tsx:56-57` (snapshot `focus:session`), `:130-145` (sync + walidacja), `:171-178` (`resumeSession`); `types/focus.ts` (`SessionSnapshot`); `FocusStates.tsx` (`SessionResumeBanner`) |
 | 3 | ✅ | `FocusView.tsx:215-225` (`undoDismiss` wraca do sesji), `:417-418` (`DismissUndoToast` na poziomie `FocusView`); `FocusStates.tsx` (`DismissUndoToast`) |
 | 4 | ✅ | `SessionFilter.tsx` (`resolvedAttributed` + stan „Wszystko zrobione — brawo" + CTA `/process`); `FocusView.tsx:77-80` |
-| 5 | ✅ | `FocusView.tsx:96-126` (`firstPendingFrom` + reconcile effect: task rozwiązany w innej karcie → przewiń / zakończ) |
-| 6 | ❌ | Odroczone — skróty klawiaturowe (Done/Skip/Dismiss/Back/Pauza). To nowa modalność wejścia, nie obsługa ścieżki błędnej (poza zakresem harden = „nie dodawaj cech"). Do osobnego passu feature/polish. |
-| 7 | ✅ | Już obecne w kodzie — `SessionSummary.tsx:66` (`title={t.text}` na skróconym elemencie) |
-| 8 | ✅ | Już obecne w kodzie — `SessionSummary.tsx:40-54` (ikonka/tytuł/napis różnicowane przy 0 done) |
-| 9 | ✅ | `FocusView.tsx:227-240` (`back` otwiera na nowo tylko `completed`/`skipped`; `dismissed` pozostawia — undo to osobna ścieżka) |
+| 5 | ✅ | `FocusView.tsx:96-126` (`firstPendingFrom` + reconcile effect: task resolved in another tab → advance / end) |
+| 6 | ❌ | Deferred — keyboard shortcuts (Done/Skip/Dismiss/Back/Pause). That's a new input modality, not handling an error path (outside harden's scope = "don't add features"). For a separate feature/polish pass. |
+| 7 | ✅ | Already present in code — `SessionSummary.tsx:66` (`title={t.text}` on the truncated element) |
+| 8 | ✅ | Already present in code — `SessionSummary.tsx:40-54` (icon/title/text differentiated at 0 done) |
+| 9 | ✅ | `FocusView.tsx:227-240` (`back` only reopens `completed`/`skipped`; `dismissed` is left alone — undo is a separate path) |
 | 10 | ✅ | `FocusView.tsx:328-330` (render `ReadErrorState` zamiast listy przy `readError`); `FocusStates.tsx` (`ReadErrorState`) |
 
-**Zamknięte: 9 · Odroczone: 1 (#6, z powodem).** Decyzja designu (#2): **wznowienie sesji** (persystencja snapshotu + opt-in banner na filtrze).
+**Closed: 9 · Deferred: 1 (#6, for a reason).** Design decision (#2): **session resume** (snapshot persistence + an opt-in banner on the filter).
 
 ## Hand-off to proto-harden
-Najwyższy priorytet do zaimplementowania w `proto-harden`:
-- **#1 (persistence)** — obowiązkowo jako pierwsze: sprawdzać wynik zapisu w każdym handlerze i nie advance'ować przy porażce; zostawić `StorageStatusToast` z retry.
-- **#2 (resume sesji)** — persystencja snapshotu sesji + wznowienie (spełnia obietnicę Exit→resume).
-- **#3 (undo Dismiss na summary)** — przenieść toast undo na poziom `FocusView`, żeby przetrwał do summary.
-- **#4 (rozdzielenie empty-state)** — rozróżnić „brak atrybuowanych" vs „wszystkie rozwiązane".
+Highest priority to implement in `proto-harden`:
+- **#1 (persistence)** — mandatory first: check the write result in every handler and don't advance on failure; keep the `StorageStatusToast` with retry.
+- **#2 (session resume)** — session snapshot persistence + resume (fulfills the Exit→resume promise).
+- **#3 (undo Dismiss on summary)** — move the undo toast to the `FocusView` level so it survives to summary.
+- **#4 (split empty-state)** — distinguish "no attributed" vs "all resolved".
 
-Pozostałe (🟢) to polish — do ewentualnego wdrożenia razem z powyższymi lub osobno.
+The rest (🟢) are polish — to optionally implement alongside the above or separately.
 
-> ✅ Zrealizowane w `proto-harden` (patrz tabela wyżej). Największa usunięta kruchtość: **#1** — handlery akcji wołały `advance()` niezależnie od wyniku zapisu, więc przy pełnym/wyłączonym LocalStorage UI szedł dalej (Done→następny), a stan się nie zapisał → po reloadzie task wracał jako `pending` (cicha utrata).
+> ✅ Done in `proto-harden` (see the table above). The biggest fragility removed: **#1** — action handlers called `advance()` regardless of the write result, so on full/disabled LocalStorage the UI moved on (Done→next), but the state wasn't saved → after reload the task returned as `pending` (silent loss).
 
 ---
 
 ## Re-audit: session-queue-order feature (proto-edgecases, 2026-07-01)
 
-**Zakres**: nowe powierzchnie feature'u ADR 0035 w `focus` — lista dopasowanych (`SessionTaskList`) + ręczny `TaskOrder` (+ interakcja z resume/kolejką). Powierzchnie sprzed feature'u obsłużone wyżej i w harden — nie dubluję.
+**Scope**: the new surfaces of the ADR 0035 feature in `focus` — the matched list (`SessionTaskList`) + manual `TaskOrder` (+ interaction with resume/queue). Pre-feature surfaces are handled above and in harden — not duplicated.
 
 ### Coverage (feature)
-- **Spec już capture'owana** (`focus.md` §Edge Cases, dodane w proto-detail): lista 1-elementowa · taski dodane po `TaskOrder` (doklejane na końcu wg defaultu) · `TaskOrder` wskazuje usunięte taski (prune) · `TaskOrder` wskazuje taski poza filtrem (pozycje zachowane) · awaria zapisu `TaskOrder` (toast) · reset (confirm/undo → harden).
-- **Już obsłużone w kodzie**:
+- **Spec already captured** (`focus.md` §Edge Cases, added in proto-detail): single-element list · tasks added after `TaskOrder` (appended at the end by default) · `TaskOrder` points to deleted tasks (prune) · `TaskOrder` points to tasks outside the filter (positions preserved) · `TaskOrder` write failure (toast) · reset (confirm/undo → harden).
+- **Already handled in code**:
   - taski dodane po `TaskOrder` → doklejane wg defaultu (`FocusView.tsx` `orderKey` = MAX dla nieobecnych w `TaskOrder`).
-  - awaria zapisu `TaskOrder` → toast (`FocusView.tsx` `storageView` włącza `taskOrderStorage`).
-  - reset czyści `TaskOrder` (`removeTaskOrder`); „Reset to default" widoczny tylko przy aktywnym porządku ręcznym.
-  - taski poza bieżącym filtrem → niewidoczne na liście, pozycje w `TaskOrder` zachowane (`reorderMatched`).
+  - `TaskOrder` write failure → toast (`FocusView.tsx` `storageView` includes `taskOrderStorage`).
+  - reset clears `TaskOrder` (`removeTaskOrder`); "Reset to default" is visible only when a manual order is active.
+  - tasks outside the current filter → invisible in the list, positions in `TaskOrder` preserved (`reorderMatched`).
 - **Nowe luki**: 7 · 🔴 0 · 🟡 2 · 🟢 5.
 
 ### Inventory (feature)
 
 | # | Sev | Category | Edge case | Behavior today | Suggested behavior | Where |
 |---|-----|----------|-----------|----------------|--------------------|-------|
-| F2-1 | 🟡 | Action outcomes | „Reset to default" bez confirm/undo | Jedno kliknięcie trwale czyści `TaskOrder` (`removeTaskOrder`); utrata ręcznego porządku bez drogi powrotu | `ConfirmDialog` albo undo-toast (wzorzec `ClearCompleted`) | `FocusView.tsx` (`resetOrder`), `SessionFilter.tsx` (przycisk Reset) |
-| F2-2 | 🟡 | Navigation/state | Resume ignoruje live `TaskOrder` | `resumeSession` przywraca `snapshot.queue` (zamrożone przy Starcie); przełożenie filtra PO pauzie nie wpływa na wznawianą sesję | Dokumentuj (resume = kontynuacja jak było) ALBO przebuduj kolejkę z bieżącego `TaskOrder` przy resume | `FocusView.tsx` (`resumeSession`) |
-| F2-3 | 🟢 | Data/a11y | Drag nie działa na touch | HTML5 DnD nie wspiera touch; uchwyt wygląda na przeciągalny, ale na mobilnym działają tylko ↑↓ | Ukryj/zablokuj uchwyt na touch (lub nota „drag na desktopie"); ↑↓ pokrywają mobilne | `SessionTaskList.tsx` (uchwyt GripVertical) |
-| F2-4 | 🟢 | Data states | Lista 1-elementowa: martwe kontrolki | n=1: ↑↓ zablokowane, drag = no-op; uchwyt/DnD wiszą bezcelowo | Ukryj kontrolki reorder gdy n===1 | `SessionTaskList.tsx` |
-| F2-5 | 🟢 | Data states | Stale/usunięte ID gromadzą się w `focus:taskOrder` | ID usuniętych tasków zostają w `TaskOrder` (harmless — wypadają z `attributed`; prune tylko przy reorderze) | Prune nieistniejących ID przy odczycie/zapisie | `FocusView.tsx` (`matchedTasks`/`reorderMatched`) |
-| F2-6 | 🟢 | Loading/a11y | Brak ogłoszenia SR po przełożeniu | ↑↓/drag przesuwa wiersz bez komunikatu dla czytnika ekranu | Region `aria-live` ogłaszający „przeniesiono na pozycję N z M" | `SessionTaskList.tsx` |
-| F2-7 | 🟢 | Data states | Długa lista dopasowanych grzebie „Start" | Wiele dopasowań → wysoki `<ol>` spycha „Start" w dół; brak max-height/scroll | Cap wysokości + scroll (lub collapsible) | `SessionFilter.tsx` (blok listy) |
+| F2-1 | 🟡 | Action outcomes | "Reset to default" with no confirm/undo | One click permanently clears `TaskOrder` (`removeTaskOrder`); loss of the manual order with no way back | A `ConfirmDialog` or undo-toast (the `ClearCompleted` pattern) | `FocusView.tsx` (`resetOrder`), `SessionFilter.tsx` (Reset button) |
+| F2-2 | 🟡 | Navigation/state | Resume ignores live `TaskOrder` | `resumeSession` restores `snapshot.queue` (frozen at Start); reordering the filter AFTER pausing doesn't affect the resumed session | Document (resume = continue as it was) OR rebuild the queue from the current `TaskOrder` on resume | `FocusView.tsx` (`resumeSession`) |
+| F2-3 | 🟢 | Data/a11y | Drag doesn't work on touch | HTML5 DnD doesn't support touch; the handle looks draggable, but on mobile only ↑↓ work | Hide/disable the handle on touch (or a "drag on desktop" note); ↑↓ cover mobile | `SessionTaskList.tsx` (GripVertical handle) |
+| F2-4 | 🟢 | Data states | Single-element list: dead controls | n=1: ↑↓ disabled, drag = no-op; the handle/DnD hang pointlessly | Hide the reorder controls when n===1 | `SessionTaskList.tsx` |
+| F2-5 | 🟢 | Data states | Stale/deleted IDs accumulate in `focus:taskOrder` | Deleted task IDs stay in `TaskOrder` (harmless — they fall out of `attributed`; pruned only on reorder) | Prune nonexistent IDs on read/write | `FocusView.tsx` (`matchedTasks`/`reorderMatched`) |
+| F2-6 | 🟢 | Loading/a11y | No SR announcement after reordering | ↑↓/drag moves a row with no message for screen readers | An `aria-live` region announcing "moved to position N of M" | `SessionTaskList.tsx` |
+| F2-7 | 🟢 | Data states | A long matched list buries "Start" | Many matches → a tall `<ol>` pushes "Start" down; no max-height/scroll | Cap the height + scroll (or collapsible) | `SessionFilter.tsx` (list block) |
 
-*Cross-module znane (ADR 0020): `TaskOrder` jest globalny — przełożenie w jednym Runie wpływa na wszystkie. Udokumentowane w `focus.md`/`run.md`.*
+*Known cross-module (ADR 0020): `TaskOrder` is global — reordering in one Run affects all. Documented in `focus.md`/`run.md`.*
 
 ### Priority (feature)
-1. **F2-1** — reset bez undo (utracony porządek; łatwy fix confirm/undo).
-2. **F2-2** — resume vs live `TaskOrder` (decyzja designu: dokumentować vs przebudować przy resume).
+1. **F2-1** — reset with no undo (lost order; easy confirm/undo fix).
+2. **F2-2** — resume vs live `TaskOrder` (design decision: document vs rebuild on resume).
 3. (🟢 polish: F2-3…F2-7).
 
 ### Hand-off
@@ -110,66 +110,66 @@ Pozostałe (🟢) to polish — do ewentualnego wdrożenia razem z powyższymi l
 | # | Status | Gdzie teraz |
 |---|--------|-------------|
 | F2-1 | ✅ | `FocusView.tsx` (`resetOrder` → `setConfirmReset`; `doResetOrder`) + `ConfirmDialog` „Reset task order?" |
-| F2-2 | ❌ Odroczone — decyzja designu poza harden: zmienia happy-path resume (snapshot queue vs live `TaskOrder`). Do rozstrzygnięcia osobno (dokument vs rebuild-on-resume). |
+| F2-2 | ❌ Deferred — a design decision outside harden: it changes happy-path resume (snapshot queue vs live `TaskOrder`). To resolve separately (document vs rebuild-on-resume). |
 | F2-3 | ❌ Odroczone — polish (DnD na touch). |
 | F2-4 | ❌ Odroczone — polish (kontrolki reorder przy n=1). |
-| F2-5 | ❌ Odroczone — polish (prune nieistniejących ID; harmless). |
+| F2-5 | ❌ Deferred — polish (prune nonexistent IDs; harmless). |
 | F2-6 | ❌ Odroczone — polish (`aria-live` po reorder). |
-| F2-7 | ❌ Odroczone — polish (długa lista / scroll). |
+| F2-7 | ❌ Deferred — polish (long list / scroll). |
 
-**Zamknięte: 1 (F2-1) · Odroczone: 6 (F2-2 = decyzja designu + 5 polish).**
+**Closed: 1 (F2-1) · Deferred: 6 (F2-2 = design decision + 5 polish).**
 
 ---
 
 ## Re-audit: timer background keep-alive + tab title feature (proto-edgecases, 2026-07-02)
 
-**Zakres**: nowe zachowania z ADR 0053/0054 w `focus` — timer **timestamp-based** (zawsze poprawny po powrocie z tła/uśpionej karty), tykający **Web Workerem** (fallback `setInterval`), **Wake Lock** trzymający ekran przy życiu, resync na `visibilitychange`, oraz **czas timera w `document.title`**. Powierzchnie sprzed feature'u audits-owane i zahardenowane wyżej — nie dubluję.
+**Scope**: the new behaviors from ADR 0053/0054 in `focus` — a **timestamp-based** timer (always correct on return from the background/a sleeping tab), ticking via a **Web Worker** (`setInterval` fallback), a **Wake Lock** keeping the screen alive, resync on `visibilitychange`, and **timer time in `document.title`**. Pre-feature surfaces were audited and hardened above — not duplicated.
 
 ### Coverage (feature)
-- **Spec już capture'owana** (`focus.md` §Edge Cases, dodane w proto-detail ADR 0054): „Karta w tle / uśpiona karta (Edge Sleeping Tabs)" + dopiski do istniejących „Wczesne wyjście…" i „Zmiana stanu mid-session".
-- **Już obsłużone w kodzie**:
-  - timer poprawny po powrocie z uśpionej karty → timestamp + resync `use-focus-timer.ts:178-188`.
+- **Spec already captured** (`focus.md` §Edge Cases, added in proto-detail ADR 0054): "Background tab / sleeping tab (Edge Sleeping Tabs)" + addenda to the existing "Early exit…" and "Mid-session state change".
+- **Already handled in code**:
+  - timer correct on return from a sleeping tab → timestamp + resync `use-focus-timer.ts:178-188`.
   - pauza w tle / resume w tle → `resumedAtRef` null gdy pauza, `onTick`/visibility early-return `use-focus-timer.ts:79-80, 180-181`.
   - brak Workera / brak Wake Lock → cicha degradacja (fallback / skip) `use-focus-timer.ts:101-104, 128`.
-  - title wraca do bazowego poza sesją / w summary / przy unmount → `use-focus-tab-title.ts:28-30, 34-36`.
-  - flush przy Done/Skip/Dismiss/Exit (również z pauzy — `compute()` zwraca zamrożony `baseRef`) → `use-focus-timer.ts:196-201`, `FocusView.tsx:281,289,296,341`.
+  - title returns to the baseline outside a session / in summary / on unmount → `use-focus-tab-title.ts:28-30, 34-36`.
+  - flush on Done/Skip/Dismiss/Exit (also from pause — `compute()` returns the frozen `baseRef`) → `use-focus-timer.ts:196-201`, `FocusView.tsx:281,289,296,341`.
 - **Nowe luki**: 6 · 🔴 0 · 🟡 1 · 🟢 5.
 
 ### Inventory (feature)
 
 | # | Sev | Category | Edge case | Behavior today | Suggested behavior | Where |
 |---|-----|----------|-----------|----------------|--------------------|-------|
-| FT-1 | 🟡 | State transitions / cross-tab | Reset timera key'owany na **wartość** `initialElapsed`, nie na tożsamość taska | Efekt resetu bazuje na `[initialElapsed]` (`:143-150`). `initialElapsed = currentTask?.timerElapsed ?? 0` (`FocusView.tsx:217`) zmienia się co ~5 s — każdy flush `timerElapsed` updatuje task → `currentTask.timerElapsed` → `initialElapsed` → efekt się odpala. W **single-tab** wartość jest zachowana (flush zawsze na granicy całych sekund → reset jest no-opem), ale w **multi-tab tej samej sesji** flush z karty A pisze `timerElapsed` do współdzielonego storage'u → karta B dostaje `storage` event → jej `initialElapsed` skacze → timer w B **cofa się** do wartości z A. | Dodać parametr `taskKey` (id taska); reset `baseRef`/`resumedAtRef`/`lastFlushRef` **tylko** przy zmianie `taskKey`, a `initialElapsed` czytać w tym momencie. Eliminuje też self-broadcast. | `use-focus-timer.ts:143-150`; przekazanie `taskKey` w `FocusView.tsx:216-220` |
-| FT-2 | 🟢 | Data states | Zmiana zegara systemowego (NTP / user) przy ukrytej karcie | `compute()` liczy `Date.now() - resumedAtRef`; cofnięcie zegara daje ujemny delta → timer mogłby odliczać w dół poniżej `baseRef`. | Clamp `Math.max(baseRef.current, …)` w `compute()` (lub `performance.now()` — ale `Date.now()` jest celowe, bo przeżywa uśpienie karty). | `use-focus-timer.ts:57-59` |
-| FT-3 | 🟢 | Errors / loading | Worker 404 w prod (base path `/autowork/`) | `onerror` → fallback `setInterval` (pokryte), ale niezweryfikowane na GitHub Pages po deploymencie. | Zweryfikować ręcznie po `proto-deploy` (czy `timer-tick.worker-*.js` ładuje się spod `/autowork/assets/`). | `use-focus-timer.ts:101-104` |
-| FT-4 | 🟢 | Prototype-specific | Timer persist ignoruje wynik zapisu | `persistElapsed` woła `updateTask` i ignoruje boolean — przy pełnym/wyłączonym LocalStorage `timerElapsed` się nie persystuje (sesja liczy poprawnie w pamięci, ale po reloadzie wraca ostatni flush). | Intencjonalne — `timerElapsed` jest best-effort (inaczej niż stany Done/Skip, które bramkują zapis). `StorageStatusToast` i tak pokazuje `writeError`. Udokumentowane, nie luka do naprawy. | `FocusView.tsx:213-215` |
-| FT-5 | 🟢 | Cross-module / lifecycle | Dwie karty tego samego Runu wznawiają tę samą sesję | Snapshot `focus:session` + `timerElapsed` są per-Run (ADR 0044); dwie karty na `/focus` mogą wznowić tę samą kolejkę → walczą o snapshot i (FT-1) o `timerElapsed`. | Głównie łagodzone przez FT-1 (`taskKey`). Pełna izolacja per-tab (lock sesji) poza zakresem — udokumentowane ograniczenie współdzielonego storage'u. | `FocusView.tsx:81` (snapshot), `use-focus-timer.ts:143-150` |
-| FT-6 | 🟢 | (non-gap, zapisane) | Brak in-app wskaźnika statusu keep-alive / Wake Lock | Niewidoczny z założenia. | Zgodnie z planem feature'u (ADR 0053 „Later") — ewentualny affordance to nowa powierzchnia (`design`+`polish`), nie obsługa ścieżki błędnej. Zapisane, by nie re-flagować. | — |
+| FT-1 | 🟡 | State transitions / cross-tab | Timer reset keyed on the **value** of `initialElapsed`, not on the task's identity | The reset effect is based on `[initialElapsed]` (`:143-150`). `initialElapsed = currentTask?.timerElapsed ?? 0` (`FocusView.tsx:217`) changes every ~5 s — each `timerElapsed` flush updates the task → `currentTask.timerElapsed` → `initialElapsed` → the effect fires. In **single-tab** the value is preserved (flush always on whole-second boundaries → reset is a no-op), but in **multi-tab of the same session** a flush from tab A writes `timerElapsed` to shared storage → tab B gets a `storage` event → its `initialElapsed` jumps → the timer in B **goes back** to A's value. | Add a `taskKey` parameter (task id); reset `baseRef`/`resumedAtRef`/`lastFlushRef` **only** when `taskKey` changes, reading `initialElapsed` at that moment. Also eliminates self-broadcast. | `use-focus-timer.ts:143-150`; passing `taskKey` in `FocusView.tsx:216-220` |
+| FT-2 | 🟢 | Data states | System clock change (NTP / user) while the tab is hidden | `compute()` calculates `Date.now() - resumedAtRef`; moving the clock back gives a negative delta → the timer could count down below `baseRef`. | Clamp `Math.max(baseRef.current, …)` in `compute()` (or `performance.now()` — but `Date.now()` is intentional because it survives tab sleep). | `use-focus-timer.ts:57-59` |
+| FT-3 | 🟢 | Errors / loading | Worker 404 in prod (base path `/autowork/`) | `onerror` → fallback `setInterval` (covered), but unverified on GitHub Pages after deploy. | Verify manually after `proto-deploy` (that `timer-tick.worker-*.js` loads from `/autowork/assets/`). | `use-focus-timer.ts:101-104` |
+| FT-4 | 🟢 | Prototype-specific | Timer persist ignores the write result | `persistElapsed` calls `updateTask` and ignores the boolean — on full/disabled LocalStorage `timerElapsed` isn't persisted (the session counts correctly in memory, but after reload the last flush returns). | Intentional — `timerElapsed` is best-effort (unlike Done/Skip states, which gate the write). `StorageStatusToast` shows `writeError` anyway. Documented, not a gap to fix. | `FocusView.tsx:213-215` |
+| FT-5 | 🟢 | Cross-module / lifecycle | Two tabs of the same Run resume the same session | The `focus:session` snapshot + `timerElapsed` are per-Run (ADR 0044); two tabs on `/focus` can resume the same queue → they fight over the snapshot and (FT-1) `timerElapsed`. | Mostly mitigated by FT-1 (`taskKey`). Full per-tab isolation (session lock) is out of scope — a documented limitation of shared storage. | `FocusView.tsx:81` (snapshot), `use-focus-timer.ts:143-150` |
+| FT-6 | 🟢 | (non-gap, logged) | No in-app keep-alive / Wake Lock status indicator | Invisible by design. | Per the feature plan (ADR 0053 "Later") — any affordance is a new surface (`design`+`polish`), not handling an error path. Logged so it's not re-flagged. | — |
 
-*Kategorie czyste (sprawdzone, brak luk w tym feature): Forms & input (brak formularzy) · Navigation/dead-ends (title restore obsłużone, `use-focus-tab-title.ts:28-30, 34-36`) · Errors (brak `alert()`; awaria Workera/Wake Lock degraduje po cichu) · Accessibility (zmiana title nie ogłaszana — spójne z `aria-live="off"` ekranowego timera).*
+*Clean categories (checked, no gaps in this feature): Forms & input (no forms) · Navigation/dead-ends (title restore handled, `use-focus-tab-title.ts:28-30, 34-36`) · Errors (no `alert()`; Worker/Wake Lock failure degrades silently) · Accessibility (title change not announced — consistent with the on-screen timer's `aria-live="off"`).*
 
 ### Priority (feature)
-1. **FT-1 — `taskKey` reset**: jedyna realna luka robustness. W single-tab łagodna (no-op), w multi-tab tej samej sesji realny cofnięcie timera. Mała zmiana API + wywołanie w `FocusView`.
-2. (🟢 FT-2 clamp jednowierszowy · FT-3 weryfikacja po deploymencie · FT-4/FT-5 udokumentowane ograniczenia · FT-6 odroczone z założenia.)
+1. **FT-1 — `taskKey` reset**: the only real robustness gap. Mild in single-tab (no-op), a real timer rollback in multi-tab of the same session. A small API change + call site in `FocusView`.
+2. (🟢 FT-2 one-line clamp · FT-3 verify after deploy · FT-4/FT-5 documented limitations · FT-6 deferred by design.)
 
 ### Hand-off
 - **FT-1** → drobny fix logiczny (residual direct-edit lub `proto-harden`): `taskKey` parametr + reset tylko przy zmianie taska.
-- **FT-2** → jednowierszowy clamp w `compute()` (do wdrożenia razem z FT-1).
-- **FT-3** → weryfikacja ręczna po `proto-deploy`.
-- **FT-4 / FT-5** → udokumentowane ograniczenia (best-effort persistence / współdzielony per-Run storage) — bez akcji.
+- **FT-2** → one-line clamp in `compute()` (to implement alongside FT-1).
+- **FT-3** → manual verification after `proto-deploy`.
+- **FT-4 / FT-5** → documented limitations (best-effort persistence / shared per-Run storage) — no action.
 - **FT-6** → odroczone (plan ADR 0053 „Later").
 
-> **Uwaga:** ten feature **nie wprowadza nowych stanów UI** (empty/error/loading) — fallbacki degradują po cichu. `proto-harden` nie ma tu klasycznej roboty; realna zmiana to FT-1/FT-2 (logika), więc raczej residual direct-edit niż pełny harden. Re-run `proto-edgecases` po wdrożeniu FT-1, by odświeżyć baseline.
+> **Note:** this feature **introduces no new UI states** (empty/error/loading) — fallbacks degrade silently. `proto-harden` has no classic work here; the real change is FT-1/FT-2 (logic), so it's more a residual direct-edit than a full harden. Re-run `proto-edgecases` after implementing FT-1 to refresh the baseline.
 
 ### Resolution (direct edit, 2026-07-02)
 
 | # | Status | Gdzie teraz |
 |---|--------|-------------|
-| FT-1 | ✅ | `use-focus-timer.ts` — nowy parametr `taskKey`; reset key'owany na `[taskKey]` (id taska) zamiast `[initialElapsed]`, `initialElapsed` czytany z closure; przekazanie `taskKey: currentTask?.id ?? null` w `FocusView.tsx`. Eliminuje self-broadcast i cross-tab cofnięcie timera. |
-| FT-2 | ✅ | `use-focus-timer.ts` `compute()` — `Math.max(baseRef.current, next)` (clamp od dołu na cofnięcie zegara). |
-| FT-3 | ⏳ Do weryfikacji | ręcznie po `proto-deploy` (czy `timer-tick.worker-*.js` ładuje się spod `/autowork/assets/`). |
+| FT-1 | ✅ | `use-focus-timer.ts` — new `taskKey` parameter; reset keyed on `[taskKey]` (task id) instead of `[initialElapsed]`, `initialElapsed` read from the closure; passing `taskKey: currentTask?.id ?? null` in `FocusView.tsx`. Eliminates self-broadcast and cross-tab timer rollback. |
+| FT-2 | ✅ | `use-focus-timer.ts` `compute()` — `Math.max(baseRef.current, next)` (lower clamp on clock rollback). |
+| FT-3 | ⏳ To verify | manually after `proto-deploy` (that `timer-tick.worker-*.js` loads from `/autowork/assets/`). |
 | FT-4 | ❌ Odroczone | intencjonalne — `timerElapsed` best-effort (toast i tak pokazuje `writeError`). |
-| FT-5 | ❌ Odroczone | ograniczenie współdzielonego per-Run storage'u; łagodzone przez FT-1. |
+| FT-5 | ❌ Deferred | limitation of shared per-Run storage; mitigated by FT-1. |
 | FT-6 | ❌ Odroczone | affordance keep-alive = nowa powierzchnia (plan ADR 0053 „Later"). |
 
-**Zamknięte: 2 (FT-1, FT-2) · Odroczone: 3 (FT-4/FT-5/FT-6) · Do weryfikacji: 1 (FT-3).** Weryfikacja: `tsc` + `vite build` + `eslint` zielone.
+**Closed: 2 (FT-1, FT-2) · Deferred: 3 (FT-4/FT-5/FT-6) · To verify: 1 (FT-3).** Verification: `tsc` + `vite build` + `eslint` green.
