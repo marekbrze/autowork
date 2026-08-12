@@ -6,14 +6,14 @@ function stressor(text: string, runId: string): Stressor {
   return { id: generateId(), text, runId, createdAt: now, updatedAt: now };
 }
 
-/** Minimalny zestaw — krótki brain dump (3 stresory) dla danego Runa. */
+/** Minimal set — a short brain dump (3 stressors) for a given Run. */
 export function captureStressorsMinimal(runId: string): Stressor[] {
   return ['car needs fixing', 'ending the lease', 'talk to the boss about a raise'].map((t) =>
     stressor(t, runId),
   );
 }
 
-/** Pełny zestaw — dłuższy brain dump (7 stresorów) dla danego Runa. */
+/** Full set — a longer brain dump (7 stressors) for a given Run. */
 export function captureStressorsFull(runId: string): Stressor[] {
   return [
     'car needs fixing',

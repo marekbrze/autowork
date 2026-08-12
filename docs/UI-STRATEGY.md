@@ -1,16 +1,16 @@
 # UI Strategy
 
-Decyzje strukturalne shella (z wywiadu `proto-highlevelui`). Kwestie wizualne (kolory, typografia, wielkości) są celowo odłożone do `proto-design`.
+Structural decisions for the shell (from the `proto-highlevelui` interview). Visual concerns (colors, typography, sizes) are deliberately deferred to `proto-design`.
 
 ## Platform
-**Desktop** — single-user, osobiste narzędzie; docelowo statyczne SPA na GitHub Pages.
+**Desktop** — single-user, a personal tool; ultimately a static SPA on GitHub Pages.
 
 ## Navigation
-- **Type**: Top bar (pozioma nawigacja na górze).
-- **Structure**: **Flow-oriented** — top bar eksponuje tylko `Dashboard` (+ chip aktywnego Runa). Kroki lejka (Stresory → Next actions → Procesowanie → Focus) są **klikalnym stepperem** — user swobodnie nawiguje po krokach aktywnego Runa (supersede wczesnego „nie są wolnymi linkami", ADR 0048). Nadal też prowadzone przyciskiem „Dalej" i stepperem postępu wewnątrz trasy runa. Stepper buduje `proto-lofi`.
+- **Type**: Top bar (horizontal navigation at the top).
+- **Structure**: **Flow-oriented** — the top bar exposes only `Dashboard` (+ an active-Run chip). The funnel steps (Stressors → Next actions → Processing → Focus) are a **clickable stepper** — the user freely navigates the active Run's steps (supersedes the early "not free links", ADR 0048). Still also led by the "Next" button and the progress stepper within the run route. The stepper is built by `proto-lofi`.
 
 ## Home page
-**Dashboard** (`/`). Placeholder: progres aktywnego Runa + ostatnie runy + główne CTA „Zacznij nowy Run" (→ `/capture`). `proto-lofi` podmienia na rzeczywiste dane ze scenariuszy.
+**Dashboard** (`/`). Placeholder: active-Run progress + recent runs + the main "Start a new Run" CTA (→ `/capture`). `proto-lofi` replaces these with real data from the scenarios.
 
 ## Module navigation
 
@@ -21,16 +21,16 @@ Decyzje strukturalne shella (z wywiadu `proto-highlevelui`). Kwestie wizualne (k
 | decompose | Next actions | `/decompose` | krok lejka (stepper) |
 | process | Procesowanie | `/process` | krok lejka (stepper) |
 | focus | Focus | `/focus` | krok lejka (stepper) |
-| run | Run | `/run` | kontener — chip w nagłówku, nie link |
+| run | Run | `/run` | container — a chip in the header, not a link |
 
-Labele display po polsku (język apki); nazwy kodowe ang. (z `MODULES.md`). Przy flow-oriented `capture`/`decompose`/`process`/`focus` to **nazwy kroków w stepperze postępu**, nie linki w top-barze.
+Display labels are in English (the app's language); code names are English (from `MODULES.md`). With flow-oriented, `capture`/`decompose`/`process`/`focus` are **step names in the progress stepper**, not links in the top bar.
 
 ## Content layout
 - **Container**: Contained — `max-w-6xl` (~1150px), wycentrowany.
 - **Breadcrumbs**: **Tak** — klikalny stepper lejka (swobodna nawigacja po krokach aktywnego Runa); supersede ADR 0001 / wczesnego „Nie" (ADR 0048).
 
 ## Shared elements
-- **Header**: Tak — top bar: nazwa „Autowork" (→ home) + link `Dashboard` + prawy slot na chip aktywnego Runa (realny stan podłącza `proto-lofi`).
+- **Header**: Yes — top bar: the "Autowork" name (→ home) + a `Dashboard` link + a right slot for the active-Run chip (real state is wired by `proto-lofi`).
 - **Footer**: Nie.
 - **Notifications**: Nie (single-user, MVP).
 
@@ -38,10 +38,10 @@ Labele display po polsku (język apki); nazwy kodowe ang. (z `MODULES.md`). Przy
 Zapisana intencja designera na kolejny skill:
 - **Vibe**: arcade / retro-game, žartobliwy, radosny.
 - **Kolory**: cheerful, nasycone (shell jest obecnie neutralny shadcn base-nova; paleta do ustalenia w proto-design).
-- **Przyciski**: duże, wyraziste („duże przyciski").
+- **Buttons**: large, expressive ("big buttons").
 
-Shell jest celowo neutralny/strukturalny, żeby `proto-design` mógł nałożyć estetykę arcade bez przebudowy struktury.
+The shell is deliberately neutral/structural, so `proto-design` can lay an arcade aesthetic on top without rebuilding the structure.
 
 ## Notes
-- Routing: `BrowserRouter`. Przy deploymencie na GitHub Pages ustawić `basename` (lub przejść na `HashRouter`), by uniknąć 404 przy odświeżeniu — do rozstrzygnięcia przy deploymencie.
-- `index.html` `lang="pl"` (apka po polsku — wymóg a11y AAA).
+- Routing: `BrowserRouter`. When deploying to GitHub Pages, set a `basename` (or switch to `HashRouter`) to avoid a 404 on refresh — to resolve at deploy time.
+- `index.html` `lang="en"` (the app is in English — an a11y AAA requirement).

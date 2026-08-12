@@ -4,7 +4,7 @@ import './index.css'
 import App from './App'
 import { migrateGlobalFunnelData } from '@/shared/migrate'
 
-// Migruj stare globalne dane lejka do modelu per-Run (ADR 0044) ZANIM hooki przeczytają storage.
+// Migrate old global funnel data to the per-Run model (ADR 0044) BEFORE the hooks read storage.
 migrateGlobalFunnelData()
 
 createRoot(document.getElementById('root')!).render(
