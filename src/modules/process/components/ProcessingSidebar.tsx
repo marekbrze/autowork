@@ -7,7 +7,7 @@ import type { Stressor } from '@/modules/capture/types/stressor';
 export interface SidebarTag {
   /** Etykieta atrybutu: Kontekst / Energia / Czas. */
   label: string;
-  /** Nadany (przed sesją) LUB krok ukończony w sesji. */
+  /** Assigned (before the session) OR a step completed in the session. */
   done: boolean;
 }
 
@@ -15,7 +15,7 @@ export interface SidebarTask {
   id: string;
   name: string;
   tags: SidebarTag[];
-  /** Wszystkie kroki taska ukończone. */
+  /** All of the task's steps completed. */
   done: boolean;
 }
 
@@ -29,14 +29,14 @@ interface ProcessingSidebarProps {
   totalTasks: number;
   doneCount: number;
   currentTaskId: string | null;
-  /** Numer porządkowy taska w sesji (1-based). */
+  /** The task's ordinal number in the session (1-based). */
   numbering: (id: string) => number;
   onJump: (taskId: string) => void;
 }
 
 /**
- * Sidebar sesji procesowania (wzorzec `dopadone`): progres + lista tasków
- * pogrupowana po stresorze (kolejność rankingu), z tagami atrybutów i ✓.
+ * The processing-session sidebar (the `dopadone` pattern): progress + a task list
+ * grouped by stressor (ranking order), with attribute tags and ✓.
  * Klik wiersza = skok do pierwszego kroku taska.
  */
 export function ProcessingSidebar({
@@ -50,7 +50,7 @@ export function ProcessingSidebar({
   const pct = totalTasks > 0 ? Math.round((doneCount / totalTasks) * 100) : 0;
   const currentRef = useRef<HTMLButtonElement>(null);
 
-  // Utrzymuj bieżący task w widoku w długich sesjach (scroll poza ekran w sidebarze).
+  // Keep the current task in view in long sessions (scroll off-screen in the sidebar).
   useEffect(() => {
     currentRef.current?.scrollIntoView({ block: 'nearest' });
   }, [currentTaskId]);

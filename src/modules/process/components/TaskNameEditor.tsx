@@ -2,16 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 
 interface TaskNameEditorProps {
   initial: string;
-  /** Zapisz (Enter) — tylko niepusty, przycięty tekst. */
+  /** Save (Enter) — only non-empty, trimmed text. */
   onSave: (text: string) => void;
-  /** Anuluj (Esc / utrata focusu) — zostawia oryginał. */
+  /** Cancel (Esc / blur) — leaves the original. */
   onCancel: () => void;
 }
 
 /**
  * Inline-edycja tekstu taska (Edit Task w scope `process`). Wchodzi w miejsce
- * nazwy; Enter zapisuje, Esc / blur anuluje. Pusty draft też anuluje (nie usuwa
- * po cichu — spójnie z `decompose`). Autofocus + zaznaczenie całego tekstu.
+ * of the name; Enter saves, Esc / blur cancels. An empty draft also cancels (it doesn't
+ * silently delete — consistent with `decompose`). Autofocus + select all the text.
  */
 export function TaskNameEditor({ initial, onSave, onCancel }: TaskNameEditorProps) {
   const [text, setText] = useState(initial);
@@ -43,7 +43,7 @@ export function TaskNameEditor({ initial, onSave, onCancel }: TaskNameEditorProp
       value={text}
       aria-label="Edit task name"
       onChange={(e) => setText(e.target.value)}
-      // stopPropagation: globalny handler ProcessView ma nie łapać Enter/Esc z inputu
+      // stopPropagation: the global ProcessView handler must not catch Enter/Esc from the input
       onKeyDown={(e) => {
         e.stopPropagation();
         if (e.key === 'Enter') {

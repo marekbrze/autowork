@@ -9,12 +9,12 @@ import type { Task } from '@/modules/decompose/types/task';
 const TS = '2026-06-28T00:00:00.000Z';
 
 const stressors: Stressor[] = [
-  { id: 's1', runId: 'story', text: 'samochód do naprawy', createdAt: TS, updatedAt: TS },
+  { id: 's1', runId: 'story', text: 'car to fix', createdAt: TS, updatedAt: TS },
   { id: 's2', runId: 'story', text: 'wypowiedzenie umowy najmu', createdAt: TS, updatedAt: TS },
 ];
 
 const nextActions: NextAction[] = [
-  { id: 'na1', runId: 'story', stressorId: 's1', text: 'Umów warsztat', createdAt: TS, updatedAt: TS },
+  { id: 'na1', runId: 'story', stressorId: 's1', text: 'Book the shop', createdAt: TS, updatedAt: TS },
   { id: 'na2', runId: 'story', stressorId: 's2', text: 'Wypowiedz najem', createdAt: TS, updatedAt: TS },
 ];
 
@@ -46,24 +46,24 @@ export default meta;
 type Story = StoryObj<typeof ProcessView>;
 
 /**
- * Podsumowanie z zadaniami do przetworzenia (2 stresory, taski „gołe").
+ * A summary with tasks to process (2 stressors, "bare" tasks).
  * Klik „Rozpocznij" (lub ↵) → ekran processing ze groupingiem po stresorze.
  */
 export const WithData: Story = {
   decorators: [
     (Story) => {
       seed([
-        bareTask('t1', 'na1', 's1', 'Znajdź numer telefonu do warsztatu'),
-        bareTask('t2', 'na1', 's1', 'Zadzwoń i umów wizytę na ten tydzień'),
+        bareTask('t1', 'na1', 's1', 'Find the shop\'s phone number'),
+        bareTask('t2', 'na1', 's1', 'Call and book a visit this week'),
         bareTask('t3', 'na2', 's2', 'Napisz wypowiedzenie najmu'),
-        bareTask('t4', 'na2', 's2', 'Wyślij list polecony'),
+        bareTask('t4', 'na2', 's2', 'Send a registered letter'),
       ]);
       return <Story />;
     },
   ],
 };
 
-/** Brak zadań — empty state „Wszystko gotowe". */
+/** No tasks — the "All done" empty state. */
 export const EmptyState: Story = {
   decorators: [
     (Story) => {
@@ -73,13 +73,13 @@ export const EmptyState: Story = {
   ],
 };
 
-/** Wszystkie taski opisane — też „Wszystko gotowe" (nic do procesowania). */
+/** All tasks described — also "All done" (nothing to process). */
 export const AllProcessed: Story = {
   decorators: [
     (Story) => {
       seed([
-        { ...bareTask('t1', 'na1', 's1', 'Znajdź numer do warsztatu'), context: 'Phone', energy: 2, estimatedTime: 15 },
-        { ...bareTask('t2', 'na2', 's2', 'Wyślij list polecony'), context: 'Errands', energy: 1, estimatedTime: 30 },
+        { ...bareTask('t1', 'na1', 's1', 'Find the shop\'s number'), context: 'Phone', energy: 2, estimatedTime: 15 },
+        { ...bareTask('t2', 'na2', 's2', 'Send a registered letter'), context: 'Errands', energy: 1, estimatedTime: 30 },
       ]);
       return <Story />;
     },
@@ -87,8 +87,8 @@ export const AllProcessed: Story = {
 };
 
 /**
- * Bardzo długa nazwa taska (+ długi stresor / next-action). Klik „Rozpocznij" →
- * w main nazwa clamp-2 z tooltipem, nagłówek stresora i breadcrumb skrócone
+ * A very long task name (+ a long stressor / next-action). Clicking "Start" →
+ * in main the name is clamp-2 with a tooltip, the stressor header and breadcrumb shortened
  * (truncate) — grid opcji zostaje na miejscu.
  */
 export const LongName: Story = {
@@ -99,16 +99,16 @@ export const LongName: Story = {
           't1',
           'na1',
           's1',
-          'Znajdź numer telefonu do warsztatu, zadzwoń i umów wizytę na ten tydzień rano przed spotkaniem o 13:00',
+          'Find the shop\'s phone number, call and book a visit this week in the morning before the 1pm meeting',
         ),
       ]);
       localStorage.setItem(
         'capture:stressors',
-        JSON.stringify([{ ...stressors[0], text: 'Bardzo długa nazwa stresora nie mieszcząca się w jednej linijce sidebaru' }]),
+        JSON.stringify([{ ...stressors[0], text: 'A very long stressor name that does not fit in one sidebar line' }]),
       );
       localStorage.setItem(
         'decompose:nextActions',
-        JSON.stringify([{ ...nextActions[0], text: 'Długi opis next-actionu rozbijany na taski, nie mieści się w breadcrumbzie' }]),
+        JSON.stringify([{ ...nextActions[0], text: 'A long next-action description split into tasks, does not fit in the breadcrumb' }]),
       );
       return <Story />;
     },
@@ -116,9 +116,9 @@ export const LongName: Story = {
 };
 
 /**
- * Uszkodzony odczyt LocalStorage (zły JSON `decompose:tasks`) → start od pustej
- * listy + toast „Nie udało się wczytać zadań" ze ścieżką odzyskiwania. Pokazuje
- * agregację statusu persystencji (tu: read-error tasków).
+ * A corrupted LocalStorage read (bad `decompose:tasks` JSON) → start from an empty
+ * list + a "Failed to load tasks" toast with a recovery path. Shows
+ * the persistence-status aggregation (here: a task read-error).
  */
 export const StorageReadError: Story = {
   decorators: [

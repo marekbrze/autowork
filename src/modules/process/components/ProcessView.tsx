@@ -32,7 +32,7 @@ import { OptionStepPanel, type Opt } from './OptionStepPanel';
 import { ProcessingSidebar, type SidebarGroup, type SidebarTag } from './ProcessingSidebar';
 import { TaskNameEditor } from './TaskNameEditor';
 
-/** Kroki atrybutów w stałej kolejności (Context → Energy → Czas). */
+/** Attribute steps in a fixed order (Context → Energy → Time). */
 type StepKind = 'context' | 'energy' | 'estimatedTime';
 type Screen = 'summary' | 'processing' | 'done';
 
@@ -80,8 +80,8 @@ const stepId = (taskId: string, kind: StepKind) => `${taskId}:${kind}`;
 
 /**
  * Ekran Procesowania (krok 4 lejka). Wzorzec 1:1 z `marekbrze/dopadone`
- * (`ProcessingView`): płotka kolejka mikrokroków — po jednym kroku na
- * brakujący atrybut (Context/Energy/Czas) — prowadzona klawiaturą.
+ * (`ProcessingView`): a flat queue of micro-steps — one step per
+ * missing attribute (Context/Energy/Time) — driven by keyboard.
  * Trzy ekrany: summary → processing → done. ADR 0012 / 0013.
  */
 export function ProcessView() {
@@ -100,12 +100,12 @@ export function ProcessView() {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  // Mapa pozycji stresora = jego rank (najbardziej stresujący = 0). Tablica
-  // stressorów jest kanonicznie uporządkowana po ranku (capture/types/stressor).
+  // A map of a stressor's position = its rank (most stressful = 0). The array
+  // of stressors is canonically ordered by rank (capture/types/stressor).
   const stressorRank = useMemo(() => new Map(stressors.map((s, i) => [s.id, i])), [stressors]);
 
-  // Zadania nadające się do sesji: pending i z ≥1 brakującym atrybutem,
-  // w kolejności ranku stresu (potem stabilnie po id taska).
+  // Tasks eligible for the session: pending and with ≥1 missing attribute,
+  // in stress-rank order (then stably by task id).
   const sessionTasks = useMemo(() => {
     return tasks
       .filter((t) => t.state === 'pending' && missingSteps(t).length > 0)
@@ -116,7 +116,7 @@ export function ProcessView() {
       });
   }, [tasks, stressorRank]);
 
-  // Stat-cards podsumowania (na żywo).
+  // Summary stat-cards (live).
   const pendingTasks = useMemo(() => tasks.filter((t) => t.state === 'pending'), [tasks]);
   const counts = useMemo(
     () => ({
@@ -134,7 +134,7 @@ export function ProcessView() {
     [currentStep, tasks],
   );
 
-  // --- pomocnicze: opcje / prefill dla bieżącego kroka ---
+  // --- helpers: options / prefill for the current step ---
   const optionsFor = (kind: StepKind): Opt[] => {
     if (kind === 'context') return CONTEXT_OPTIONS.map(({ label, key, Icon }) => ({ key, label, Icon }));
     if (kind === 'energy') return ENERGY_OPTIONS.map(({ value, label, key }) => ({ key, label, battery: value }));
@@ -175,7 +175,7 @@ export function ProcessView() {
 
   const goBack = () => {
     if (cursorIndex > 0) landOn(cursorIndex - 1, stepOrder);
-    else setScreen('summary'); // z pierwszego kroka — wyjście z sesji do podsumowania
+    else setScreen('summary'); // from the first step — leaving the session to the summary
   };
 
   const markCompleted = (taskId: string, kind: StepKind) => {
@@ -184,15 +184,15 @@ export function ProcessView() {
 
   const commit = (kind: StepKind, value: Context | Energy | EstimatedTime) => {
     if (!currentStep || !currentTask) return;
-    // Rozgałęzione przypisanie — computed-key z wartością unijną nie przeszedłby
-    // jako Partial<Task>; każda gałąź niesie właściwy typ atrybutu.
+    // Branched assignment — a computed-key with a union value wouldn't pass
+    // as Partial<Task>; each branch carries the right attribute type.
     let ok = false;
     if (kind === 'context') ok = updateTask(currentTask.id, { context: value as Context });
     else if (kind === 'energy') ok = updateTask(currentTask.id, { energy: value as Energy });
     else ok = updateTask(currentTask.id, { estimatedTime: value as EstimatedTime });
     // Honest persistence: zaznacz ✓ i advance'uj TYLKO po udanym zapisie. Przy
-    // nieudanym (quota/disabled) stan NIE zmienia się (useLocalStorage), toast
-    // writeError już pokazuje retry — zostajemy na kroku do czasu jego zapisu.
+    // a failed (quota/disabled) one the state does NOT change (useLocalStorage), the toast
+    // already shows writeError retry — we stay on the step until it's saved.
     if (!ok) return;
     markCompleted(currentTask.id, kind);
     advance();
@@ -243,10 +243,10 @@ export function ProcessView() {
     setScreen('processing');
   };
 
-  // Usuwanie taska mid-session: czyści jego kroki z kolejki i skacze do pierwszego
-  // kroku następnego taska (lub done, gdy ostatni). Wzorzec dopadone. Honest
+  // Deleting a task mid-session: clears its steps from the queue and jumps to the first
+  // step of the next task (or done, when last). The dopadone pattern. Honest
   // persistence: lokalne mutacje sesji (stepOrder/completed/nav) TYLKO po udanym
-  // zapisie usunięcia — inaczej UI pokazałoby usunięcie, którego nie ma na dysku.
+  // deletion write — otherwise the UI would show a deletion that isn't on disk.
   const handleDelete = (taskId: string) => {
     if (!deleteTask(taskId)) return;
     const firstDeletedIdx = stepOrder.findIndex((s) => s.taskId === taskId);
@@ -258,8 +258,8 @@ export function ProcessView() {
     setSessionTaskIds((prev) => prev.filter((id) => id !== taskId));
     setEditingTaskId(null);
     if (nextSteps.length === 0) {
-      // Usunięto jedyny task sesji → brak czegoś do celebracji; summary na nowo
-      // policzy stan (pokaże empty / „Wszystko gotowe"), zamiast ekranu „0 zadań".
+      // Deleted the session's only task → nothing to celebrate; the summary recomputes
+      // the state (shows empty / "All done"), instead of a "0 tasks" screen.
       setScreen('summary');
       return;
     }
@@ -278,14 +278,14 @@ export function ProcessView() {
   };
 
   // --- klawiatura globalna (summary: Enter=start; processing: opcje/Enter/Esc/←/↑↓) ---
-  // ref na najnowszy handler, listener podpinany raz na zmianę ekranu.
+  // a ref to the latest handler; the listener is attached once per screen change.
   const keyHandlerRef = useRef<(e: KeyboardEvent) => void>(() => {});
   keyHandlerRef.current = (e: KeyboardEvent) => {
     if (editingTaskId) return; // nie przeszkadzaj w edycji nazwy
     // Nie przechwytuj klawiszy, gdy fokus jest na interaktywnym elemencie — niech
-    // działa natywna aktywacja (Enter/Space na przycisku lub linku = klik). Bez
-    // tego globalny Enter „double-fire'owałby" z natywnym klikiem: Enter na karcie
-    // opcji commitowałoby dwa razy, Enter na Trash → commit + delete.
+    // native activation works (Enter/Space on a button or link = a click). Without
+    // this the global Enter would "double-fire" with the native click: Enter on a card
+    // would commit twice, Enter on Trash → commit + delete.
     const tag = (e.target as HTMLElement | null)?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON' || tag === 'A') return;
     if (screen === 'summary') {
@@ -326,11 +326,11 @@ export function ProcessView() {
     return () => window.removeEventListener('keydown', listener);
   }, []);
 
-  // Honest persistence — dokończenie commitu po udanym retry: krok, którego
-  // atrybut właśnie się utrwalił (np. klik „Spróbuj ponownie" po nieudanym
-  // zapisie), zaznacz ✓ i advance'uj. self-heal: też zamyka kroki, które nabrały
-  // atrybutu po skoku/edycji. W sesji każdy krok startuje z nullem, więc trigger
-  // = „atrybut właśnie zapisany" (a nie prefill, bo missingSteps go wykluczył).
+  // Honest persistence — completing the commit after a successful retry: the step whose
+  // attribute just persisted (e.g. a "Try again" click after a failed
+  // write), mark ✓ and advance. self-heal: it also closes steps that gained
+  // an attribute after a jump/edit. In a session each step starts at null, so the trigger
+  // = "attribute just saved" (not prefill, since missingSteps excluded it).
   useEffect(() => {
     if (screen !== 'processing' || !currentStep || !currentTask) return;
     const sid = stepId(currentTask.id, currentStep.kind);
@@ -382,9 +382,9 @@ export function ProcessView() {
   const currentStressor = currentTask ? stressors.find((s) => s.id === currentTask.stressorId) ?? null : null;
   const currentNextAction = currentTask ? nextActions.find((n) => n.id === currentTask.nextActionId) ?? null : null;
 
-  // Status persystencji agregowany po trzech storach, od których ekran zależy.
-  // W `process` zapisywane są tylko taski (writeError stamtąd); odczyt może
-  // wybuchnąć w każdym z trzech — bez tego awaria stresorów/next-actions po
+  // Persistence status aggregated across the three stores the screen depends on.
+  // In `process` only tasks are written (writeError comes from there); a read can
+  // blow up in any of the three — without this a stressor/next-action failure after
   // cichu degraduje grupowanie („Bez stresora") bez komunikatu.
   const storageView = {
     writeError: storage.writeError,
@@ -453,7 +453,7 @@ export function ProcessView() {
           />
 
           <div className="space-y-4">
-            {/* Breadcrumb kroków + akcje taska */}
+            {/* Step breadcrumb + task actions */}
             <div className="flex items-start justify-between gap-3">
               <nav aria-label="Task steps" className="flex flex-wrap items-center gap-1.5">
                 {currentTaskSteps.map((s, i) => {
@@ -526,7 +526,7 @@ export function ProcessView() {
 
             <div className="border-t" />
 
-            {/* Panel opcji bieżącego kroka */}
+            {/* Options panel for the current step */}
             <OptionStepPanel
               options={optionsFor(currentStep.kind)}
               pendingKey={pendingKey}

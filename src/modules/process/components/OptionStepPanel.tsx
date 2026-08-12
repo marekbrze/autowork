@@ -9,32 +9,32 @@ export interface Opt {
   /** Klawisz skrótu pokazany jako badge (np. „1”). */
   key: string;
   label: string;
-  /** Dla energii: ile bateryjek narysować. */
+  /** For energy: how many batteries to draw. */
   battery?: 1 | 2 | 3;
-  /** Ikona (np. dla kontekstów). */
+  /** An icon (e.g. for contexts). */
   Icon?: ComponentType<LucideProps>;
 }
 
 interface OptionStepPanelProps {
   options: Opt[];
-  /** Obecnie podświetlona opcja (hover / klawisz / ↑↓). */
+  /** The currently highlighted option (hover / key / ↑↓). */
   pendingKey: string | null;
-  /** Klasa gridu — rodzic dobiera układ wg liczby opcji. */
+  /** The grid class — the parent picks the layout by option count. */
   gridClassName: string;
   /** Tekst pomocy nad gridem. */
   hint: string;
-  /** Podświetl opcję (hover/focus karty). */
+  /** Highlight an option (card hover/focus). */
   onHover: (key: string) => void;
-  /** Zatwierdź opcję (klik myszą = bezpośredni commit). */
+  /** Confirm an option (a mouse click = a direct commit). */
   onConfirm: (opt: Opt) => void;
-  /** Pomiń krok (Esc). */
+  /** Skip the step (Esc). */
   onSkip: () => void;
 }
 
 /**
- * Grid kart-opcji dla bieżącego kroka atrybutu (wzorzec `dopadone`).
- * Karta to <button> (dostępny z klawiatury przez Tab/Enter); mysz klika =
- * bezpośredni commit. Klawiatura (1..N / ↑↓ / Enter / Esc) obsługiwana globalnie
+ * An option-card grid for the current attribute step (the `dopadone` pattern).
+ * A card is a <button> (keyboard-accessible via Tab/Enter); a mouse click =
+ * a direct commit. The keyboard (1..N / ↑↓ / Enter / Esc) is handled globally
  * w ProcessView, tu tylko wizualna reakcja na `pendingKey`.
  */
 export function OptionStepPanel({

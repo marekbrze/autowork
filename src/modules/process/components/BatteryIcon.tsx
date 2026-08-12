@@ -1,9 +1,9 @@
 import { cn } from '@/lib/utils';
 
 /**
- * Poziom energii (1..3) jako bateryjki — trzy segmenty, wypełnione wg `level`.
- * Dziedziczy kolor tekstu (bg-current), więc akcent ustala rodzic.
- * Dekoracyjne (aria-hidden) — wartość niesie też etykieta i klawisz.
+ * Energy level (1..3) as batteries — three segments, filled per `level`.
+ * Inherits the text color (bg-current), so the parent sets the accent.
+ * Decorative (aria-hidden) — the value is also carried by the label and the key.
  */
 export function BatteryIcon({ level, className }: { level: 1 | 2 | 3; className?: string }) {
   return (
@@ -13,7 +13,7 @@ export function BatteryIcon({ level, className }: { level: 1 | 2 | 3; className?
           key={i}
           className={cn(
             'w-1.5 rounded-sm',
-            // rosnąca wysokość segmentów — czytelna skala nawet bez koloru
+            // increasing segment height — a readable scale even without color
             i === 1 && 'h-2',
             i === 2 && 'h-2.5',
             i === 3 && 'h-3',
