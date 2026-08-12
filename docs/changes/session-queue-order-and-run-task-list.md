@@ -4,108 +4,108 @@
 Feature (planned by proto-feature)
 
 ## User goal
-Dwie rzeczy, które użytkownik chce widzieć na obu końcach pracy nad zadaniami:
+Two things the user wants to see at both ends of working on tasks:
 
-1. **W filtrze sesji (focus)** — po ustawieniu filtru (konteksty + energia) widzieć **listę dopasowanych zadań**, które za chwilę zrobi, i móc **ręcznie ustawić ich kolejność** (jak pojawiają się w sesji). Dziś kolejność jest sztywno wyprowadzona z ranku stresora i listy nie widać.
-2. **Na Szczegółach Runa (run)** — widzieć **listę wszystkich zadań z prawdziwym stanem** (zrobione / do zrobienia / nieaktualne / odłożone) i móc **działać z listy** (oznaczyć done, oflagować nieaktualne). Dziś widać tylko agregaty (kaflowie statystyk), bez samej listy.
+1. **In the session filter (focus)** — after setting the filter (contexts + energy), see a **list of matched tasks** they're about to do, and be able to **manually set their order** (how they appear in the session). Today the order is rigidly derived from the stressor rank and the list isn't visible.
+2. **On Run Details (run)** — see a **list of all tasks with their real state** (done / to do / not relevant / deferred) and be able to **act from the list** (mark done, flag not relevant). Today only aggregates (stat tiles) are visible, not the list itself.
 
 ## MVP scope
 **In scope:**
-- **A (focus):** lista dopasowanych zadań na ekranie filtra + ręczne przekładanie (drag / ↑↓) + trwały porządek per-Run + „reset do defaultu".
-- **B (run):** sekcja „Tasks" na RunDetails — lista zadań z prawdziwym stanem + akcje z listy: oznacz done (`completed`), oflaguj nieaktualne (`dismissed`).
+- **A (focus):** a matched-tasks list on the filter screen + manual reordering (drag / ↑↓) + a persistent per-Run order + "reset to default".
+- **B (run):** a "Tasks" section on RunDetails — a task list with real state + list actions: mark done (`completed`), flag not relevant (`dismissed`).
 
 **Out of scope (Later):**
-- Edycja tekstu / atrybutów taska oraz usuwanie taska z poziomu RunDetails.
-- „Otwórz ponownie" (→ `pending`) z listy RunDetails (inverse done/dismiss).
-- Akcja `Skip` z poziomu RunDetails (skip jest pojęciem sesji — patrz Related).
-- Osobne kolejności per filtr (model = jeden porządek na Run).
-- Prawdziwe spięcie danych per-Run (ADR 0020) — kolejność i lista dziedziczą globalny store tasków.
+- Editing a task's text / attributes and deleting a task from RunDetails.
+- "Reopen" (→ `pending`) from the RunDetails list (inverse of done/dismiss).
+- A `Skip` action from RunDetails (skip is a session concept — see Related).
+- Separate orders per filter (the model = one order per Run).
+- Real per-Run data wiring (ADR 0020) — the order and the list inherit the global task store.
 
-## Related (trasowane osobno — NIE część tego feature'u)
-- **Skip czyści się przy wyjściu z sesji** — użytkownik zgłosił, że po powrocie do pracy (Continue/Resume) sesja pokazuje mu np. 3. zadanie z 3, bo dwa wcześniejsze „wiszą" jako skipnięte. To jest **bug**, nie feature: objaw utrzymuje się mimo ADR 0034 (fix z `2a0a7f7`), więc wymaga root-cause. Hipoteza: użytkownik używa **Resume**, a snapshot trzyma kursor postawiony za skipniętymi taskami (`FocusView.tsx` `resumeSession` / `resumableSnapshot`) — wczorajszy reset na starcie *nowej* sesji tego nie łapie. Dodatkowo hipoteza użytkownika („czyść skip przy wyjściu") **sama w sobie może nie naprawić** objawu, bo problemem jest kursor, nie tylko stan. → **`proto-bug [focus]`** (diagnoza + plan fixa, niezależnie od tego feature'u).
+## Related (routed separately — NOT part of this feature)
+- **Skip clears on session exit** — the user reported that on returning to work (Continue/Resume) the session shows them e.g. the 3rd task of 3, because the two earlier ones "hang" as skipped. This is a **bug**, not a feature: the symptom persists despite ADR 0034 (fix in `2a0a7f7`), so it needs a root cause. Hypothesis: the user uses **Resume**, and the snapshot holds the cursor placed past the skipped tasks (`FocusView.tsx` `resumeSession` / `resumableSnapshot`) — yesterday's reset at the start of a *new* session doesn't catch it. Additionally, the user's hypothesis ("clear skip on exit") **may not fix the symptom by itself**, because the problem is the cursor, not only the state. → **`proto-bug [focus]`** (diagnosis + fix plan, independent of this feature).
 
 ## Impact map
-- **New module?**: nie — rozszerza `focus` i `run`.
+- **New module?**: no — extends `focus` and `run`.
 - **Modules affected**:
-  - `focus` — ekran filtra zyskuje listę dopasowanych + UI kolejności; nowa persystencja porządku; budowanie kolejki czyta porządek ręczny zamiast (default) ranku stresora.
-  - `run` — RunDetails zyskuje sekcję listy zadań + akcje; moduł `run` po raz pierwszy **mutuje stany tasków** (cross-module: `run` → store tasków z `decompose`).
-- **Cross-module integration** (ryzykowne punkty):
-  1. **A — persystencja ręcznej kolejności vs globalny store + filtr.** Porządek trzyma uporządkowaną listę ID tasków; filtr maskuje podzbiór; przełożenie podfiltrem rekonfiguruje globalny porządek. Miejsce integracji: budowanie kolejki w `FocusView` (`start` / `attributed`).
-  2. **B — `run` mutuje taski `decompose`.** RunDetails wywoła `updateTask` z `decompose/hooks/use-tasks.ts`. Statystyki Runa (`deriveRunStats`, `stats.ts`) muszą zareagować na żywo (już wyprowadzane z tasków — zweryfikować).
-- **Shared-doc additions** (zapisuje `proto-detail`):
+  - `focus` — the filter screen gains a matched list + an order UI; new order persistence; queue building reads the manual order instead of (default) the stressor rank.
+  - `run` — RunDetails gains a task-list section + actions; the `run` module **mutates task states** for the first time (cross-module: `run` → task store from `decompose`).
+- **Cross-module integration** (risky points):
+  1. **A — manual-order persistence vs global store + filter.** The order holds an ordered list of task IDs; the filter masks a subset; reordering within a sub-filter reconfigures the global order. Integration point: queue building in `FocusView` (`start` / `attributed`).
+  2. **B — `run` mutates `decompose` tasks.** RunDetails will call `updateTask` from `decompose/hooks/use-tasks.ts`. Run stats (`deriveRunStats`, `stats.ts`) must react live (already derived from tasks — verify).
+- **Shared-doc additions** (written by `proto-detail`):
   - `ACTIONS.md` [+]: `Reorder queue` (drag/↑↓), `Reset queue order`, `View run task list`, `Mark task done (from details)`, `Mark task not-relevant (from details)`.
-  - `ENTITY_MAP.md` [+]: wartość/relacja `TaskOrder` (manualny porządek per-Run; default = rank stresora) — relacja `Run 1—1 TaskOrder 1—* Task` (kolejność).
-  - `GLOSSARY.md` [+]: `Manual queue order` (`TaskOrder`) — ręczny porządek zadań w Runie; `Run task list` — widok listy zadań na Szczegółach.
+  - `ENTITY_MAP.md` [+]: the `TaskOrder` value/relation (a manual per-Run order; default = stressor rank) — the `Run 1—1 TaskOrder 1—* Task` (order) relation.
+  - `GLOSSARY.md` [+]: `Manual queue order` (`TaskOrder`) — a Run's manual task order; `Run task list` — the task-list view on Details.
 
 ## Per-module changes
 
-### `focus` — lista dopasowanych + ręczna kolejność
+### `focus` — matched list + manual order
 - **Data**:
-  - Nowa persystencja: **`TaskOrder`** = uporządkowana lista ID tasków (`string[]`), klucz np. `focus:taskOrder` (przez `useLocalStorage`, wzorzec `focus:filter` z `FocusView.tsx:62`).
-  - **Default** (brak `TaskOrder` / po resecie) = kolejność po ranku stresora, tak jak dziś (`attributed`, `FocusView.tsx:78-90`: sort po `stressorRank` + `createdAt`).
-  - **Per-Run w intencji; w prototypie globalne** — dziedziczy ograniczenie ADR 0020 (dane lejka bez `runId`); przy przyszłym spięciu per-Run staje się per-Run bez zmiany modelu.
-  - Taski spoza `TaskOrder` (nowo dodane) → doklejane wg defaultu (rank stresora) na końcu (→ edgecases).
+  - New persistence: **`TaskOrder`** = an ordered list of task IDs (`string[]`), key e.g. `focus:taskOrder` (via `useLocalStorage`, the `focus:filter` pattern from `FocusView.tsx:62`).
+  - **Default** (no `TaskOrder` / after reset) = order by stressor rank, as today (`attributed`, `FocusView.tsx:78-90`: sort by `stressorRank` + `createdAt`).
+  - **Per-Run in intent; global in the prototype** — inherits the ADR 0020 limitation (funnel data without `runId`); with future per-Run wiring it becomes per-Run with no model change.
+  - Tasks outside `TaskOrder` (newly added) → appended by default (stressor rank) at the end (→ edgecases).
 - **Actions**:
-  - **Reorder queue** — drag / ↑↓ na liście dopasowanych; aktualizuje `TaskOrder` (pozycje przełożonych ID; pozostałe stabilne). Honest persistence: przy awarii zapisu lokalny stan się nie psuje (wzorzec z `ProcessView` / `FocusView`).
-  - **Reset queue order** — czyści `TaskOrder` → powrót do ranku stresora.
-  - **Filter** i **Start** — bez zmian semantycznie; Start buduje kolejkę z dopasowanych **w porządku `TaskOrder`** (zamiast czystego ranku stresora).
+  - **Reorder queue** — drag / ↑↓ on the matched list; updates `TaskOrder` (positions of the moved IDs; the rest stable). Honest persistence: on a write failure the local state doesn't break (the pattern from `ProcessView` / `FocusView`).
+  - **Reset queue order** — clears `TaskOrder` → back to stressor rank.
+  - **Filter** and **Start** — semantically unchanged; Start builds the queue from the matched **in `TaskOrder` order** (instead of pure stressor rank).
 - **Screens & flows**:
-  - `SessionFilter` (`SessionFilter.tsx`) staje się dwuczęściowa: (1) filtry (konteksty + energia) + licznik dopasowań — jak dziś; (2) **lista dopasowanych zadań** ( tekst + plakietki atrybutów context/energy/time + uchwyt drag + ↑↓ ), widoczna gdy `matchCount > 0`. Kontrola **„Reset to default"** gdy aktywny jest porządek ręczny. Duży **Start** zostaje.
-  - Wejście: bez zmian (z `process` / Continue → `/focus`). Brak nowego wpisu w nawigacji.
+  - `SessionFilter` (`SessionFilter.tsx`) becomes two-part: (1) filters (contexts + energy) + match counter — as today; (2) a **matched-tasks list** (text + context/energy/time attribute badges + a drag handle + ↑↓), visible when `matchCount > 0`. A **"Reset to default"** control when a manual order is active. The large **Start** stays.
+  - Entry: unchanged (from `process` / Continue → `/focus`). No new nav entry.
 - **States** (→ `harden`):
-  - Lista 1-elementowa — reorder zablokowany/no-op.
-  - 0 dopasowań — lista ukryta, Start zablokowany (już obsłużone, `SessionFilter.tsx:84-99`).
-  - Awaria zapisu `TaskOrder` — toast retry, bez cichej utraty układu.
-  - Reset — potwierdzenie albo natychmiast + undo (do rozstrzygnięcia w `harden`).
-- **Edge cases** (→ `edgecases`): taski dodane po nadaniu `TaskOrder` (gdzie lądują); `TaskOrder` wskazuje usunięte taski (prune); `TaskOrder` wskazuje taski spoza bieżącego filtru (ukryte, pozycje zachowane); reorder przy filtrze „wszystko"; sortowanie stabilne dla niewymienionych.
-- **Design**: `SessionFilter` dostaje listę + drag handles — nowa powierzchnia na istniejącym ekranie → `lofi` (zbudować), potem `design`/`polish` (drag UX, plakietki, rytm). Szanuje `DESIGN.md` (jeśli istnieje).
+  - Single-element list — reorder disabled/no-op.
+  - 0 matches — list hidden, Start disabled (already handled, `SessionFilter.tsx:84-99`).
+  - `TaskOrder` write failure — retry toast, no silent layout loss.
+  - Reset — confirmation or immediate + undo (to resolve in `harden`).
+- **Edge cases** (→ `edgecases`): tasks added after `TaskOrder` is set (where they land); `TaskOrder` points to deleted tasks (prune); `TaskOrder` points to tasks outside the current filter (hidden, positions preserved); reorder with an "all" filter; stable sort for unlisted items.
+- **Design**: `SessionFilter` gets a list + drag handles — a new surface on an existing screen → `lofi` (build), then `design`/`polish` (drag UX, badges, rhythm). Respects `DESIGN.md` (if it exists).
 
-### `run` — lista zadań na Szczegółach + akcje
+### `run` — task list on Details + actions
 - **Data**:
-  - Bez nowej encji. RunDetails czyta wszystkie taski (`decompose:tasks`, globalne — ADR 0020) i ich `state`.
-  - Akcje mutują `Task.state` przez `updateTask` (`decompose/hooks/use-tasks.ts`) — moduł `run` zaczyna pisać do store'u tasków.
+  - No new entity. RunDetails reads all tasks (`decompose:tasks`, global — ADR 0020) and their `state`.
+  - Actions mutate `Task.state` via `updateTask` (`decompose/hooks/use-tasks.ts`) — the `run` module starts writing to the task store.
 - **Actions**:
-  - **View run task list** — lista na RunDetails (pod kaflami statystyk).
+  - **View run task list** — the list on RunDetails (under the stat tiles).
   - **Mark task done (from details)** — `pending`/`skipped` → `completed`.
-  - **Mark task not-relevant (from details)** — → `dismissed` (terminalnie; liczy do progresem, ADR 0017).
+  - **Mark task not-relevant (from details)** — → `dismissed` (terminally; counts toward progress, ADR 0017).
 - **Screens & flows**:
-  - `RunDetails` (`RunDetails.tsx`) zyskuje sekcję **„Tasks"** pomiędzy statystykami (`:134-137`) a blokiem Continue (`:139-163`). Lista zadań pogrupowana/etykietowana stanem: **To do** (`pending`/`skipped`/`active`), **Done** (`completed`), **Not relevant** (`dismissed`). Wiersz: tekst + plakietka stanu + akcje (Done / Not relevant; zablokowane gdy już w tym stanie). Statystyki (`RunStatTiles`) przeliczają się na żywo przez `useLiveRuns`/`deriveRunStats`.
-  - Wejście: bez zmian (karta Runa → Szczegóły). Brak nowego wpisu w nawigacji.
+  - `RunDetails` (`RunDetails.tsx`) gains a **"Tasks"** section between the stats (`:134-137`) and the Continue block (`:139-163`). The task list grouped/labeled by state: **To do** (`pending`/`skipped`/`active`), **Done** (`completed`), **Not relevant** (`dismissed`). Row: text + a state badge + actions (Done / Not relevant; disabled when already in that state). Stats (`RunStatTiles`) recompute live via `useLiveRuns`/`deriveRunStats`.
+  - Entry: unchanged (Run card → Details). No new nav entry.
 - **States** (→ `harden`):
-  - Pusty Run (brak tasków) — empty-state („No tasks yet — start with a brain dump").
-  - Awaria odczytu/zapisu — toast retry (wzorzec `StorageStatusToast`, już w `RunDetails.tsx:192`).
-  - Dismiss z listy — confirm albo undo (do rozstrzygnięcia w `harden`).
-- **Edge cases** (→ `edgecases`): task bez atrybutów (nieprocesowany) — pokazać z labelką „untagged"; akcja done na już-done (no-op/disable); wpływ akcji na `lastReachedStep`/resume routing; sortowanie listy (default rank stresora / `TaskOrder`?).
-- **Design**: nowa sekcja na istniejącym ekranie → `lofi`, potem `design`/`polish`.
+  - Empty Run (no tasks) — empty-state ("No tasks yet — start with a brain dump").
+  - Read/write failure — retry toast (the `StorageStatusToast` pattern, already in `RunDetails.tsx:192`).
+  - Dismiss from the list — confirm or undo (to resolve in `harden`).
+- **Edge cases** (→ `edgecases`): a task without attributes (unprocessed) — show with an "untagged" label; a done action on an already-done task (no-op/disable); the action's impact on `lastReachedStep`/resume routing; list sorting (default stressor rank / `TaskOrder`?).
+- **Design**: a new section on an existing screen → `lofi`, then `design`/`polish`.
 
 ## Routing — which proto skill builds what
 | Step | Skill | Target | What it does |
 |------|-------|--------|--------------|
-| 1 | proto-detail | `focus` | zespecyfikować zmiany filtra + `TaskOrder` + wpisy do `ACTIONS`/`ENTITY_MAP`/`GLOSSARY` |
-| 2 | proto-detail | `run` | zespecyfikować sekcję listy + akcje z listy + wpisy shared-doc |
-| 3 | proto-lofi | `focus` | zbudować listę dopasowanych + UI kolejności + reset |
-| 4 | proto-lofi | `run` | zbudować sekcję „Tasks" + akcje done/not-relevant |
-| 5 | proto-edgecases | `focus` | nowe przypadki: `TaskOrder` vs dodane/usunięte taski, stabilność sortu |
-| 6 | proto-edgecases | `run` | nowe przypadki: pusty run, taski bez atrybutów, wpływ na resume routing |
-| 7 | proto-harden | `focus` | stany: 1-elementowa lista, awaria zapisu `TaskOrder`, reset (confirm/undo) |
-| 8 | proto-harden | `run` | stany: empty-state, awaria storage, dismiss (confirm/undo) |
-| 9 | (direct edit) | — | patrz Residual — spięcie `TaskOrder` z budowaniem kolejki + mutacje tasków z `run` |
-| 10 | proto-design → polish | `focus`, `run` | hi-fi list, drag handles, plakietki, rytm (jeśli wizualne) |
-| — | **proto-bug** | `focus` | **Related, osobno:** diagnoza skip-cleanup-on-exit (patrz sekcja Related) |
+| 1 | proto-detail | `focus` | spec the filter changes + `TaskOrder` + entries in `ACTIONS`/`ENTITY_MAP`/`GLOSSARY` |
+| 2 | proto-detail | `run` | spec the list section + list actions + shared-doc entries |
+| 3 | proto-lofi | `focus` | build the matched list + order UI + reset |
+| 4 | proto-lofi | `run` | build the "Tasks" section + done/not-relevant actions |
+| 5 | proto-edgecases | `focus` | new cases: `TaskOrder` vs added/deleted tasks, sort stability |
+| 6 | proto-edgecases | `run` | new cases: empty run, attributeless tasks, impact on resume routing |
+| 7 | proto-harden | `focus` | states: single-element list, `TaskOrder` write failure, reset (confirm/undo) |
+| 8 | proto-harden | `run` | states: empty-state, storage failure, dismiss (confirm/undo) |
+| 9 | (direct edit) | — | see Residual — wiring `TaskOrder` to queue building + task mutations from `run` |
+| 10 | proto-design → polish | `focus`, `run` | hi-fi list, drag handles, badges, rhythm (if visual) |
+| — | **proto-bug** | `focus` | **Related, separate:** skip-cleanup-on-exit diagnosis (see the Related section) |
 
 ## Residual — direct edits not covered by a proto skill
-- **[`src/modules/focus/components/FocusView.tsx:190-204` (`start`)]** — teraz: kolejka = dopasowane w kolejności `attributed` (rank stresora). zmiana: buduj kolejkę w porządku `TaskOrder` (gdy istnieje), z defaultem = obecny sort. why: ręczny porządek ma decydować o kolejności w sesji.
-- **[`src/modules/focus/components/FocusView.tsx:62` okolice]** — dodaj persystencję `TaskOrder` przez `useLocalStorage<string[]>('focus:taskOrder', [])`; funkcja sortująca `orderedTaskIds(tasks, taskOrder, stressorRank)` (mapowane wg indeksu w `TaskOrder`, reszta wg ranku stresora na końcu). why: jeden model porządku współdzielony przez listę filtra i budowanie kolejki.
-- **[`src/modules/focus/components/SessionFilter.tsx:141-155`]** — dodaj propsy: `matchedTasks: Task[]` (uporządkowane), `onReorder(ids: string[])`, `onResetOrder()`, `hasManualOrder: boolean`; wyrenderuj listę dopasowanych z drag/↑↓ + kontrolkę „Reset to default". why: UI kolejności na ekranie filtra.
-- **[`src/modules/run/components/RunDetails.tsx:134-163`]** — wstaw sekcję „Tasks": czytaj taski (hook `useTasks` z `decompose`), grupuj po `state`, renderuj wiersze z akcjami `onDone`/`onDismiss` (`updateTask`). why: lista zadań + akcje na Szczegółach.
-- **[`src/modules/run/components/RunDetails.tsx:22`]** — dodać `useTasks()` z `decompose/hooks/use-tasks.ts` (cross-module read+write). why: `run` musi czytać i mutować stany tasków.
-- **Weryfikacja (nie-edycja):** `src/modules/run/stats.ts:22-42` (`deriveRunStats`) czyta `state` bezpośrednio — po akcjach done/dismiss z RunDetails statystyki przeliczają się same; potwierdzić, że `RunStatTiles` odświeża się na żywo.
+- **[`src/modules/focus/components/FocusView.tsx:190-204` (`start`)]** — today: queue = matched in `attributed` order (stressor rank). change: build the queue in `TaskOrder` order (when it exists), with a default = the current sort. why: the manual order should decide the session order.
+- **[`src/modules/focus/components/FocusView.tsx:62` area]** — add `TaskOrder` persistence via `useLocalStorage<string[]>('focus:taskOrder', [])`; a sorting function `orderedTaskIds(tasks, taskOrder, stressorRank)` (mapped by index in `TaskOrder`, the rest by stressor rank at the end). why: one order model shared by the filter list and queue building.
+- **[`src/modules/focus/components/SessionFilter.tsx:141-155`]** — add props: `matchedTasks: Task[]` (ordered), `onReorder(ids: string[])`, `onResetOrder()`, `hasManualOrder: boolean`; render the matched list with drag/↑↓ + a "Reset to default" control. why: the order UI on the filter screen.
+- **[`src/modules/run/components/RunDetails.tsx:134-163`]** — insert a "Tasks" section: read tasks (the `useTasks` hook from `decompose`), group by `state`, render rows with `onDone`/`onDismiss` actions (`updateTask`). why: the task list + actions on Details.
+- **[`src/modules/run/components/RunDetails.tsx:22`]** — add `useTasks()` from `decompose/hooks/use-tasks.ts` (cross-module read+write). why: `run` must read and mutate task states.
+- **Verification (non-edit):** `src/modules/run/stats.ts:22-42` (`deriveRunStats`) reads `state` directly — after done/dismiss actions from RunDetails the stats recompute themselves; confirm `RunStatTiles` refreshes live.
 
 ## Later (deferred)
-- Edycja tekstu/atrybutów oraz usuwanie taska z RunDetails.
-- „Otwórz ponownie" (`→ pending`) z RunDetails.
-- Osobne kolejności per filtr.
-- Prawdziwe spięcie per-Run (ADR 0020) dla `TaskOrder` i listy tasków.
+- Editing text/attributes and deleting a task from RunDetails.
+- "Reopen" (`→ pending`) from RunDetails.
+- Separate orders per filter.
+- Real per-Run wiring (ADR 0020) for `TaskOrder` and the task list.
 
 ## Hand-off
-Feature = A (`focus`) + B (`run`). Odpal w kolejności z tabeli Routing: najpierw `proto-detail focus` i `proto-detail run` (zespecyfikować zmiany + wpisy shared-doc), potem `lofi`/`edgecases`/`harden`/residual/`design`. Równolegle (osobno) odpal `proto-bug focus` dla skip-cleanup-on-exit (sekcja Related) — to niezależny bug. Ten dokument jest bazą, którą czytają kolejne skille.
+Feature = A (`focus`) + B (`run`). Run in the Routing table's order: first `proto-detail focus` and `proto-detail run` (spec the changes + shared-doc entries), then `lofi`/`edgecases`/`harden`/residual/`design`. In parallel (separately) run `proto-bug focus` for skip-cleanup-on-exit (the Related section) — that's an independent bug. This document is the base the next skills read.
